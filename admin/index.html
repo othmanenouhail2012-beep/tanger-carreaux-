@@ -1,0 +1,1155 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Back-office — Tanger Carreaux</title>
+<link rel="icon" type="image/svg+xml" href="../assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="admin.css?v=5">
+</head>
+<body>
+
+<div class="admin-shell">
+
+  <aside class="admin-sidebar">
+    <div class="admin-brand">
+      <img src="../assets/logo-white.svg" alt="Tanger Carreaux" class="admin-brand-mark">
+      <div class="admin-brand-text"><span>Back-office</span></div>
+    </div>
+    <nav class="admin-nav" id="adminNav">
+
+      <div class="admin-nav-group open" data-group="overview">
+        <button type="button" class="admin-nav-group-toggle" data-group-toggle>Vue d'ensemble<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><polyline points="6 9 12 15 18 9"/></svg></button>
+        <div class="admin-nav-group-links">
+          <button type="button" class="admin-nav-link active" data-panel="dashboard">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>
+            Tableau de bord
+          </button>
+          <button type="button" class="admin-nav-link" data-panel="notifications">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+            Notifications
+            <span class="admin-nav-badge" id="notifNavBadge" hidden>0</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="admin-nav-group open" data-group="commercial">
+        <button type="button" class="admin-nav-group-toggle" data-group-toggle>Commercial<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><polyline points="6 9 12 15 18 9"/></svg></button>
+        <div class="admin-nav-group-links">
+          <button type="button" class="admin-nav-link" data-panel="ventes">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M23 6l-9.5 9.5-5-5L1 18"/><path d="M17 6h6v6"/></svg>
+            Ventes
+          </button>
+          <button type="button" class="admin-nav-link" data-panel="orders">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 2 4 6v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V6l-2-4Z"/><path d="M4 6h16"/><path d="M9 10a3 3 0 0 0 6 0"/></svg>
+            Commandes
+            <span class="admin-nav-badge" id="ordersBadge" hidden>0</span>
+          </button>
+          <button type="button" class="admin-nav-link" data-panel="devis" hidden style="display:none">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M8 13h8M8 17h8M8 9h2"/></svg>
+            Devis
+          </button>
+          <button type="button" class="admin-nav-link" data-panel="livraisons">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M1 3h13v13H1z"/><path d="M14 8h4l3 3v5h-7V8z"/><circle cx="6" cy="18" r="2"/><circle cx="17" cy="18" r="2"/></svg>
+            Livraisons
+          </button>
+          <button type="button" class="admin-nav-link" data-panel="paiements">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="1" y="4" width="22" height="16" rx="2"/><path d="M1 10h22"/></svg>
+            Paiements
+          </button>
+          <button type="button" class="admin-nav-link" data-panel="facturation" hidden style="display:none">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 2h16v20l-3-2-3 2-3-2-3 2-3-2-1 1V2Z"/><path d="M8 7h8M8 11h8M8 15h5"/></svg>
+            Facturation
+          </button>
+        </div>
+      </div>
+
+      <div class="admin-nav-group" data-group="catalogue">
+        <button type="button" class="admin-nav-group-toggle" data-group-toggle>Catalogue &amp; Stock<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><polyline points="6 9 12 15 18 9"/></svg></button>
+        <div class="admin-nav-group-links">
+          <button type="button" class="admin-nav-link" data-panel="catalog">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2 2 7l10 5 10-5-10-5Z"/><path d="M2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+            Produits
+          </button>
+          <button type="button" class="admin-nav-link" data-panel="add-product">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>
+            Ajouter un produit
+          </button>
+          <button type="button" class="admin-nav-link" data-panel="stock">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="4" width="20" height="5" rx="1"/><path d="M4 9v9a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9"/><path d="M10 13h4"/></svg>
+            Stock
+          </button>
+          <button type="button" class="admin-nav-link" data-panel="fournisseurs">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 21h18"/><path d="M5 21V7l7-4 7 4v14"/><path d="M9 9h1M14 9h1M9 13h1M14 13h1M9 17h1M14 17h1"/></svg>
+            Fournisseurs
+          </button>
+          <button type="button" class="admin-nav-link" data-panel="commandes-fournisseurs" hidden style="display:none">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M9 3v3h6V3"/><path d="M8 11h8M8 15h5"/></svg>
+            Commandes fournisseurs
+          </button>
+        </div>
+      </div>
+
+      <div class="admin-nav-group" data-group="clients">
+        <button type="button" class="admin-nav-group-toggle" data-group-toggle>Clients &amp; Support<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><polyline points="6 9 12 15 18 9"/></svg></button>
+        <div class="admin-nav-group-links">
+          <button type="button" class="admin-nav-link" data-panel="clients">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            Clients
+          </button>
+          <button type="button" class="admin-nav-link" data-panel="avis" hidden style="display:none">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2 14.9 8.6 22 9.3 16.7 14.1 18.2 21 12 17.3 5.8 21 7.3 14.1 2 9.3 9.1 8.6 12 2Z"/></svg>
+            Avis clients
+          </button>
+          <button type="button" class="admin-nav-link" data-panel="sav" hidden style="display:none">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/><path d="m4.93 4.93 4.24 4.24M14.83 14.83l4.24 4.24M14.83 9.17l4.24-4.24M4.93 19.07l4.24-4.24"/></svg>
+            SAV
+          </button>
+        </div>
+      </div>
+
+      <div class="admin-nav-group" data-group="ressources">
+        <button type="button" class="admin-nav-group-toggle" data-group-toggle>Ressources<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><polyline points="6 9 12 15 18 9"/></svg></button>
+        <div class="admin-nav-group-links">
+          <button type="button" class="admin-nav-link" data-panel="employes">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a7 7 0 0 1 14 0v1"/></svg>
+            Employés
+          </button>
+          <button type="button" class="admin-nav-link" data-panel="showrooms">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 9l1.5-5h15L21 9"/><path d="M3 9v11h18V9"/><path d="M9 21v-6h6v6"/></svg>
+            Showrooms
+          </button>
+        </div>
+      </div>
+
+      <div class="admin-nav-group" data-group="finance" hidden style="display:none">
+        <button type="button" class="admin-nav-group-toggle" data-group-toggle>Finance<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><polyline points="6 9 12 15 18 9"/></svg></button>
+        <div class="admin-nav-group-links">
+          <button type="button" class="admin-nav-link" data-panel="comptabilite">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="6" x2="16" y2="6"/><line x1="8" y1="14" x2="8" y2="18"/><line x1="12" y1="14" x2="12" y2="18"/><line x1="16" y1="14" x2="16" y2="18"/></svg>
+            Comptabilité
+          </button>
+          <button type="button" class="admin-nav-link" data-panel="kpi-avances">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+            KPI Avancés
+          </button>
+        </div>
+      </div>
+
+      <div class="admin-nav-group" data-group="digital">
+        <button type="button" class="admin-nav-group-toggle" data-group-toggle>Digital<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><polyline points="6 9 12 15 18 9"/></svg></button>
+        <div class="admin-nav-group-links">
+          <button type="button" class="admin-nav-link" data-panel="marketing" hidden style="display:none">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 11 18 4v16L3 13v-2Z"/><path d="M8 13v5a2 2 0 0 0 4 0v-3"/></svg>
+            Marketing
+          </button>
+          <button type="button" class="admin-nav-link" data-panel="site-web" hidden style="display:none">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15 15 0 0 1 4 10 15 15 0 0 1-4 10 15 15 0 0 1-4-10 15 15 0 0 1 4-10Z"/></svg>
+            Site web
+          </button>
+          <button type="button" class="admin-nav-link" data-panel="editeur">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
+            Éditeur visuel
+          </button>
+          <button type="button" class="admin-nav-link" data-panel="ia">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2a4 4 0 0 0-4 4v1a4 4 0 0 0-3 6.3V16a3 3 0 0 0 3 3h1v2h6v-2h1a3 3 0 0 0 3-3v-2.7A4 4 0 0 0 16 7V6a4 4 0 0 0-4-4Z"/><path d="M9 21h6"/></svg>
+            IA &amp; Recommandations
+          </button>
+        </div>
+      </div>
+
+      <div class="admin-nav-group" data-group="organisation" hidden style="display:none">
+        <button type="button" class="admin-nav-group-toggle" data-group-toggle>Organisation<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><polyline points="6 9 12 15 18 9"/></svg></button>
+        <div class="admin-nav-group-links">
+          <button type="button" class="admin-nav-link" data-panel="documents">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7Z"/></svg>
+            Documents
+          </button>
+          <button type="button" class="admin-nav-link" data-panel="agenda">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            Agenda
+          </button>
+          <button type="button" class="admin-nav-link" data-panel="galerie">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
+            Galerie
+          </button>
+          <button type="button" class="admin-nav-link" data-panel="carte">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>
+            Carte
+          </button>
+        </div>
+      </div>
+
+      <div class="admin-nav-group" data-group="outils">
+        <button type="button" class="admin-nav-group-toggle" data-group-toggle>Outils<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><polyline points="6 9 12 15 18 9"/></svg></button>
+        <div class="admin-nav-group-links">
+          <button type="button" class="admin-nav-link" data-panel="import-export">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Import / Export
+          </button>
+          <button type="button" class="admin-nav-link" data-panel="assistant">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 11.5a8.38 8.38 0 0 1-6.9 8.24 8.5 8.5 0 0 1-5.4-.8L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 8.5-8.5h.1a8.5 8.5 0 0 1 8.4 8.3v.2Z"/></svg>
+            Assistant
+          </button>
+          <button type="button" class="admin-nav-link" data-panel="settings">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"/></svg>
+            Paramètres
+          </button>
+        </div>
+      </div>
+
+    </nav>
+    <div class="admin-sidebar-foot">
+      <a href="../index.html" class="admin-back-link">← Retour au site public</a>
+    </div>
+  </aside>
+
+  <main class="admin-main">
+
+    <div class="admin-global-bar">
+      <span class="admin-role-badge">Manager</span>
+      <button type="button" class="admin-icon-action" id="themeToggleBtn" aria-label="Changer le thème">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" id="themeIconMoon"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79Z"/></svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" id="themeIconSun" hidden><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+      </button>
+      <div class="admin-notif-wrap">
+        <button type="button" class="admin-icon-action" id="notifBell" aria-label="Notifications">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+          <span class="admin-notif-dot" id="notifDot" hidden></span>
+        </button>
+        <div class="admin-notif-panel" id="notifPanel" aria-hidden="true">
+          <div class="admin-notif-head"><h4>Notifications</h4><span id="notifCount">0 en attente</span></div>
+          <div class="admin-notif-list" id="notifList"></div>
+        </div>
+      </div>
+      <button type="button" class="admin-btn admin-btn-outline admin-logout-btn" id="logoutBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg>
+        Déconnexion
+      </button>
+    </div>
+
+    <!-- ===== TABLEAU DE BORD — VUE GLOBALE (Bento Grid) ===== -->
+    <section class="admin-panel active" id="panel-dashboard">
+      <div class="admin-topbar">
+        <div>
+          <h1>Vue globale</h1>
+          <p>Résumé exécutif de l'activité, calculé en direct à partir des commandes et du catalogue réels.</p>
+        </div>
+        <span class="admin-data-badge live">Données réelles</span>
+      </div>
+
+      <!-- Ligne 1 — 6 KPI -->
+      <div class="admin-bento-kpi-row">
+        <div class="admin-stat-card"><p class="label">CA aujourd'hui</p><p class="value" id="revToday">0 MAD</p></div>
+        <div class="admin-stat-card"><p class="label">CA ce mois</p><p class="value" id="revMonth">0 MAD</p></div>
+        <div class="admin-stat-card"><p class="label">Commandes du jour</p><p class="value" id="kpiOrdersToday">0</p></div>
+        <div class="admin-stat-card"><p class="label">Commandes en attente</p><p class="value" id="kpiOrdersPending">0</p></div>
+        <div class="admin-stat-card"><p class="label">Nouveaux clients</p><p class="value" id="kpiNewClients">0</p></div>
+        <div class="admin-stat-card"><p class="label">Panier moyen</p><p class="value" id="kpiAvgBasket">0 MAD</p></div>
+        <div class="admin-stat-card"><p class="label">Bénéfices (ce mois)</p><p class="value" id="kpiProfit">—</p></div>
+      </div>
+
+      <!-- Ligne 2 -->
+      <div class="admin-bento-row-2">
+        <div class="admin-card" style="margin-bottom:0;">
+          <div class="admin-card-head"><div><h3>Évolution des ventes</h3><p>Ce mois-ci, par jour.</p></div></div>
+          <div class="admin-chart-wrap"><canvas id="bentoAreaChart"></canvas></div>
+        </div>
+        <div class="admin-card" style="margin-bottom:0;">
+          <div class="admin-card-head"><div><h3>Top 10 des produits les plus vendus</h3><p>Quantités cumulées, toutes périodes.</p></div></div>
+          <div class="admin-chart-wrap"><canvas id="bentoTopProductsChart"></canvas></div>
+        </div>
+        <div class="admin-bento-side">
+          <div class="admin-card admin-bento-total">
+            <span class="label">Références au catalogue</span>
+            <span class="value" id="bentoTotalRefs">0</span>
+          </div>
+          <div class="admin-card" style="margin-bottom:0; flex:1;">
+            <div class="admin-card-head"><div><h3 style="font-size:0.95rem;">Ventes par catégorie</h3></div></div>
+            <div class="admin-donut-wrap"><canvas id="bentoCategoryDonut"></canvas></div>
+            <div class="admin-donut-legend" id="bentoCategoryLegend"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Ligne 3 -->
+      <div class="admin-bento-row-3">
+        <div class="admin-card" style="margin-bottom:0;">
+          <div class="admin-card-head"><div><h3>Ventes par showroom</h3></div></div>
+          <div class="admin-chart-wrap-sm"><canvas id="bentoShowroomBar"></canvas></div>
+        </div>
+        <div class="admin-card" style="margin-bottom:0;">
+          <div class="admin-card-head"><div><h3>État des stocks</h3></div></div>
+          <div class="admin-donut-wrap"><canvas id="bentoStockDonut"></canvas></div>
+          <div class="admin-donut-legend" id="bentoStockLegend"></div>
+        </div>
+        <div class="admin-card" style="margin-bottom:0;">
+          <div class="admin-card-head"><div><h3>Modes de paiement</h3></div></div>
+          <div class="admin-donut-wrap"><canvas id="bentoPaymentDonut"></canvas></div>
+          <div class="admin-donut-legend" id="bentoPaymentLegend"></div>
+        </div>
+      </div>
+
+      <!-- Détails complémentaires -->
+      <div class="admin-dash-row" style="grid-template-columns: 1fr 1.4fr; margin-top:24px;">
+        <div class="admin-card" style="display:flex; align-items:center; gap:22px; margin-bottom:0;">
+          <div class="admin-gauge" id="objectiveGauge" style="--gauge-value:0;"><span class="admin-gauge-value" id="objectiveGaugeValue">0%</span></div>
+          <div>
+            <h3 style="font-size:1rem; margin-bottom:6px;">Objectif du mois</h3>
+            <p style="color:var(--a-muted); font-size:0.84rem; margin:0 0 4px;" id="objectiveSub">Objectif non défini</p>
+            <button type="button" class="admin-icon-btn" data-panel-link="settings">Définir l'objectif</button>
+          </div>
+        </div>
+        <div class="admin-card" style="margin-bottom:0;">
+          <div class="admin-card-head"><div><h3>Nouveaux vs fidèles</h3><p>Sur l'ensemble des commandes enregistrées.</p></div></div>
+          <div class="admin-compare-row"><span>Clients fidèles (2 commandes ou plus)</span><span id="statLoyal">0</span></div>
+          <div class="admin-compare-row"><span>Nouveaux clients (1 commande)</span><span id="statNew">0</span></div>
+          <div class="admin-compare-row"><span>Total clients distincts</span><span id="statTotalClients">0</span></div>
+        </div>
+      </div>
+
+      <div class="admin-card">
+        <div class="admin-card-head">
+          <div>
+            <h3>Dernières commandes</h3>
+            <p>Les 5 commandes les plus récentes.</p>
+          </div>
+          <button type="button" class="admin-btn admin-btn-outline" data-panel-link="orders">Voir toutes les commandes</button>
+        </div>
+        <div class="admin-recent-list" id="recentOrdersList"></div>
+      </div>
+    </section>
+
+    <!-- ===== COMMANDES ===== -->
+    <section class="admin-panel" id="panel-orders">
+      <div class="admin-topbar">
+        <div>
+          <h1>Commandes</h1>
+          <p>Liste des achats passés via le tunnel de commande du site.</p>
+        </div>
+      </div>
+
+      <div class="admin-card">
+        <div class="admin-filters">
+          <input type="search" id="ordersSearch" placeholder="Rechercher un client, une ville, une référence...">
+          <select id="ordersStatusFilter">
+            <option value="">Tous les statuts</option>
+            <option value="pending">En attente</option>
+            <option value="preparing">En préparation</option>
+            <option value="shipping">En livraison</option>
+            <option value="done">Livrée</option>
+            <option value="cancelled">Annulée</option>
+          </select>
+        </div>
+        <div class="admin-table-wrap">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>Référence</th>
+                <th>Client</th>
+                <th>Ville</th>
+                <th>Paiement</th>
+                <th>Total</th>
+                <th>Vendeur</th>
+                <th>Statut</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="ordersTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== CATALOGUE PRODUITS ===== -->
+    <section class="admin-panel" id="panel-catalog">
+      <div class="admin-topbar">
+        <div>
+          <h1>Catalogue Produits</h1>
+          <p>Tous les produits actuellement publiés sur le site.</p>
+        </div>
+        <span class="admin-data-badge live">Données réelles</span>
+      </div>
+
+      <div class="admin-card">
+        <div class="admin-card-head"><div><h3>Statistiques catalogue</h3><p>Calculées à partir des commandes et niveaux de stock réels.</p></div></div>
+        <div class="admin-compare-grid" style="margin-bottom:0;">
+          <div>
+            <p class="admin-role-badge" style="margin-bottom:10px;">Top ventes</p>
+            <div id="statTopSellers"></div>
+          </div>
+          <div>
+            <p class="admin-role-badge" style="margin-bottom:10px;">Flops (jamais vendus)</p>
+            <div id="statFlops"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="admin-card">
+        <div class="admin-filters">
+          <input type="search" id="catalogSearch" placeholder="Rechercher un produit...">
+          <select id="catalogPageFilter">
+            <option value="">Toutes les catégories</option>
+            <option value="carrelage.html">Carrelage</option>
+            <option value="sanitaire.html">Sanitaire</option>
+            <option value="robinetterie.html">Robinetterie</option>
+            <option value="mosaique-pierre.html">Mosaïque &amp; Pierre</option>
+            <option value="meubles-salle-de-bain.html">Meubles de salle de bain</option>
+            <option value="miroirs-led.html">Miroirs LED</option>
+          </select>
+          <select id="catalogStatusFilter">
+            <option value="active">Produits actifs</option>
+            <option value="hidden">Produits supprimés</option>
+            <option value="all">Tous les produits</option>
+          </select>
+        </div>
+        <div class="admin-table-wrap">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>Produit</th>
+                <th>Catégorie</th>
+                <th>Marque</th>
+                <th>Prix</th>
+                <th>Bénéfice</th>
+                <th>Stock</th>
+                <th>Statut</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="catalogTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== AJOUTER UN PRODUIT ===== -->
+    <section class="admin-panel" id="panel-add-product">
+      <div class="admin-topbar">
+        <div>
+          <h1>Ajouter un produit</h1>
+          <p>Ce produit apparaîtra immédiatement dans le Catalogue Produits.</p>
+        </div>
+      </div>
+
+      <div class="admin-card">
+        <form id="addProductForm">
+          <div class="admin-form-grid">
+            <div class="admin-field">
+              <label for="pName">Nom du produit</label>
+              <input type="text" id="pName" required placeholder="Ex : Grès cérame effet marbre">
+            </div>
+            <div class="admin-field">
+              <label for="pCategory">Catégorie</label>
+              <select id="pCategory" required>
+                <option value="carrelage.html">Carrelage</option>
+                <option value="sanitaire.html">Sanitaire</option>
+                <option value="robinetterie.html">Robinetterie</option>
+                <option value="mosaique-pierre.html">Mosaïque &amp; Pierre</option>
+                <option value="meubles-salle-de-bain.html">Meubles de salle de bain</option>
+                <option value="miroirs-led.html">Miroirs LED</option>
+              </select>
+            </div>
+            <div class="admin-field">
+              <label for="pBrand">Marque</label>
+              <input type="text" id="pBrand" placeholder="Ex : Olympia Ceramica (optionnel)">
+            </div>
+            <div class="admin-field">
+              <label for="pPrice">Prix de vente (MAD)</label>
+              <input type="number" id="pPrice" min="0" step="1" required placeholder="Ex : 250">
+            </div>
+            <div class="admin-field">
+              <label for="pCostPrice">Prix d'achat (MAD)</label>
+              <input type="number" id="pCostPrice" min="0" step="1" placeholder="Optionnel">
+              <p class="hint">Sert à calculer le bénéfice réel sur le tableau de bord. Laisser vide si inconnu.</p>
+            </div>
+            <div class="admin-field">
+              <label for="pPromo">Prix promotionnel (MAD)</label>
+              <input type="number" id="pPromo" min="0" step="1" placeholder="Optionnel">
+              <p class="hint">Laisser vide si le produit n'est pas en promotion.</p>
+            </div>
+            <div class="admin-field">
+              <label for="pStock">Quantité en stock</label>
+              <input type="number" id="pStock" min="0" step="1" placeholder="20 par défaut">
+              <p class="hint">Une alerte apparaît sur le tableau de bord sous 5 unités.</p>
+            </div>
+            <div class="admin-field full">
+              <label for="pDescription">Description</label>
+              <textarea id="pDescription" placeholder="Courte description affichée sur la fiche produit"></textarea>
+            </div>
+            <div class="admin-field full">
+              <label>Image du produit</label>
+              <div class="admin-dropzone" id="pDropzone">
+                <input type="file" id="pImage" accept="image/*">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M17 8l-5-5-5 5"/><path d="M12 3v12"/></svg>
+                <p>Cliquez ou glissez une image ici</p>
+                <p class="sub">JPG, PNG — redimensionnée automatiquement</p>
+              </div>
+              <div class="admin-image-preview" id="pImagePreview">
+                <img id="pImagePreviewImg" alt="Aperçu">
+                <span id="pImagePreviewName"></span>
+                <button type="button" id="pImageRemove">Retirer</button>
+              </div>
+            </div>
+          </div>
+          <div class="admin-form-actions">
+            <button type="submit" class="admin-btn admin-btn-primary">Ajouter au catalogue</button>
+            <button type="reset" class="admin-btn admin-btn-outline" id="addProductReset">Réinitialiser</button>
+          </div>
+          <p class="admin-form-status" id="addProductStatus"></p>
+        </form>
+      </div>
+    </section>
+
+    <!-- ===== PARAMÈTRES DU SITE ===== -->
+    <section class="admin-panel" id="panel-settings">
+      <div class="admin-topbar">
+        <div>
+          <h1>Paramètres du site</h1>
+          <p>Coordonnées et horaires affichés sur le site public.</p>
+        </div>
+      </div>
+
+      <form id="settingsForm">
+        <div class="admin-card">
+          <div class="admin-card-head">
+            <div><h3>Objectifs</h3><p>Utilisé pour la jauge du tableau de bord.</p></div>
+          </div>
+          <div class="admin-form-grid">
+            <div class="admin-field">
+              <label for="sMonthlyTarget">Objectif de chiffre d'affaires — ce mois (MAD)</label>
+              <input type="number" id="sMonthlyTarget" min="0" step="100" placeholder="Ex : 150000">
+            </div>
+          </div>
+        </div>
+
+        <div class="admin-card">
+          <div class="admin-card-head">
+            <div><h3>Showroom Tanger</h3><p>Siège historique — Avenue Moulay Youssef</p></div>
+          </div>
+          <div class="admin-form-grid">
+            <div class="admin-field">
+              <label for="sTangerPhone1">Téléphone principal</label>
+              <input type="text" id="sTangerPhone1" placeholder="05 39 32 46 96">
+            </div>
+            <div class="admin-field">
+              <label for="sTangerPhone2">Téléphone secondaire</label>
+              <input type="text" id="sTangerPhone2" placeholder="05 39 32 46 97">
+            </div>
+            <div class="admin-field full">
+              <label for="sTangerHours">Horaires d'ouverture</label>
+              <input type="text" id="sTangerHours" placeholder="Ex : Lun–Sam, 9h–19h">
+            </div>
+          </div>
+        </div>
+
+        <div class="admin-card">
+          <div class="admin-card-head">
+            <div><h3>Showroom Casablanca</h3><p>Route de Mediouna, km 12</p></div>
+          </div>
+          <div class="admin-form-grid">
+            <div class="admin-field">
+              <label for="sCasaPhone">Téléphone (également WhatsApp)</label>
+              <input type="text" id="sCasaPhone" placeholder="06 53 77 56 09">
+            </div>
+            <div class="admin-field full">
+              <label for="sCasaHours">Horaires d'ouverture</label>
+              <input type="text" id="sCasaHours" placeholder="Ex : Lun–Sam, 9h–19h">
+            </div>
+          </div>
+        </div>
+
+        <div class="admin-form-actions">
+          <button type="submit" class="admin-btn admin-btn-primary">Enregistrer les paramètres</button>
+          <button type="button" class="admin-btn admin-btn-outline" id="settingsReset">Réinitialiser aux valeurs actuelles du site</button>
+        </div>
+        <p class="admin-form-status" id="settingsStatus"></p>
+      </form>
+    </section>
+
+    <!-- ===== VENTES ===== -->
+    <section class="admin-panel" id="panel-ventes">
+      <div class="admin-topbar">
+        <div><h1>Ventes</h1><p>Suivi réel des ventes enregistrées via le tunnel de commande du site.</p></div>
+        <span class="admin-data-badge live">Données réelles</span>
+      </div>
+      <div class="admin-filters">
+        <select id="ventesRangeFilter">
+          <option value="week">Cette semaine</option>
+          <option value="month" selected>Ce mois</option>
+          <option value="year">Cette année</option>
+        </select>
+        <select id="ventesVilleFilter">
+          <option value="">Toutes les villes</option>
+          <option value="Tanger">Tanger</option>
+          <option value="Casablanca">Casablanca</option>
+        </select>
+      </div>
+      <div class="admin-chart-row-3">
+        <div class="admin-card">
+          <div class="admin-card-head"><div><h3>Évolution du CA</h3><p id="ventesEvolLabel">Ce mois</p></div></div>
+          <div class="admin-chart-wrap"><canvas id="ventesLineChart"></canvas></div>
+        </div>
+        <div class="admin-card">
+          <div class="admin-card-head"><div><h3>Par catégorie</h3></div></div>
+          <div class="admin-chart-wrap-sm"><canvas id="ventesBarChart"></canvas></div>
+        </div>
+        <div class="admin-card">
+          <div class="admin-card-head"><div><h3>Répartition</h3></div></div>
+          <div class="admin-chart-wrap-sm"><canvas id="ventesPieChart"></canvas></div>
+        </div>
+      </div>
+      <div class="admin-stat-grid">
+        <div class="admin-stat-card"><p class="label">CA sur la période</p><p class="value" id="ventesStatRevenue">0 MAD</p></div>
+        <div class="admin-stat-card"><p class="label">Commandes</p><p class="value" id="ventesStatOrders">0</p></div>
+        <div class="admin-stat-card"><p class="label">Articles vendus</p><p class="value" id="ventesStatItems">0</p></div>
+        <div class="admin-stat-card"><p class="label">Panier moyen</p><p class="value" id="ventesStatAvg">0 MAD</p></div>
+      </div>
+    </section>
+
+    <!-- ===== STOCK ===== -->
+    <section class="admin-panel" id="panel-stock">
+      <div class="admin-topbar">
+        <div><h1>Stock</h1><p>Niveaux de stock en temps réel de tout le catalogue.</p></div>
+        <span class="admin-data-badge live">Données réelles</span>
+      </div>
+      <div class="admin-stat-grid">
+        <div class="admin-stat-card"><p class="label">Unités en stock</p><p class="value" id="stockStatUnits">0</p></div>
+        <div class="admin-stat-card"><p class="label">Valeur totale du stock</p><p class="value" id="stockStatValue">0 MAD</p></div>
+        <div class="admin-stat-card"><p class="label">Références en rupture</p><p class="value" id="stockStatOut">0</p></div>
+        <div class="admin-stat-card"><p class="label">Sous le seuil d'alerte</p><p class="value" id="stockStatLow">0</p></div>
+      </div>
+      <div class="admin-card">
+        <div class="admin-card-head"><div><h3>Niveaux par produit</h3><p>Seuil d'alerte : moins de 5 unités.</p></div></div>
+        <div class="admin-filters"><input type="search" id="stockSearch" placeholder="Rechercher un produit..."></div>
+        <div class="admin-table-wrap">
+          <table class="admin-table">
+            <thead><tr><th>Produit</th><th>Catégorie</th><th>Stock</th><th>Niveau</th><th>Valeur</th></tr></thead>
+            <tbody id="stockTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="admin-placeholder">
+        <div class="admin-placeholder-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 3v18h18"/><path d="M7 12l3-3 4 4 5-5"/></svg></div>
+        <h3>Historique des mouvements</h3>
+        <p>Entrées/sorties, casse, retours et réservations nécessitent un registre de mouvements de stock qui n'existe pas encore dans le système. Ce module s'activera dès qu'une telle source de données sera connectée.</p>
+        <span class="admin-data-badge pending">À connecter</span>
+      </div>
+    </section>
+
+    <!-- ===== CLIENTS ===== -->
+    <section class="admin-panel" id="panel-clients">
+      <div class="admin-topbar">
+        <div><h1>Clients</h1><p>CRM généré automatiquement à partir des commandes réelles du site.</p></div>
+        <span class="admin-data-badge live">Données réelles</span>
+      </div>
+      <div class="admin-stat-grid">
+        <div class="admin-stat-card"><p class="label">Total clients</p><p class="value" id="clientsStatTotal">0</p></div>
+        <div class="admin-stat-card"><p class="label">Clients VIP (top 20%)</p><p class="value" id="clientsStatVip">0</p></div>
+        <div class="admin-stat-card"><p class="label">Fidèles (2 commandes ou +)</p><p class="value" id="clientsStatLoyal">0</p></div>
+        <div class="admin-stat-card"><p class="label">Dépense moyenne / client</p><p class="value" id="clientsStatAvg">0 MAD</p></div>
+      </div>
+      <div class="admin-card">
+        <div class="admin-filters"><input type="search" id="clientsSearch" placeholder="Rechercher un client, une ville..."></div>
+        <div class="admin-table-wrap">
+          <table class="admin-table">
+            <thead><tr><th>Client</th><th>Ville</th><th>Téléphone</th><th>Commandes</th><th>Total dépensé (LTV)</th><th>Dernière commande</th></tr></thead>
+            <tbody id="clientsTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== LIVRAISONS ===== -->
+    <section class="admin-panel" id="panel-livraisons">
+      <div class="admin-topbar">
+        <div><h1>Livraisons</h1><p>Pipeline basé sur le statut réel de chaque commande.</p></div>
+        <span class="admin-data-badge live">Données réelles</span>
+      </div>
+      <div class="admin-kanban">
+        <div class="admin-kanban-col">
+          <div class="admin-kanban-col-head"><h4>En attente</h4><span class="admin-kanban-count" id="kanbanCountPending">0</span></div>
+          <div id="kanbanPending"></div>
+        </div>
+        <div class="admin-kanban-col">
+          <div class="admin-kanban-col-head"><h4>En préparation</h4><span class="admin-kanban-count" id="kanbanCountPreparing">0</span></div>
+          <div id="kanbanPreparing"></div>
+        </div>
+        <div class="admin-kanban-col">
+          <div class="admin-kanban-col-head"><h4>Expédiées / en livraison</h4><span class="admin-kanban-count" id="kanbanCountShipping">0</span></div>
+          <div id="kanbanShipping"></div>
+        </div>
+        <div class="admin-kanban-col">
+          <div class="admin-kanban-col-head"><h4>Livrées</h4><span class="admin-kanban-count" id="kanbanCountDone">0</span></div>
+          <div id="kanbanDone"></div>
+        </div>
+      </div>
+      <div class="admin-placeholder">
+        <div class="admin-placeholder-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></div>
+        <h3>Retards, annulations, carte &amp; livreur</h3>
+        <p>Ces statuts avancés et l'attribution d'un livreur nécessitent une date de livraison prévue et des fiches livreur, non suivies actuellement. Le statut de chaque commande se modifie depuis l'onglet Commandes.</p>
+        <span class="admin-data-badge pending">À connecter</span>
+      </div>
+    </section>
+
+    <!-- ===== PAIEMENTS ===== -->
+    <section class="admin-panel" id="panel-paiements">
+      <div class="admin-topbar">
+        <div><h1>Paiements</h1><p>Répartition des méthodes réellement proposées au tunnel de commande.</p></div>
+        <span class="admin-data-badge live">Données réelles</span>
+      </div>
+      <div class="admin-chart-row-3" style="grid-template-columns:1fr 1.4fr;">
+        <div class="admin-card">
+          <div class="admin-card-head"><div><h3>Répartition</h3></div></div>
+          <div class="admin-chart-wrap-sm"><canvas id="paiementsPieChart"></canvas></div>
+        </div>
+        <div class="admin-card">
+          <div class="admin-card-head"><div><h3>Détail</h3></div></div>
+          <div class="admin-compare-row"><span>Paiement à la livraison</span><span id="payDelivery">0 MAD</span></div>
+          <div class="admin-compare-row"><span>Paiement au showroom</span><span id="payShowroom">0 MAD</span></div>
+          <div class="admin-compare-row"><span>Total encaissé (commandes complétées)</span><span id="payDone">0 MAD</span></div>
+          <div class="admin-compare-row"><span>En attente d'encaissement</span><span id="payPending">0 MAD</span></div>
+        </div>
+      </div>
+      <div class="admin-placeholder">
+        <div class="admin-placeholder-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="1" y="4" width="22" height="16" rx="2"/><path d="M1 10h22"/></svg></div>
+        <h3>CB, virement, chèque &amp; remboursements</h3>
+        <p>Le site ne propose actuellement que deux modes de paiement (livraison / showroom). Le suivi bancaire détaillé nécessite une intégration de paiement en ligne.</p>
+        <span class="admin-data-badge pending">À connecter</span>
+      </div>
+    </section>
+
+    <!-- ===== SHOWROOMS ===== -->
+    <section class="admin-panel" id="panel-showrooms">
+      <div class="admin-topbar">
+        <div><h1>Showrooms</h1><p>Comparatif Tanger / Casablanca basé sur la ville de chaque commande.</p></div>
+        <span class="admin-data-badge live">Données réelles</span>
+      </div>
+      <div class="admin-compare-grid">
+        <div class="admin-card admin-compare-card">
+          <div class="admin-card-head"><div><h3>Showroom Tanger</h3></div></div>
+          <div class="admin-compare-row"><span>Chiffre d'affaires</span><span id="srTangerRevenue">0 MAD</span></div>
+          <div class="admin-compare-row"><span>Commandes</span><span id="srTangerOrders">0</span></div>
+          <div class="admin-compare-row"><span>Panier moyen</span><span id="srTangerAvg">0 MAD</span></div>
+        </div>
+        <div class="admin-card admin-compare-card">
+          <div class="admin-card-head"><div><h3>Showroom Casablanca</h3></div></div>
+          <div class="admin-compare-row"><span>Chiffre d'affaires</span><span id="srCasaRevenue">0 MAD</span></div>
+          <div class="admin-compare-row"><span>Commandes</span><span id="srCasaOrders">0</span></div>
+          <div class="admin-compare-row"><span>Panier moyen</span><span id="srCasaAvg">0 MAD</span></div>
+        </div>
+      </div>
+      <div class="admin-placeholder">
+        <div class="admin-placeholder-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></div>
+        <h3>Visiteurs &amp; stock local</h3>
+        <p>Le trafic en showroom et la répartition du stock par site nécessitent respectivement un compteur de fréquentation et une gestion de stock multi-entrepôt.</p>
+        <span class="admin-data-badge pending">À connecter</span>
+      </div>
+    </section>
+
+    <!-- ===== CENTRE DE NOTIFICATIONS ===== -->
+    <section class="admin-panel" id="panel-notifications">
+      <div class="admin-topbar">
+        <div><h1>Centre de notifications</h1><p>Alertes issues des commandes et du stock réels.</p></div>
+        <span class="admin-data-badge live">Données réelles</span>
+      </div>
+      <div class="admin-card">
+        <div class="admin-card-head"><div><h3>Commandes en attente</h3></div></div>
+        <div id="notifOrdersFull"></div>
+      </div>
+      <div class="admin-card">
+        <div class="admin-card-head"><div><h3>Alertes stock</h3></div></div>
+        <div id="notifStockFull"></div>
+      </div>
+    </section>
+
+    <!-- ===== IMPORT / EXPORT ===== -->
+    <section class="admin-panel" id="panel-import-export">
+      <div class="admin-topbar">
+        <div><h1>Import / Export</h1><p>Export de vos données réelles au format CSV.</p></div>
+        <span class="admin-data-badge live">Données réelles</span>
+      </div>
+      <div class="admin-card">
+        <div class="admin-card-head"><div><h3>Exporter</h3><p>Fichiers CSV compatibles Excel / Google Sheets.</p></div></div>
+        <div class="admin-form-actions">
+          <button type="button" class="admin-btn admin-btn-primary" id="exportProductsBtn">Exporter les produits</button>
+          <button type="button" class="admin-btn admin-btn-primary" id="exportOrdersBtn">Exporter les commandes</button>
+          <button type="button" class="admin-btn admin-btn-primary" id="exportClientsBtn">Exporter les clients</button>
+        </div>
+      </div>
+      <div class="admin-placeholder">
+        <div class="admin-placeholder-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></div>
+        <h3>Import en masse &amp; export PDF</h3>
+        <p>L'import de fichiers et la génération de PDF nécessitent un traitement serveur qui n'est pas encore en place sur ce site statique.</p>
+        <span class="admin-data-badge pending">À connecter</span>
+      </div>
+    </section>
+
+    <!-- ===== ASSISTANT ===== -->
+    <section class="admin-panel" id="panel-assistant">
+      <div class="admin-topbar">
+        <div><h1>Assistant</h1><p>Répond à des questions simples en interrogeant vos données réelles — une recherche guidée, pas une IA générative.</p></div>
+        <span class="admin-data-badge live">Données réelles</span>
+      </div>
+      <div class="admin-card">
+        <div class="admin-chat">
+          <div class="admin-chat-log" id="chatLog"></div>
+          <div class="admin-chat-suggestions">
+            <button type="button" class="admin-chat-chip" data-question="ca casablanca ce mois">CA de Casablanca ce mois-ci ?</button>
+            <button type="button" class="admin-chat-chip" data-question="ca tanger ce mois">CA de Tanger ce mois-ci ?</button>
+            <button type="button" class="admin-chat-chip" data-question="rupture stock">Produits en rupture de stock ?</button>
+            <button type="button" class="admin-chat-chip" data-question="commandes en attente">Commandes en attente ?</button>
+            <button type="button" class="admin-chat-chip" data-question="meilleur produit">Produit le plus vendu ?</button>
+          </div>
+          <form class="admin-chat-form" id="chatForm">
+            <input type="text" id="chatInput" placeholder="Posez une question sur vos données...">
+            <button type="submit" class="admin-btn admin-btn-primary">Envoyer</button>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== MODULES À CONNECTER (pas de source de données réelle dans ce projet) ===== -->
+    <section class="admin-panel" id="panel-devis">
+      <div class="admin-topbar"><div><h1>Devis</h1><p>États, valeur totale et temps moyen de validation des devis.</p></div><span class="admin-data-badge pending">À connecter</span></div>
+      <div class="admin-placeholder">
+        <div class="admin-placeholder-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg></div>
+        <h3>Aucun système de devis actif</h3>
+        <p>Le site propose un panier avec commande directe, pas un flux de demande de devis distinct. Ce module s'activera dès qu'un formulaire de devis avec statuts (créé, accepté, refusé, expiré) sera mis en place.</p>
+      </div>
+    </section>
+
+    <section class="admin-panel" id="panel-facturation">
+      <div class="admin-topbar"><div><h1>Facturation</h1><p>Factures émises, payées, en attente, annulées.</p></div><span class="admin-data-badge pending">À connecter</span></div>
+      <div class="admin-placeholder">
+        <div class="admin-placeholder-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 2h16v20l-3-2-3 2-3-2-3 2-3-2-1 1V2Z"/></svg></div>
+        <h3>Aucune génération de facture</h3>
+        <p>Les commandes sont enregistrées mais aucune facture PDF n'est générée pour l'instant. Retrouvez les montants et statuts de commande dans l'onglet Commandes.</p>
+      </div>
+    </section>
+
+    <section class="admin-panel" id="panel-marketing">
+      <div class="admin-topbar"><div><h1>Marketing</h1><p>Acquisition, ROI et canaux publicitaires.</p></div><span class="admin-data-badge pending">À connecter</span></div>
+      <div class="admin-placeholder">
+        <div class="admin-placeholder-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 11 18 4v16L3 13v-2Z"/></svg></div>
+        <h3>Aucune donnée publicitaire connectée</h3>
+        <p>Le suivi Google Ads, Facebook Ads et Instagram Ads nécessite de relier les comptes publicitaires réels et un pixel de suivi sur le site.</p>
+      </div>
+    </section>
+
+    <section class="admin-panel" id="panel-site-web">
+      <div class="admin-topbar"><div><h1>Site web</h1><p>Visiteurs, pages vues, produits consultés, abandons de panier.</p></div><span class="admin-data-badge pending">À connecter</span></div>
+      <div class="admin-placeholder">
+        <div class="admin-placeholder-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/></svg></div>
+        <h3>Aucun outil d'analyse connecté</h3>
+        <p>Ces métriques nécessitent un outil d'analytics (type Google Analytics) installé sur le site public — non présent actuellement.</p>
+      </div>
+    </section>
+
+    <section class="admin-panel" id="panel-editeur">
+      <div class="admin-topbar">
+        <div><h1>Éditeur visuel du site</h1><p>Cliquez directement sur les textes ou les photos d'ambiance pour les modifier — sans toucher au code.</p></div>
+        <span class="admin-data-badge live">Modifications réelles</span>
+      </div>
+
+      <div class="admin-card" style="margin-bottom:18px;">
+        <div class="admin-editor-toolbar">
+          <div class="admin-field" style="margin-bottom:0; min-width:230px;">
+            <label for="editorPageSelect">Page à modifier</label>
+            <select id="editorPageSelect"></select>
+          </div>
+          <button type="button" class="admin-btn admin-btn-outline" id="editorToggleBtn">Activer l'édition</button>
+          <button type="button" class="admin-btn admin-btn-primary" id="editorSaveBtn" disabled>Enregistrer <span id="editorPendingCount" hidden></span></button>
+          <button type="button" class="admin-icon-btn danger" id="editorResetBtn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6"/></svg>
+            Réinitialiser cette page
+          </button>
+        </div>
+        <p class="admin-editor-note">En mode édition : cliquez un texte pour le réécrire (comme sur une diapo), survolez une image pour afficher « Changer la photo ». Les fiches produits ne sont jamais modifiables ici — passez par « Produits ». Changer le logo l'applique sur tout le site en un clic. Les modifications sont enregistrées dans ce navigateur et s'affichent immédiatement sur le site public.</p>
+      </div>
+
+      <div class="admin-editor-frame-wrap">
+        <iframe id="editorFrame" title="Aperçu éditable du site public"></iframe>
+      </div>
+    </section>
+
+    <section class="admin-panel" id="panel-ia">
+      <div class="admin-topbar">
+        <div><h1>IA &amp; Recommandations</h1><p>Analyse automatique de vos données réelles — tendances, réapprovisionnement, résumé.</p></div>
+        <span class="admin-data-badge live">Données réelles</span>
+      </div>
+      <p class="admin-editor-note" style="margin:-6px 0 20px;">Honnêteté avant tout : ceci n'est pas un modèle d'intelligence artificielle entraîné ni une prédiction — ce sont des calculs réels (tendances, seuils, moyennes) appliqués à vos commandes et votre stock réels. Avec très peu de commandes enregistrées, ces analyses seront logiquement peu significatives : plus vous avez de données réelles, plus elles deviennent utiles.</p>
+
+      <div class="admin-card">
+        <div class="admin-card-head"><div><h3>Tendance des ventes</h3><p>30 derniers jours vs les 30 jours précédents.</p></div></div>
+        <div id="iaTrendBlock"></div>
+      </div>
+
+      <div class="admin-card">
+        <div class="admin-card-head"><div><h3>Recommandations de réapprovisionnement</h3><p>Produits sous le seuil d'alerte (5 unités), avec fournisseur suggéré si connu.</p></div></div>
+        <div class="admin-table-wrap">
+          <table class="admin-table">
+            <thead><tr><th>Produit</th><th>Catégorie</th><th>Stock</th><th>Fournisseur suggéré</th></tr></thead>
+            <tbody id="iaRestockBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="admin-card">
+        <div class="admin-card-head"><div><h3>Résumé automatique</h3><p>Généré à partir des chiffres réels du mois en cours.</p></div></div>
+        <p id="iaSummaryText" style="color:var(--a-muted-light); line-height:1.7; font-size:0.92rem;"></p>
+      </div>
+    </section>
+
+    <section class="admin-panel" id="panel-avis">
+      <div class="admin-topbar"><div><h1>Avis clients</h1><p>Note moyenne, volume d'avis et réponses.</p></div><span class="admin-data-badge pending">À connecter</span></div>
+      <div class="admin-placeholder">
+        <div class="admin-placeholder-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2 14.9 8.6 22 9.3 16.7 14.1 18.2 21 12 17.3 5.8 21 7.3 14.1 2 9.3 9.1 8.6 12 2Z"/></svg></div>
+        <h3>Avis affichés en statique sur le site</h3>
+        <p>La page « Avis clients » du site public affiche des notes Google fixes, sans back-office de gestion ni réponse. Ce module nécessite une API Google Business connectée pour devenir dynamique.</p>
+      </div>
+    </section>
+
+    <section class="admin-panel" id="panel-employes">
+      <div class="admin-topbar"><div><h1>Employés</h1><p>Fiches employés et classement des ventes réellement attribuées.</p></div><span class="admin-data-badge live">Données réelles</span></div>
+
+      <div class="admin-card">
+        <div class="admin-card-head"><div><h3>Ajouter un employé</h3></div></div>
+        <form id="employeeForm">
+          <div class="admin-form-grid">
+            <div class="admin-field">
+              <label for="empName">Nom complet</label>
+              <input type="text" id="empName" required placeholder="Ex : Fatima Zahra Bennani">
+            </div>
+            <div class="admin-field">
+              <label for="empRole">Rôle</label>
+              <select id="empRole">
+                <option value="Vendeur">Vendeur / Vendeuse</option>
+                <option value="Manager">Manager</option>
+                <option value="Magasinier">Magasinier</option>
+                <option value="Livreur">Livreur</option>
+                <option value="Autre">Autre</option>
+              </select>
+            </div>
+            <div class="admin-field">
+              <label for="empShowroom">Showroom</label>
+              <select id="empShowroom">
+                <option value="Tanger">Tanger</option>
+                <option value="Casablanca">Casablanca</option>
+              </select>
+            </div>
+            <div class="admin-field">
+              <label for="empPhone">Téléphone</label>
+              <input type="tel" id="empPhone" placeholder="Optionnel">
+            </div>
+          </div>
+          <div class="admin-form-actions">
+            <button type="submit" class="admin-btn admin-btn-primary">Ajouter l'employé</button>
+          </div>
+          <p class="admin-form-status" id="employeeFormStatus"></p>
+        </form>
+      </div>
+
+      <div class="admin-card">
+        <div class="admin-card-head"><div><h3>Classement des ventes</h3><p>Basé sur les commandes réellement attribuées à chaque employé dans l'onglet Commandes — jamais estimé.</p></div></div>
+        <div class="admin-table-wrap">
+          <table class="admin-table">
+            <thead><tr><th>#</th><th>Employé</th><th>Rôle</th><th>Commandes attribuées</th><th>CA généré</th></tr></thead>
+            <tbody id="employeeRankingBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="admin-card">
+        <div class="admin-card-head"><div><h3>Fiches employés</h3><p id="employeeCount">0 employé</p></div></div>
+        <div class="admin-table-wrap">
+          <table class="admin-table">
+            <thead><tr><th>Nom</th><th>Rôle</th><th>Showroom</th><th>Téléphone</th><th>Actions</th></tr></thead>
+            <tbody id="employeeTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section class="admin-panel" id="panel-fournisseurs">
+      <div class="admin-topbar"><div><h1>Fournisseurs</h1><p>Annuaire fournisseurs, délais et contacts.</p></div><span class="admin-data-badge live">Données réelles</span></div>
+
+      <div class="admin-card">
+        <div class="admin-card-head"><div><h3>Ajouter un fournisseur</h3></div></div>
+        <form id="supplierForm">
+          <div class="admin-form-grid">
+            <div class="admin-field">
+              <label for="supName">Nom de l'entreprise</label>
+              <input type="text" id="supName" required placeholder="Ex : Olympia Ceramica Maroc">
+            </div>
+            <div class="admin-field">
+              <label for="supCategory">Catégorie fournie</label>
+              <select id="supCategory">
+                <option value="Carrelage">Carrelage</option>
+                <option value="Sanitaire">Sanitaire</option>
+                <option value="Robinetterie">Robinetterie</option>
+                <option value="Mosaïque & Pierre">Mosaïque &amp; Pierre</option>
+                <option value="Meubles de salle de bain">Meubles de salle de bain</option>
+                <option value="Miroirs LED">Miroirs LED</option>
+                <option value="Autre">Autre</option>
+              </select>
+            </div>
+            <div class="admin-field">
+              <label for="supContact">Nom du contact</label>
+              <input type="text" id="supContact" placeholder="Optionnel">
+            </div>
+            <div class="admin-field">
+              <label for="supPhone">Téléphone</label>
+              <input type="tel" id="supPhone" placeholder="06 XX XX XX XX">
+            </div>
+            <div class="admin-field">
+              <label for="supEmail">Email</label>
+              <input type="email" id="supEmail" placeholder="Optionnel">
+            </div>
+            <div class="admin-field">
+              <label for="supLeadTime">Délai de livraison habituel</label>
+              <input type="text" id="supLeadTime" placeholder="Ex : 2 à 4 semaines">
+            </div>
+            <div class="admin-field full">
+              <label for="supNotes">Notes / conditions</label>
+              <textarea id="supNotes" placeholder="Conditions de paiement, quantités minimales, etc. (optionnel)"></textarea>
+            </div>
+          </div>
+          <div class="admin-form-actions">
+            <button type="submit" class="admin-btn admin-btn-primary">Ajouter le fournisseur</button>
+          </div>
+          <p class="admin-form-status" id="supplierFormStatus"></p>
+        </form>
+      </div>
+
+      <div class="admin-card">
+        <div class="admin-card-head"><div><h3>Fournisseurs enregistrés</h3><p id="supplierCount">0 fournisseur</p></div></div>
+        <div class="admin-table-wrap">
+          <table class="admin-table">
+            <thead><tr><th>Entreprise</th><th>Catégorie</th><th>Contact</th><th>Délai</th><th>Actions</th></tr></thead>
+            <tbody id="supplierTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section class="admin-panel" id="panel-commandes-fournisseurs">
+      <div class="admin-topbar"><div><h1>Commandes fournisseurs</h1><p>Réapprovisionnement : commandées, en attente, reçues, en retard.</p></div><span class="admin-data-badge pending">À connecter</span></div>
+      <div class="admin-placeholder">
+        <div class="admin-placeholder-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M9 3v3h6V3"/></svg></div>
+        <h3>Aucune commande fournisseur suivie</h3>
+        <p>Dépend du module Fournisseurs ci-dessus. Une fois vos fournisseurs enregistrés, les commandes de réapprovisionnement pourront être suivies ici.</p>
+      </div>
+    </section>
+
+    <section class="admin-panel" id="panel-comptabilite">
+      <div class="admin-topbar"><div><h1>Comptabilité</h1><p>Trésorerie, dépenses, charges, TVA et balance.</p></div><span class="admin-data-badge pending">À connecter</span></div>
+      <div class="admin-placeholder">
+        <div class="admin-placeholder-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="6" x2="16" y2="6"/></svg></div>
+        <h3>Aucune donnée comptable enregistrée</h3>
+        <p>Le chiffre d'affaires réel est disponible dans le Tableau de bord et les Ventes. Le calcul de la TVA, des charges et de la balance comptable nécessite un module de comptabilité dédié — aucun chiffre ne sera inventé ici.</p>
+      </div>
+    </section>
+
+    <section class="admin-panel" id="panel-kpi-avances">
+      <div class="admin-topbar"><div><h1>KPI Avancés</h1><p>Rotation du stock, taux de retour, CSAT, LTV.</p></div><span class="admin-data-badge pending">À connecter</span></div>
+      <div class="admin-placeholder">
+        <div class="admin-placeholder-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
+        <h3>Partiellement disponible ailleurs</h3>
+        <p>La valeur vie client (LTV) est déjà calculée dans le module Clients. La rotation de stock, le taux de retour et le score de satisfaction (CSAT) nécessitent respectivement un historique de mouvements, un suivi des retours et une enquête de satisfaction — aucun n'existe encore.</p>
+      </div>
+    </section>
+
+    <section class="admin-panel" id="panel-documents">
+      <div class="admin-topbar"><div><h1>Documents</h1><p>Coffre-fort numérique : bons de livraison, garanties.</p></div><span class="admin-data-badge pending">À connecter</span></div>
+      <div class="admin-placeholder">
+        <div class="admin-placeholder-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7Z"/></svg></div>
+        <h3>Aucun document stocké</h3>
+        <p>Ce module nécessite un espace de stockage de fichiers (BL, garanties, contrats) qui n'est pas encore mis en place sur ce site statique.</p>
+      </div>
+    </section>
+
+    <section class="admin-panel" id="panel-agenda">
+      <div class="admin-topbar"><div><h1>Agenda</h1><p>Rendez-vous et installations chantiers.</p></div><span class="admin-data-badge pending">À connecter</span></div>
+      <div class="admin-placeholder">
+        <div class="admin-placeholder-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/></svg></div>
+        <h3>Aucun rendez-vous enregistré</h3>
+        <p>Ce module nécessite un système de prise de rendez-vous connecté à votre agenda d'équipe.</p>
+      </div>
+    </section>
+
+    <section class="admin-panel" id="panel-sav">
+      <div class="admin-topbar"><div><h1>SAV</h1><p>Réclamations et échanges du service après-vente.</p></div><span class="admin-data-badge pending">À connecter</span></div>
+      <div class="admin-placeholder">
+        <div class="admin-placeholder-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/></svg></div>
+        <h3>Aucune réclamation enregistrée</h3>
+        <p>Ce module nécessite un formulaire de réclamation/échange relié aux commandes existantes — à mettre en place.</p>
+      </div>
+    </section>
+
+    <section class="admin-panel" id="panel-galerie">
+      <div class="admin-topbar"><div><h1>Galerie</h1><p>Portfolio avant/après des chantiers terminés.</p></div><span class="admin-data-badge pending">À connecter</span></div>
+      <div class="admin-placeholder">
+        <div class="admin-placeholder-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg></div>
+        <h3>Aucune photo de chantier importée</h3>
+        <p>Ajoutez vos photos avant/après de chantiers réalisés pour alimenter ce portfolio — aucune n'est disponible pour le moment.</p>
+      </div>
+    </section>
+
+    <section class="admin-panel" id="panel-carte">
+      <div class="admin-topbar"><div><h1>Carte</h1><p>Implantation géographique des chantiers et zones de vente.</p></div><span class="admin-data-badge pending">À connecter</span></div>
+      <div class="admin-placeholder">
+        <div class="admin-placeholder-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/></svg></div>
+        <h3>Aucune donnée géographique</h3>
+        <p>Ce module nécessite l'adresse précise de chaque chantier ou vente, non collectée actuellement (seule la ville est enregistrée par commande).</p>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<!-- ===== Modal générique : modifier le prix / activer une promotion ===== -->
+<div class="admin-modal" id="priceModal" aria-hidden="true">
+  <div class="admin-modal-backdrop" data-price-modal-close></div>
+  <div class="admin-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="priceModalTitle">
+    <h3 id="priceModalTitle">Modifier le prix</h3>
+    <p class="sub" id="priceModalSub">Nouveau prix pour ce produit.</p>
+    <form id="priceModalForm">
+      <div class="admin-field">
+        <label for="priceModalInput" id="priceModalLabel">Prix (MAD)</label>
+        <input type="number" id="priceModalInput" min="0" step="1" required>
+      </div>
+      <div class="admin-confirm-actions">
+        <button type="button" class="admin-btn admin-btn-outline" data-price-modal-close>Annuler</button>
+        <button type="submit" class="admin-btn admin-btn-primary">Enregistrer</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ===== Modal : confirmation de suppression ===== -->
+<div class="admin-modal" id="deleteModal" aria-hidden="true">
+  <div class="admin-modal-backdrop" data-delete-modal-close></div>
+  <div class="admin-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="deleteModalTitle">
+    <h3 id="deleteModalTitle">Supprimer ce produit ?</h3>
+    <p class="sub" id="deleteModalSub">Il n'apparaîtra plus sur le site public. Cette action est réversible depuis le catalogue.</p>
+    <div class="admin-confirm-actions">
+      <button type="button" class="admin-btn admin-btn-outline" data-delete-modal-close>Annuler</button>
+      <button type="button" class="admin-btn admin-btn-primary" id="deleteModalConfirm" style="background:var(--a-danger); color:#fff;">Supprimer</button>
+    </div>
+  </div>
+</div>
+
+<div class="admin-toast" id="adminToast">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg>
+  <span id="adminToastText">Enregistré.</span>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<script src="admin.js?v=10"></script>
+</body>
+</html>
