@@ -3249,6 +3249,11 @@ document.addEventListener("DOMContentLoaded", function () {
   // erreur. On retombe alors sur le mode 100% local existant, identique à avant ce
   // changement -- exactement le même principe de repli que côté site public.
   function bootstrapAdmin() {
+    // Fichier ouvert directement (double-clic, file://) plutôt que servi par un vrai
+    // site -- aucun déploiement réel ne tourne jamais en file://, donc pas la peine de
+    // tenter l'appel réseau (qui échouerait de toute façon) : accès direct, sans écran
+    // de connexion, comme le reste du site en local avant l'ajout de l'authentification.
+    if (location.protocol === "file:") { startAdminApp(); return; }
     fetch("/api/admin/orders", { credentials: "same-origin" })
       .then(function (res) {
         if (res.status === 401) { showAdminLoginScreen(); return "unauthenticated"; }
