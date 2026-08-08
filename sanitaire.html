@@ -180,6 +180,7 @@
         <input type="search" id="productSearch" placeholder="Rechercher un produit..." autocomplete="off">
         <button type="button" class="product-search-clear" aria-label="Effacer la recherche"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
       </div>
+      <div class="product-filter-bar" id="productFilterBar"></div>
       <p class="product-search-empty" id="productSearchEmpty">Aucun produit ne correspond à votre recherche.</p>
       <svg width="0" height="0" style="position:absolute" aria-hidden="true">
         <defs>
@@ -450,7 +451,7 @@
         </div>
         </div>
         <div class="scroll-cards">
-        <div class="card product-card" data-cat="wc">
+        <div class="card product-card" data-cat="wc" data-couleur="blanc noir vert bleu-petrole turquoise gris" data-finition="mat brillant">
           <div class="product-visual">
             <span class="product-tag">Olympia Ceramica</span>
             <img src="https://images.unsplash.com/photo-1576698483491-8c43f0862543?auto=format&amp;fit=crop&amp;w=800&amp;q=80" alt="WC Suspendu Monolith" loading="lazy">
@@ -463,7 +464,7 @@
             </div>
           </div>
         </div>
-        <div class="card product-card" data-cat="bidet">
+        <div class="card product-card" data-cat="bidet" data-couleur="blanc noir vert bleu-petrole turquoise gris" data-finition="mat brillant">
           <div class="product-visual">
             <span class="product-tag">Olympia Ceramica</span>
             <img src="https://images.unsplash.com/photo-1560448075-bb485b067938?auto=format&amp;fit=crop&amp;w=800&amp;q=80" alt="Bidet Suspendu Monolith" loading="lazy">
@@ -476,7 +477,7 @@
             </div>
           </div>
         </div>
-        <div class="card product-card" data-cat="lavabo">
+        <div class="card product-card" data-cat="lavabo" data-format="40x60" data-couleur="bleu-pastel blanc gris" data-finition="mat">
           <div class="product-visual">
             <span class="product-tag">Olympia Ceramica</span>
             <img src="https://images.unsplash.com/photo-1721901945499-8fd5c1446b21?auto=format&amp;fit=crop&amp;w=800&amp;q=80" alt="Lavabo à poser Wave 40x60" loading="lazy">
@@ -710,6 +711,6 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
 <script src="js/animations.js?v=4"></script>
-<script src="js/main.js?v=15"></script>
+<script src="js/main.js?v=16"></script>
 </body>
 </html>

@@ -861,6 +861,44 @@ h1 { font-size: clamp(2.4rem, 5vw, 4rem); }
   padding: 12px 0 4px;
 }
 
+/* ---------- Filtres catalogue (catégorie / format / couleur / finition) ---------- */
+.product-filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 0 0 22px;
+}
+.product-filter-bar:empty { display: none; }
+.product-filter-field select {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  padding: 10px 34px 10px 16px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: var(--stone-100) url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="%23545b53" stroke-width="2.4"><polyline points="6 9 12 15 18 9"/></svg>') no-repeat right 12px center;
+  background-size: 12px;
+  font-family: inherit;
+  font-size: 0.86rem;
+  color: var(--ink);
+  cursor: pointer;
+  transition: border-color 0.2s ease, background-color 0.2s ease, color 0.2s ease;
+}
+.product-filter-field select:hover {
+  border-color: var(--line-light);
+}
+.product-filter-field select:focus {
+  outline: none;
+  border-color: var(--terracotta);
+  background-color: #fff;
+}
+.product-filter-field select.is-active {
+  border-color: var(--terracotta);
+  background-color: #fff;
+  color: var(--terracotta-dark);
+  font-weight: 600;
+}
+
 /* ---------- Bouton favoris ---------- */
 .product-fav-btn {
   position: absolute;

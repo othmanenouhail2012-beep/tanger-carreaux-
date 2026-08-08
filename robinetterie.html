@@ -131,6 +131,7 @@
         <input type="search" id="productSearch" placeholder="Rechercher un produit..." autocomplete="off">
         <button type="button" class="product-search-clear" aria-label="Effacer la recherche"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
       </div>
+      <div class="product-filter-bar" id="productFilterBar"></div>
       <p class="product-search-empty" id="productSearchEmpty">Aucun produit ne correspond à votre recherche.</p>
       <svg width="0" height="0" style="position:absolute" aria-hidden="true">
         <defs>
@@ -149,7 +150,7 @@
         </div>
         </div>
         <div class="scroll-cards">
-        <div class="card product-card" data-cat="sdb">
+        <div class="card product-card" data-cat="sdb" data-couleur="chrome" data-finition="chrome-brillant">
           <div class="product-visual">
             <span class="product-tag">Salle de bain</span>
             <img src="assets/images/produits/mitigeur-vasque-mural-3trous-chrome.jpg" alt="Mitigeur de vasque mural 3 trous — chromé" loading="lazy">
@@ -162,7 +163,7 @@
             </div>
           </div>
         </div>
-        <div class="card product-card" data-cat="sdb">
+        <div class="card product-card" data-cat="sdb" data-couleur="noir" data-finition="noir-mat">
           <div class="product-visual">
             <span class="product-tag">Salle de bain</span>
             <img src="assets/images/produits/mitigeur-vasque-mural-3trous-noir.jpg" alt="Mitigeur de vasque mural 3 trous — noir mat" loading="lazy">
@@ -175,7 +176,7 @@
             </div>
           </div>
         </div>
-        <div class="card product-card" data-cat="sdb">
+        <div class="card product-card" data-cat="sdb" data-couleur="dore" data-finition="dore-brosse">
           <div class="product-visual">
             <span class="product-tag">Salle de bain</span>
             <img src="assets/images/produits/mitigeur-vasque-mural-3trous-dore.jpg" alt="Mitigeur de vasque mural 3 trous — doré brossé" loading="lazy">
@@ -188,7 +189,7 @@
             </div>
           </div>
         </div>
-        <div class="card product-card" data-cat="sdb">
+        <div class="card product-card" data-cat="sdb" data-couleur="cuivre" data-finition="cuivre-brosse">
           <div class="product-visual">
             <span class="product-tag">Salle de bain</span>
             <img src="assets/images/produits/mitigeur-vasque-mural-3trous-cuivre.jpg" alt="Mitigeur de vasque mural 3 trous — cuivré" loading="lazy">
@@ -201,7 +202,7 @@
             </div>
           </div>
         </div>
-        <div class="card product-card" data-cat="sdb">
+        <div class="card product-card" data-cat="sdb" data-couleur="noir dore cuivre" data-finition="noir-mat dore-brosse cuivre">
           <div class="product-visual">
             <span class="product-tag">Salle de bain</span>
             <img src="assets/images/produits/mitigeur-vasque-compact-3finitions.jpg" alt="Mitigeur de vasque compact — noir, doré ou cuivré" loading="lazy">
@@ -214,7 +215,7 @@
             </div>
           </div>
         </div>
-        <div class="card product-card" data-cat="sdb">
+        <div class="card product-card" data-cat="sdb" data-couleur="cuivre" data-finition="cuivre">
           <div class="product-visual">
             <span class="product-tag">Salle de bain</span>
             <img src="assets/images/produits/mitigeur-vasque-mural-cuivre.jpg" alt="Mitigeur de vasque mural bec et levier — cuivré" loading="lazy">
@@ -227,7 +228,7 @@
             </div>
           </div>
         </div>
-        <div class="card product-card" data-cat="sdb">
+        <div class="card product-card" data-cat="sdb" data-couleur="noir" data-finition="noir-mat">
           <div class="product-visual">
             <span class="product-tag">Salle de bain</span>
             <img src="assets/images/produits/robinet-baignoire-sur-pied-noir.jpg" alt="Robinet de baignoire sur pied avec douchette — noir mat" loading="lazy">
@@ -240,7 +241,7 @@
             </div>
           </div>
         </div>
-        <div class="card product-card" data-cat="sdb">
+        <div class="card product-card" data-cat="sdb" data-couleur="dore" data-finition="dore-brosse">
           <div class="product-visual">
             <span class="product-tag">Salle de bain</span>
             <img src="assets/images/produits/robinet-baignoire-sur-pied-dore.jpg" alt="Robinet de baignoire sur pied avec douchette — doré brossé" loading="lazy">
@@ -253,7 +254,7 @@
             </div>
           </div>
         </div>
-        <div class="card product-card" data-cat="sdb">
+        <div class="card product-card" data-cat="sdb" data-couleur="chrome" data-finition="chrome">
           <div class="product-visual">
             <span class="product-tag">Salle de bain</span>
             <img src="assets/images/produits/robinet-baignoire-sur-pied-chrome.jpg" alt="Robinet de baignoire sur pied avec douchette — chromé" loading="lazy">
@@ -266,7 +267,7 @@
             </div>
           </div>
         </div>
-        <div class="card product-card" data-cat="sdb">
+        <div class="card product-card" data-cat="sdb" data-couleur="cuivre" data-finition="cuivre">
           <div class="product-visual">
             <span class="product-tag">Salle de bain</span>
             <img src="assets/images/produits/kit-douche-encastree-cuivre.jpg" alt="Kit de douche encastrée avec bec baignoire — cuivré" loading="lazy">
@@ -279,7 +280,7 @@
             </div>
           </div>
         </div>
-        <div class="card product-card" data-cat="sdb">
+        <div class="card product-card" data-cat="sdb" data-couleur="noir" data-finition="noir-mat">
           <div class="product-visual">
             <span class="product-tag">Salle de bain</span>
             <img src="assets/images/produits/kit-douche-encastree-noir.jpg" alt="Kit de douche encastrée avec bec baignoire — noir mat" loading="lazy">
@@ -292,7 +293,7 @@
             </div>
           </div>
         </div>
-        <div class="card product-card" data-cat="sdb">
+        <div class="card product-card" data-cat="sdb" data-couleur="dore" data-finition="dore-brosse">
           <div class="product-visual">
             <span class="product-tag">Salle de bain</span>
             <img src="assets/images/produits/kit-douche-encastree-dore.jpg" alt="Kit de douche encastrée avec bec baignoire — doré brossé" loading="lazy">
@@ -305,7 +306,7 @@
             </div>
           </div>
         </div>
-        <div class="card product-card" data-cat="sdb">
+        <div class="card product-card" data-cat="sdb" data-couleur="chrome" data-finition="chrome">
           <div class="product-visual">
             <span class="product-tag">Salle de bain</span>
             <img src="assets/images/produits/kit-douche-encastree-chrome.jpg" alt="Kit de douche encastrée avec bec baignoire — chromé" loading="lazy">
@@ -318,7 +319,7 @@
             </div>
           </div>
         </div>
-        <div class="card product-card" data-cat="cuisine">
+        <div class="card product-card" data-cat="cuisine" data-couleur="anthracite" data-finition="gris-anthracite-brosse">
           <div class="product-visual">
             <span class="product-tag">Cuisine</span>
             <img src="assets/images/produits/mitigeur-cuisine-bec-pivotant-anthracite.jpg" alt="Mitigeur de cuisine bec pivotant haut — anthracite" loading="lazy">
@@ -786,6 +787,6 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
 <script src="js/animations.js?v=4"></script>
-<script src="js/main.js?v=15"></script>
+<script src="js/main.js?v=16"></script>
 </body>
 </html>

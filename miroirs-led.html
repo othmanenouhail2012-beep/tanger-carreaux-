@@ -136,6 +136,7 @@
         <input type="search" id="productSearch" placeholder="Rechercher un produit..." autocomplete="off">
         <button type="button" class="product-search-clear" aria-label="Effacer la recherche"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
       </div>
+      <div class="product-filter-bar" id="productFilterBar"></div>
       <p class="product-search-empty" id="productSearchEmpty">Aucun produit ne correspond à votre recherche.</p>
       <svg width="0" height="0" style="position:absolute" aria-hidden="true">
         <defs>
@@ -154,7 +155,7 @@
         </div>
         </div>
         <div class="scroll-cards">
-        <div class="card product-card" data-cat="arche">
+        <div class="card product-card" data-cat="arche" data-format="60x90" data-couleur="noir" data-finition="noir-mat">
           <div class="product-visual">
             <span class="product-tag">Ledimex</span>
             <img src="https://images.unsplash.com/photo-1758548157276-00c54fd4a9fa?auto=format&amp;fit=crop&amp;w=800&amp;q=80" alt="Miroir LED Rome 60x90" loading="lazy">
@@ -167,7 +168,7 @@
             </div>
           </div>
         </div>
-        <div class="card product-card" data-cat="arche">
+        <div class="card product-card" data-cat="arche" data-format="60x110" data-couleur="noir" data-finition="noir-mat">
           <div class="product-visual">
             <span class="product-tag">Ledimex</span>
             <img src="https://images.unsplash.com/photo-1758548157276-00c54fd4a9fa?auto=format&amp;fit=crop&amp;w=800&amp;q=80" alt="Miroir LED Rome 60x110" loading="lazy">
@@ -180,7 +181,7 @@
             </div>
           </div>
         </div>
-        <div class="card product-card" data-cat="arche">
+        <div class="card product-card" data-cat="arche" data-format="70x130">
           <div class="product-visual">
             <span class="product-tag">Ledimex</span>
             <img src="https://images.unsplash.com/photo-1758548157276-00c54fd4a9fa?auto=format&amp;fit=crop&amp;w=800&amp;q=80" alt="Miroir LED Rome 70x130" loading="lazy">
@@ -412,6 +413,6 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
 <script src="js/animations.js?v=4"></script>
-<script src="js/main.js?v=15"></script>
+<script src="js/main.js?v=16"></script>
 </body>
 </html>

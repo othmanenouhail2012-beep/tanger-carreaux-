@@ -351,29 +351,133 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     // Recherche produit (filtre en direct les cartes par nom / catégorie)
+    // + filtres catégorie / format / couleur / finition, construits dynamiquement
+    // à partir des attributs data-cat / data-format / data-couleur / data-finition
+    // réellement présents sur la page (aucune liste codée en dur : chaque page a son
+    // propre vocabulaire de catégories).
     var searchInput = document.querySelector("#productSearch");
     var searchWrap = document.querySelector("#productSearchWrap");
     var searchEmpty = document.querySelector("#productSearchEmpty");
     var clearBtn = searchWrap ? searchWrap.querySelector(".product-search-clear") : null;
     var productRows = document.querySelectorAll(".product-row");
-    if (searchInput) {
-      function applyFilter() {
-        var q = searchInput.value.trim().toLowerCase();
-        searchWrap.classList.toggle("has-value", q.length > 0);
-        var anyVisible = false;
-        productRows.forEach(function (row) {
-          var rowHasVisible = false;
-          row.querySelectorAll(".product-card").forEach(function (card) {
-            var name = (card.querySelector("h4").textContent || "").toLowerCase();
-            var tag = (card.querySelector(".product-tag").textContent || "").toLowerCase();
-            var match = !q || name.indexOf(q) !== -1 || tag.indexOf(q) !== -1;
-            card.style.display = match ? "" : "none";
-            if (match) { rowHasVisible = true; anyVisible = true; }
-          });
-          row.style.display = rowHasVisible ? "" : "none";
-        });
-        if (searchEmpty) searchEmpty.style.display = q && !anyVisible ? "block" : "none";
+    var filterBar = document.querySelector("#productFilterBar");
+    var activeFilters = { cat: "", format: "", couleur: "", finition: "" };
+
+    // Libellés lisibles pour les valeurs data-couleur / data-finition (celles-ci sont
+    // stockées sans accents en ASCII pour rester des attributs simples) — complété au fil
+    // des pages, retombe sur une version générique si un nouveau token apparaît.
+    var FILTER_VALUE_LABELS = {
+      "anthracite": "Anthracite", "blanc": "Blanc", "noir": "Noir", "vert": "Vert",
+      "bleu-petrole": "Bleu pétrole", "turquoise": "Turquoise", "gris": "Gris",
+      "vert-imperial": "Vert impérial", "beige": "Beige", "bleu-pastel": "Bleu pastel",
+      "chene-clair": "Chêne clair", "chrome": "Chromé", "or": "Or", "cuivre": "Cuivré",
+      "dore": "Doré", "gris-anthracite": "Gris anthracite", "wengue-fonce": "Wengué foncé",
+      "brillant": "Brillant", "brosse": "Brossé", "noir-mat": "Noir mat",
+      "or-brosse": "Or brossé", "chrome-brillant": "Chromé brillant",
+      "cuivre-brosse": "Cuivre brossé", "dore-brosse": "Doré brossé",
+      "gris-anthracite-brosse": "Gris anthracite brossé", "lisse": "Lissé", "mat": "Mat",
+      "mate-rectifiee": "Mate rectifiée", "poli": "Poli", "vieilli": "Vieilli",
+      "ultra-brillant": "Ultra brillant"
+    };
+    function prettyLabel(token) {
+      if (FILTER_VALUE_LABELS[token]) return FILTER_VALUE_LABELS[token];
+      return token.replace(/-/g, " ").replace(/\b\w/g, function (c) { return c.toUpperCase(); });
+    }
+
+    // Construit la liste des valeurs distinctes présentes pour un attribut donné.
+    // Pour "cat", réutilise l'intitulé déjà affiché du groupe (h3 du .product-row)
+    // comme libellé plutôt que d'en inventer un à partir du code interne ("gres", "sdb"...).
+    function collectFilterValues(attr, useRowHeading) {
+      var values = [];
+      function addValue(v, label) {
+        if (!v || values.some(function (o) { return o.value === v; })) return;
+        values.push({ value: v, label: label });
       }
+      productRows.forEach(function (row) {
+        if (useRowHeading) {
+          var firstCard = row.querySelector(".product-card[" + attr + "]");
+          if (!firstCard) return;
+          var heading = row.querySelector(".product-row-head h3");
+          addValue(firstCard.getAttribute(attr), heading ? heading.textContent.trim() : prettyLabel(firstCard.getAttribute(attr)));
+          return;
+        }
+        row.querySelectorAll(".product-card[" + attr + "]").forEach(function (card) {
+          (card.getAttribute(attr) || "").split(/\s+/).forEach(function (v) {
+            addValue(v, prettyLabel(v));
+          });
+        });
+      });
+      values.sort(function (a, b) { return a.label.localeCompare(b.label, "fr"); });
+      return values;
+    }
+
+    if (filterBar) {
+      [
+        { key: "cat", attr: "data-cat", label: "Catégorie", useRowHeading: true },
+        { key: "format", attr: "data-format", label: "Format", useRowHeading: false },
+        { key: "couleur", attr: "data-couleur", label: "Couleur", useRowHeading: false },
+        { key: "finition", attr: "data-finition", label: "Finition", useRowHeading: false }
+      ].forEach(function (g) {
+        var values = collectFilterValues(g.attr, g.useRowHeading);
+        if (!values.length) return;
+        var field = document.createElement("div");
+        field.className = "product-filter-field";
+        var select = document.createElement("select");
+        select.setAttribute("aria-label", g.label);
+        var optAll = document.createElement("option");
+        optAll.value = "";
+        optAll.textContent = g.label + " — tous";
+        select.appendChild(optAll);
+        values.forEach(function (o) {
+          var opt = document.createElement("option");
+          opt.value = o.value;
+          opt.textContent = o.label;
+          select.appendChild(opt);
+        });
+        select.addEventListener("change", function () {
+          activeFilters[g.key] = select.value;
+          select.classList.toggle("is-active", !!select.value);
+          applyFilter();
+        });
+        field.appendChild(select);
+        filterBar.appendChild(field);
+      });
+      if (!filterBar.children.length) filterBar.hidden = true;
+    }
+
+    function cardMatchesFilters(card) {
+      if (activeFilters.cat && card.getAttribute("data-cat") !== activeFilters.cat) return false;
+      var axes = ["format", "couleur", "finition"];
+      for (var i = 0; i < axes.length; i++) {
+        var key = axes[i];
+        if (!activeFilters[key]) continue;
+        var raw = card.getAttribute("data-" + key) || "";
+        if (raw.split(/\s+/).indexOf(activeFilters[key]) === -1) return false;
+      }
+      return true;
+    }
+
+    function applyFilter() {
+      var q = searchInput ? searchInput.value.trim().toLowerCase() : "";
+      if (searchWrap) searchWrap.classList.toggle("has-value", q.length > 0);
+      var anyFilterActive = activeFilters.cat || activeFilters.format || activeFilters.couleur || activeFilters.finition;
+      var anyVisible = false;
+      productRows.forEach(function (row) {
+        var rowHasVisible = false;
+        row.querySelectorAll(".product-card").forEach(function (card) {
+          var name = (card.querySelector("h4").textContent || "").toLowerCase();
+          var tag = (card.querySelector(".product-tag").textContent || "").toLowerCase();
+          var matchesText = !q || name.indexOf(q) !== -1 || tag.indexOf(q) !== -1;
+          var match = matchesText && cardMatchesFilters(card);
+          card.style.display = match ? "" : "none";
+          if (match) { rowHasVisible = true; anyVisible = true; }
+        });
+        row.style.display = rowHasVisible ? "" : "none";
+      });
+      if (searchEmpty) searchEmpty.style.display = (q || anyFilterActive) && !anyVisible ? "block" : "none";
+    }
+
+    if (searchInput) {
       searchInput.addEventListener("input", applyFilter);
       if (clearBtn) {
         clearBtn.addEventListener("click", function () {

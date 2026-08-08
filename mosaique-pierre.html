@@ -138,6 +138,7 @@
         <input type="search" id="productSearch" placeholder="Rechercher un produit..." autocomplete="off">
         <button type="button" class="product-search-clear" aria-label="Effacer la recherche"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
       </div>
+      <div class="product-filter-bar" id="productFilterBar"></div>
       <p class="product-search-empty" id="productSearchEmpty">Aucun produit ne correspond à votre recherche.</p>
       <svg width="0" height="0" style="position:absolute" aria-hidden="true">
         <defs>
@@ -156,7 +157,7 @@
         </div>
         </div>
         <div class="scroll-cards">
-        <div class="card product-card" data-cat="pierre">
+        <div class="card product-card" data-cat="pierre" data-couleur="blanc noir vert-imperial beige" data-finition="poli vieilli">
           <div class="product-visual">
             <span class="product-tag">Pierre</span>
             <img src="https://images.unsplash.com/photo-1604147706283-d7119b5b822c?auto=format&amp;fit=crop&amp;w=800&amp;q=80" alt="Marbre" loading="lazy">
@@ -182,7 +183,7 @@
             </div>
           </div>
         </div>
-        <div class="card product-card" data-cat="pierre">
+        <div class="card product-card" data-cat="pierre" data-couleur="gris-anthracite noir">
           <div class="product-visual">
             <span class="product-tag">Pierre</span>
             <img src="https://images.unsplash.com/photo-1580687104139-9d51ce55e346?auto=format&amp;fit=crop&amp;w=800&amp;q=80" alt="Ardoise" loading="lazy">
@@ -195,7 +196,7 @@
             </div>
           </div>
         </div>
-        <div class="card product-card" data-cat="pierre">
+        <div class="card product-card" data-cat="pierre" data-finition="poli">
           <div class="product-visual">
             <span class="product-tag">Pierre</span>
             <img src="https://images.unsplash.com/photo-1673924969559-ecb4835f314c?auto=format&amp;fit=crop&amp;w=800&amp;q=80" alt="Galets sur filet" loading="lazy">
@@ -245,7 +246,7 @@
             </div>
           </div>
         </div>
-        <div class="card product-card" data-cat="verre">
+        <div class="card product-card" data-cat="verre" data-finition="mat brillant">
           <div class="product-visual">
             <span class="product-tag">Verre</span>
             <img src="https://images.unsplash.com/photo-1607675719720-c8fd1f2e0f55?auto=format&amp;fit=crop&amp;w=800&amp;q=80" alt="Mélanges pierre & verre / alu" loading="lazy">
@@ -542,6 +543,6 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
 <script src="js/animations.js?v=4"></script>
-<script src="js/main.js?v=15"></script>
+<script src="js/main.js?v=16"></script>
 </body>
 </html>

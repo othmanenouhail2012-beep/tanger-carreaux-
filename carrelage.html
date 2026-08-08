@@ -153,6 +153,7 @@
         <input type="search" id="productSearch" placeholder="Rechercher un produit..." autocomplete="off">
         <button type="button" class="product-search-clear" aria-label="Effacer la recherche"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
       </div>
+      <div class="product-filter-bar" id="productFilterBar"></div>
       <p class="product-search-empty" id="productSearchEmpty">Aucun produit ne correspond à votre recherche.</p>
       <svg width="0" height="0" style="position:absolute" aria-hidden="true">
         <defs>
@@ -371,7 +372,7 @@
         </div>
         </div>
         <div class="scroll-cards">
-        <div class="card product-card" data-cat="origin">
+        <div class="card product-card" data-cat="origin" data-format="22.3x22.3">
           <div class="product-visual">
             <span class="product-tag">Origin</span>
             <img src="https://images.unsplash.com/photo-1778489926872-8c3ad4223550?auto=format&amp;fit=crop&amp;w=800&amp;q=80" alt="Art Renoir" loading="lazy">
@@ -384,7 +385,7 @@
             </div>
           </div>
         </div>
-        <div class="card product-card" data-cat="origin">
+        <div class="card product-card" data-cat="origin" data-format="22.3x22.3" data-couleur="noir blanc">
           <div class="product-visual">
             <span class="product-tag">Origin</span>
             <img src="https://images.unsplash.com/photo-1764670281751-8b7874d2d85f?auto=format&amp;fit=crop&amp;w=800&amp;q=80" alt="Art Degas" loading="lazy">
@@ -397,7 +398,7 @@
             </div>
           </div>
         </div>
-        <div class="card product-card" data-cat="origin">
+        <div class="card product-card" data-cat="origin" data-format="22.3x22.3">
           <div class="product-visual">
             <span class="product-tag">Origin</span>
             <img src="assets/images/motifs/motif-mosaique.jpg" alt="Art Corot" loading="lazy">
@@ -410,7 +411,7 @@
             </div>
           </div>
         </div>
-        <div class="card product-card" data-cat="origin">
+        <div class="card product-card" data-cat="origin" data-finition="brillant">
           <div class="product-visual">
             <span class="product-tag">Origin</span>
             <img src="https://images.unsplash.com/photo-1719597677180-2b1457e47bb2?auto=format&amp;fit=crop&amp;w=800&amp;q=80" alt="Origin Mayolica" loading="lazy">
@@ -434,7 +435,7 @@
         </div>
         </div>
         <div class="scroll-cards">
-        <div class="card product-card" data-cat="woods">
+        <div class="card product-card" data-cat="woods" data-format="20x120 25x150 30x180" data-finition="mate-rectifiee">
           <div class="product-visual">
             <span class="product-tag">Woods</span>
             <img src="https://images.unsplash.com/photo-1508920052992-6f5a921eba78?auto=format&amp;fit=crop&amp;w=800&amp;q=80" alt="Kalon Cerezo 20x120" loading="lazy">
@@ -447,7 +448,7 @@
             </div>
           </div>
         </div>
-        <div class="card product-card" data-cat="woods">
+        <div class="card product-card" data-cat="woods" data-format="20x120 25x150 30x180" data-couleur="chene-clair" data-finition="mate-rectifiee">
           <div class="product-visual">
             <span class="product-tag">Woods</span>
             <img src="https://images.unsplash.com/photo-1635603498472-bd44fd7b0735?auto=format&amp;fit=crop&amp;w=800&amp;q=80" alt="Kalon Roble" loading="lazy">
@@ -460,7 +461,7 @@
             </div>
           </div>
         </div>
-        <div class="card product-card" data-cat="woods">
+        <div class="card product-card" data-cat="woods" data-format="20x120 25x150 30x180" data-couleur="wengue-fonce" data-finition="mate-rectifiee">
           <div class="product-visual">
             <span class="product-tag">Woods</span>
             <img src="https://images.unsplash.com/photo-1751288301679-b6121e123dd1?auto=format&amp;fit=crop&amp;w=800&amp;q=80" alt="Kalon Wengue" loading="lazy">
@@ -484,7 +485,7 @@
         </div>
         </div>
         <div class="scroll-cards">
-        <div class="card product-card" data-cat="marbre">
+        <div class="card product-card" data-cat="marbre" data-couleur="dore gris">
           <div class="product-visual">
             <span class="product-tag">Luxury</span>
             <img src="assets/images/motifs/motif-marbre-vert.jpg" alt="Kenzo Marfil" loading="lazy">
@@ -497,7 +498,7 @@
             </div>
           </div>
         </div>
-        <div class="card product-card" data-cat="marbre">
+        <div class="card product-card" data-cat="marbre" data-finition="ultra-brillant">
           <div class="product-visual">
             <span class="product-tag">Luxury</span>
             <img src="https://images.unsplash.com/photo-1566041510394-cf7c8fe21800?auto=format&amp;fit=crop&amp;w=800&amp;q=80" alt="Materia CR.Lux Ultra Lux" loading="lazy">
@@ -521,7 +522,7 @@
         </div>
         </div>
         <div class="scroll-cards">
-        <div class="card product-card" data-cat="ciment">
+        <div class="card product-card" data-cat="ciment" data-finition="lisse">
           <div class="product-visual">
             <span class="product-tag">Ciment</span>
             <img src="assets/images/motifs/motif-pierre.jpg" alt="Cromat" loading="lazy">
@@ -534,7 +535,7 @@
             </div>
           </div>
         </div>
-        <div class="card product-card" data-cat="ciment">
+        <div class="card product-card" data-cat="ciment" data-format="60x120 120x120">
           <div class="product-visual">
             <span class="product-tag">Pierre</span>
             <img src="assets/images/motifs/motif-terrasse.jpg" alt="Montpellier" loading="lazy">
@@ -769,6 +770,6 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
 <script src="js/animations.js?v=4"></script>
-<script src="js/main.js?v=15"></script>
+<script src="js/main.js?v=16"></script>
 </body>
 </html>
