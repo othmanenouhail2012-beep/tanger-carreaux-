@@ -1,0 +1,20 @@
+{
+  "name": "tanger-carreaux",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Site Tanger Carreaux — front statique (racine) + backend serverless (/api) pour paiement YouCan Pay et espace client.",
+  "scripts": {
+    "dev": "vercel dev",
+    "seed:admin": "node db/seed-admin.js",
+    "seed:products": "node db/seed-products.js"
+  },
+  "dependencies": {
+    "@neondatabase/serverless": "^0.10.4",
+    "bcryptjs": "^2.4.3"
+  },
+  "devDependencies": {
+    "cheerio": "^1.0.0",
+    "dotenv": "^16.4.5",
+    "vercel": "^37.0.0"
+  }
+}
