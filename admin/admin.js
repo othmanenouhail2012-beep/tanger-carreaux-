@@ -1210,7 +1210,7 @@ document.addEventListener("DOMContentLoaded", function () {
   function refreshOrdersFromApi() {
     return fetch("/api/admin/orders", { credentials: "same-origin" })
       .then(function (res) {
-        if (res.status === 401) { showAdminLoginScreen(); return null; }
+        if (res.status === 401) { return null; } // pas de compte connecté -- secours silencieux sur les données locales, jamais d'écran bloquant
         if (!res.ok) throw new Error("Erreur serveur (" + res.status + ")");
         return res.json();
       })
@@ -1717,16 +1717,7 @@ document.addEventListener("DOMContentLoaded", function () {
   if (logoutBtn) {
     logoutBtn.addEventListener("click", function () {
       showToast("Déconnexion...");
-      // Recharge la page plutôt que de quitter l'admin (comportement pré-authentification
-      // réelle) -- le rechargement redéclenche bootstrapAdmin(), qui réaffiche l'écran de
-      // connexion si le cookie de session vient d'être invalidé côté serveur. En mode
-      // local (backend pas déployé), l'appel échoue silencieusement et le rechargement
-      // ramène simplement au tableau de bord, comme avant.
-      fetch("/api/auth/admin-logout", { method: "POST", credentials: "same-origin" })
-        .catch(function () {})
-        .then(function () {
-          setTimeout(function () { window.location.reload(); }, 400);
-        });
+      setTimeout(function () { window.location.href = "../index.html"; }, 500);
     });
   }
 
@@ -3201,74 +3192,17 @@ document.addEventListener("DOMContentLoaded", function () {
     renderCatalogStats();
   }
 
-  var adminLoginScreen = document.querySelector("#adminLoginScreen");
-  var adminShellEl = document.querySelector(".admin-shell");
-  var adminLoginForm = document.querySelector("#adminLoginForm");
-  var adminLoginStatus = document.querySelector("#adminLoginStatus");
-
-  function showAdminLoginScreen() {
-    if (adminLoginScreen) adminLoginScreen.hidden = false;
-    if (adminShellEl) adminShellEl.hidden = true;
-  }
-  function hideAdminLoginScreen() {
-    if (adminLoginScreen) adminLoginScreen.hidden = true;
-    if (adminShellEl) adminShellEl.hidden = false;
-  }
-
-  if (adminLoginForm) {
-    adminLoginForm.addEventListener("submit", function (e) {
-      e.preventDefault();
-      var email = adminLoginForm.querySelector("#adminLoginEmail").value.trim();
-      var password = adminLoginForm.querySelector("#adminLoginPassword").value;
-      if (adminLoginStatus) { adminLoginStatus.textContent = ""; adminLoginStatus.classList.remove("show"); }
-      fetch("/api/auth/admin-login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "same-origin",
-        body: JSON.stringify({ email: email, password: password })
-      })
-        .then(function (res) { return res.json().then(function (data) { return { ok: res.ok, data: data }; }); })
-        .then(function (r) {
-          if (!r.ok) {
-            if (adminLoginStatus) { adminLoginStatus.textContent = r.data.error || "Connexion impossible."; adminLoginStatus.classList.add("show"); }
-            return;
-          }
-          hideAdminLoginScreen();
-          refreshOrdersFromApi().then(startAdminApp);
-        })
-        .catch(function () {
-          if (adminLoginStatus) { adminLoginStatus.textContent = "Service momentanément indisponible -- réessayez plus tard."; adminLoginStatus.classList.add("show"); }
-        });
-    });
-  }
-
-  // Vérifie la session au chargement. Une erreur réseau (backend pas encore déployé,
-  // voir la Phase 3 du plan -- aucun compte Vercel/DB actif pour l'instant) n'affiche
-  // JAMAIS l'écran de connexion : il ne pourrait jamais réussir dans ce cas, et
-  // bloquerait complètement l'accès à un admin qui n'a par ailleurs commis aucune
-  // erreur. On retombe alors sur le mode 100% local existant, identique à avant ce
-  // changement -- exactement le même principe de repli que côté site public.
+  // Pas d'écran de connexion : accès direct au tableau de bord dans tous les cas
+  // (demande explicite -- l'écran bloquait l'accès local sans qu'aucun compte ne
+  // puisse de toute façon être créé tant qu'aucune base de données réelle n'existe).
+  // Si un vrai backend répond un jour avec des commandes réelles, elles sont utilisées
+  // silencieusement en arrière-plan ; sinon, secours sur les données locales comme
+  // avant -- dans les deux cas, jamais rien qui bloque l'affichage du tableau de bord.
+  // Note : l'API elle-même (api/admin/orders.js) reste protégée côté serveur --
+  // seul l'écran qui forçait une connexion ici a été retiré.
   function bootstrapAdmin() {
-    // Fichier ouvert directement (double-clic, file://) plutôt que servi par un vrai
-    // site -- aucun déploiement réel ne tourne jamais en file://, donc pas la peine de
-    // tenter l'appel réseau (qui échouerait de toute façon) : accès direct, sans écran
-    // de connexion, comme le reste du site en local avant l'ajout de l'authentification.
     if (location.protocol === "file:") { startAdminApp(); return; }
-    fetch("/api/admin/orders", { credentials: "same-origin" })
-      .then(function (res) {
-        if (res.status === 401) { showAdminLoginScreen(); return "unauthenticated"; }
-        if (!res.ok) throw new Error("Erreur serveur (" + res.status + ")");
-        return res.json();
-      })
-      .then(function (result) {
-        if (result === "unauthenticated") return;
-        ordersCache = result.orders.map(mapApiOrder);
-        startAdminApp();
-      })
-      .catch(function (err) {
-        console.warn("Backend admin indisponible, mode local :", err.message);
-        startAdminApp();
-      });
+    refreshOrdersFromApi().then(startAdminApp);
   }
   bootstrapAdmin();
 });
