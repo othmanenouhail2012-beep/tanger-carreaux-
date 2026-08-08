@@ -2005,6 +2005,17 @@ body.page-leaving .page-transition {
 }
 #ckAddressField.is-hidden { display: none; }
 
+.youcanpay-panel {
+  margin: 18px 0 6px;
+  padding: 18px;
+  border: 1.5px solid var(--stone-200);
+  border-radius: 14px;
+  background: var(--charcoal-2);
+}
+#youcanPayPanel.is-hidden { display: none; }
+.youcanpay-note { font-size: 0.85rem; color: var(--muted); margin: 0; }
+.youcanpay-note:empty { display: none; }
+
 .billing-divider { border: none; border-top: 1px solid var(--stone-200); margin: 26px 0; }
 .billing-section-title {
   font-size: 0.7rem;
@@ -2017,7 +2028,7 @@ body.page-leaving .page-transition {
 
 .payment-tabs {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(3, 1fr);
   gap: 14px;
   margin-bottom: 6px;
 }

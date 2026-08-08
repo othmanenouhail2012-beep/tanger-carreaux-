@@ -796,6 +796,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
     var ckDeliveryModeSelect = checkoutModal.querySelector("#ckDeliveryMode");
     var ckAddressField = checkoutModal.querySelector("#ckAddressField");
+    var youcanPayPanel = checkoutModal.querySelector("#youcanPayPanel");
+    var youcanPayElement = checkoutModal.querySelector("#youcanPayElement");
+    var youcanPayNote = checkoutModal.querySelector("#youcanPayNote");
 
     function currentPaymentValue() {
       var checked = checkoutModal.querySelector('input[name="payment"]:checked');
@@ -804,14 +807,22 @@ document.addEventListener("DOMContentLoaded", function () {
     function isDeliveryMode(value) {
       return value === "Paiement à la livraison";
     }
+    // Le sélecteur "Mode de réception" (#ckDeliveryMode) ne couvre volontairement que
+    // livraison/showroom -- le paiement en ligne est un axe de paiement, pas de
+    // réception, donc pas d'option correspondante là-bas (choix de portée délibéré,
+    // ce point n'étant de toute façon pas testable sans compte marchand réel).
+    function isOnlineCardMode(value) {
+      return value === "Paiement en ligne";
+    }
     function syncPaymentOptionStyles() {
       checkoutModal.querySelectorAll(".payment-tab").forEach(function (opt) {
         var input = opt.querySelector("input");
         opt.classList.toggle("is-checked", !!(input && input.checked));
       });
       var value = currentPaymentValue();
-      if (ckDeliveryModeSelect) ckDeliveryModeSelect.value = value;
+      if (ckDeliveryModeSelect && !isOnlineCardMode(value)) ckDeliveryModeSelect.value = value;
       if (ckAddressField) ckAddressField.classList.toggle("is-hidden", !isDeliveryMode(value));
+      if (youcanPayPanel) youcanPayPanel.classList.toggle("is-hidden", !isOnlineCardMode(value));
     }
     checkoutModal.querySelectorAll(".payment-tab input").forEach(function (radio) {
       radio.addEventListener("change", syncPaymentOptionStyles);
@@ -961,6 +972,70 @@ document.addEventListener("DOMContentLoaded", function () {
       });
     }
 
+    // ----- Paiement en ligne YouCan Pay (yp.js) -----
+    // Jamais exercé en conditions réelles à ce jour (pas de compte marchand actif,
+    // voir la Phase 5 du plan) -- basé sur la documentation publique officielle
+    // (developer.youcan.shop/youcan-pay/yp-js/getting-started), vérifiée le
+    // 2026-08-08. Tant que le serveur ne renvoie pas de bloc `youcanpay` dans la
+    // réponse (voir api/checkout.js), ce chemin n'est jamais emprunté.
+    var YOUCANPAY_SCRIPT_URL = "https://youcanpay.com/yp.js";
+    var youcanPayScriptPromise = null;
+    function loadYouCanPayScript() {
+      if (window.yp) return Promise.resolve();
+      if (youcanPayScriptPromise) return youcanPayScriptPromise;
+      youcanPayScriptPromise = new Promise(function (resolve, reject) {
+        var script = document.createElement("script");
+        script.src = YOUCANPAY_SCRIPT_URL;
+        script.onload = function () { resolve(); };
+        script.onerror = function () { reject(new Error("Impossible de charger le module de paiement.")); };
+        document.head.appendChild(script);
+      });
+      return youcanPayScriptPromise;
+    }
+    // Monte le formulaire carte dans #youcanPayElement et résout une fois le paiement
+    // confirmé avec succès (rejette sinon -- jamais de succès simulé). Le bouton
+    // "Confirmer ma commande" original reste désactivé pendant ce temps ; c'est le
+    // bouton "Valider le paiement" du widget qui déclenche payment.confirm().
+    function collectOnlineCardPayment(youcanpayData) {
+      return loadYouCanPayScript().then(function () {
+        return new Promise(function (resolve, reject) {
+          if (youcanPayNote) youcanPayNote.textContent = "";
+          if (!youcanPayElement) { reject(new Error("Formulaire de paiement indisponible.")); return; }
+          youcanPayElement.innerHTML = "";
+          var payment = window.yp(youcanpayData.publicKey, { locale: "fr" }).elements({
+            token: youcanpayData.tokenId,
+            container: "#youcanPayElement"
+          });
+          payment.mount();
+
+          var payBtn = document.createElement("button");
+          payBtn.type = "button";
+          payBtn.className = "btn btn-primary btn-block";
+          payBtn.style.marginTop = "14px";
+          payBtn.textContent = "Valider le paiement";
+          youcanPayElement.insertAdjacentElement("afterend", payBtn);
+
+          payBtn.addEventListener("click", function () {
+            payBtn.disabled = true;
+            payment
+              .confirm()
+              .then(function (result) {
+                if (result.status === "succeeded") {
+                  resolve(result);
+                  return;
+                }
+                payBtn.disabled = false;
+                if (youcanPayNote) youcanPayNote.textContent = (result.error && result.error.message) || "Le paiement a échoué, réessayez.";
+              })
+              .catch(function (err) {
+                payBtn.disabled = false;
+                if (youcanPayNote) youcanPayNote.textContent = "Erreur de paiement : " + err.message;
+              });
+          });
+        });
+      });
+    }
+
     // Termine la commande côté UI, que la source soit le backend réel ou le secours
     // local -- même rendu de récap/WhatsApp dans les deux cas.
     function finalizeOrder(order, note) {
@@ -1005,8 +1080,9 @@ document.addEventListener("DOMContentLoaded", function () {
         }
         if (checkoutFormError) checkoutFormError.classList.remove("show");
 
+        var isOnlineCard = isOnlineCardMode(payment);
         var customerFields = { name: name, phone: phone, city: city, address: isDelivery ? address : "" };
-        var paymentMethod = isDelivery ? "cod" : "showroom";
+        var paymentMethod = isOnlineCard ? "online_card" : (isDelivery ? "cod" : "showroom");
         var submitBtn = checkoutForm.querySelector(".btn-confirm-order");
         if (submitBtn) submitBtn.disabled = true;
 
@@ -1023,17 +1099,31 @@ document.addEventListener("DOMContentLoaded", function () {
               subtotal: serverOrder.subtotal,
               customer: { name: name, phone: phone, city: city, address: isDelivery ? address : "", payment: payment }
             };
+
+            if (serverOrder.youcanpay) {
+              // YouCan Pay configuré (jamais le cas testé à ce jour) -- affiche le
+              // formulaire carte et attend une vraie confirmation avant de finaliser.
+              if (youcanPayNote) youcanPayNote.textContent = "Complétez le paiement ci-dessous pour finaliser votre commande " + order.ref + ".";
+              return collectOnlineCardPayment(serverOrder.youcanpay).then(function () {
+                finalizeOrder(order, "Paiement confirmé. Merci pour votre commande !");
+              });
+            }
+
             finalizeOrder(order, serverOrder.message || serverOrder.paymentError || null);
+            if (submitBtn) submitBtn.disabled = false;
           })
           .catch(function (err) {
             // Backend pas encore déployé (pas de compte Vercel/DB actif) ou souci réseau --
             // on ne bloque jamais une commande pour cette raison : secours identique au
             // comportement client-only d'avant ce changement, avec prix du panier local.
+            // Pour le paiement en ligne spécifiquement, jamais de faux "payé" -- message
+            // honnête indiquant que le règlement se fera par un autre canal.
             console.warn("Checkout backend indisponible, secours local :", err.message);
             var order = buildOrder(cart, { name: name, phone: phone, city: city, address: isDelivery ? address : "", payment: payment });
-            finalizeOrder(order, null);
-          })
-          .then(function () {
+            var note = isOnlineCard
+              ? "Le paiement en ligne est momentanément indisponible. Votre commande " + order.ref + " est enregistrée, notre équipe vous contactera pour le règlement."
+              : null;
+            finalizeOrder(order, note);
             if (submitBtn) submitBtn.disabled = false;
           });
       });

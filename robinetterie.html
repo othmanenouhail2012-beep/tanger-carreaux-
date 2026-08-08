@@ -749,6 +749,16 @@
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l1.5-5h15L21 9"/><path d="M3 9v11h18V9"/><path d="M9 20v-6h6v6"/><path d="M3 9a2.2 2.2 0 0 0 4.4 0 2.2 2.2 0 0 0 4.4 0 2.2 2.2 0 0 0 4.4 0 2.2 2.2 0 0 0 4.4 0"/></svg>
             <span>Paiement au Showroom</span>
           </label>
+          <label class="payment-tab">
+            <input type="radio" name="payment" value="Paiement en ligne">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2"/><path d="M1 10h22"/></svg>
+            <span>Payer en ligne (carte)</span>
+          </label>
+        </div>
+
+        <div class="youcanpay-panel is-hidden" id="youcanPayPanel">
+          <div id="youcanPayElement"></div>
+          <p class="youcanpay-note" id="youcanPayNote"></p>
         </div>
 
         <div class="billing-grid billing-grid--fields">
@@ -790,6 +800,6 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
 <script src="js/animations.js?v=4"></script>
-<script src="js/main.js?v=17"></script>
+<script src="js/main.js?v=18"></script>
 </body>
 </html>
