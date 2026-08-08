@@ -34,6 +34,14 @@
 
 * { box-sizing: border-box; }
 html { scroll-behavior: smooth; overflow-x: hidden; }
+/* Lenis (js/vendor/lenis.min.js) gère elle-même le scroll fluide une fois active --
+   neutralise le scroll-behavior natif seulement dans ce cas précis (classe "lenis"
+   posée par la librairie elle-même sur <html>, jamais par notre propre code) pour
+   éviter un double-lissage. Si Lenis ne s'active pas (tactile, reduced-motion, CDN
+   indisponible), scroll-behavior:smooth ci-dessus reste le fallback natif. */
+html.lenis { scroll-behavior: auto; height: auto; }
+html.lenis body { height: auto; }
+.lenis.lenis-stopped { overflow: clip; }
 
 body {
   margin: 0;

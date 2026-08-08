@@ -40,6 +40,42 @@
     });
   }
 
+  /* ---------------- Lenis (scroll fluide) ----------------
+     Réintégré après un incident de production précédent où Lenis avait cassé le scroll
+     tactile réel (jamais isolé avec certitude -- seul un test à vrai geste tactile
+     l'avait révélé, pas de simple scrollTo() programmatique). Défense en profondeur
+     cette fois : (1) chargement de Lenis sauté entièrement sur tactile (le point qui
+     avait cassé reste donc 100% natif, aucun changement), (2) `syncTouch` de Lenis
+     laissé à sa valeur par défaut `false` même si ce garde-fou venait à échouer un jour.
+     Fichier vendorisé (js/vendor/lenis.min.js, version 1.3.26 figée, pas de CDN) pour
+     éliminer toute dérive de version comme facteur possible. */
+  var lenis = null;
+  if (hasGsap && !isTouch && !reduceMotion && window.Lenis) {
+    lenis = new Lenis({ duration: 1.1, smoothWheel: true });
+    lenis.on("scroll", ScrollTrigger.update);
+    gsap.ticker.add(function (time) {
+      lenis.raf(time * 1000);
+    });
+    gsap.ticker.lagSmoothing(0);
+
+    // Lenis pilote elle-même chaque scroll via scrollTo({behavior:"instant"}), donc son
+    // propre mécanisme ne dépend jamais de scroll-behavior CSS -- vérifié : le scroll à
+    // la molette reste fluide quoi qu'il arrive ici. Ce correctif traite un effet de bord
+    // distinct et plus étroit : GSAP ScrollTrigger gère lui-même un scroll-behavior en
+    // style INLINE (pour éviter que le scroll natif fluide n'interfère avec ses calculs
+    // pendant un refresh) et restaure ensuite la valeur "smooth" d'origine -- ce qui
+    // écraserait silencieusement notre intention pour les sauts d'ancre native (#lien)
+    // pendant que Lenis est active. Un style inline gagnant toujours sur une règle CSS
+    // par classe, on utilise la même arme : réaffirmé à chaque mutation de l'attribut
+    // style, pas seulement une fois au chargement.
+    document.documentElement.style.scrollBehavior = "auto";
+    new MutationObserver(function () {
+      if (document.documentElement.style.scrollBehavior !== "auto") {
+        document.documentElement.style.scrollBehavior = "auto";
+      }
+    }).observe(document.documentElement, { attributes: true, attributeFilter: ["style"] });
+  }
+
   /* ---------------- Texte du hero : révélation mot par mot ---------------- */
   function splitWords(el) {
     if (!el || el.dataset.split) return;
