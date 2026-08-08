@@ -1176,10 +1176,79 @@ document.addEventListener("DOMContentLoaded", function () {
     return raw;
   }
   function saveProducts(list) { localStorage.setItem(PRODUCTS_KEY, JSON.stringify(list)); }
+  // Commandes réelles (API /api/admin/orders, voir Phase 3/tâche #9 du plan) --
+  // ordersCache=null tant qu'aucune réponse serveur n'est arrivée, auquel cas getOrders()
+  // retombe sur localStorage (mode local, backend pas encore déployé ou hors-ligne).
+  // Seuls la lecture et le changement de statut sont réellement synchronisés avec l'API --
+  // suppression de commande et attribution vendeur restent volontairement locales
+  // (pas d'endpoint dédié dans le périmètre validé), voir updateOrderStatusRemote.
+  var ordersCache = null;
+  var PAYMENT_METHOD_LABELS = {
+    cod: "Paiement à la livraison",
+    showroom: "Paiement au Showroom",
+    online_card: "Paiement en ligne"
+  };
+  function mapApiOrder(o) {
+    function pad(n) { return n < 10 ? "0" + n : "" + n; }
+    var d = new Date(o.created_at);
+    return {
+      id: o.id, // UUID réel de la table orders -- clé utilisée par le PATCH de statut
+      ref: o.ref,
+      date: d.getTime(),
+      dateLabel: pad(d.getDate()) + "/" + pad(d.getMonth() + 1) + "/" + d.getFullYear() + " à " + pad(d.getHours()) + ":" + pad(d.getMinutes()),
+      customer: {
+        name: o.name, phone: o.phone, city: o.city, address: o.address || "",
+        payment: PAYMENT_METHOD_LABELS[o.payment_method] || o.payment_method
+      },
+      items: (o.items || []).map(function (it) {
+        return { name: it.name, tag: it.tag, qty: it.qty, unit: it.unit, price: Number(it.price), total: Number(it.total) };
+      }),
+      subtotal: Number(o.subtotal),
+      status: o.fulfillment_status
+    };
+  }
+  function refreshOrdersFromApi() {
+    return fetch("/api/admin/orders", { credentials: "same-origin" })
+      .then(function (res) {
+        if (res.status === 401) { showAdminLoginScreen(); return null; }
+        if (!res.ok) throw new Error("Erreur serveur (" + res.status + ")");
+        return res.json();
+      })
+      .then(function (data) {
+        if (!data) return null;
+        // Conserve les attributions vendeur déjà faites localement (aucun retour API pour cet axe)
+        var prevEmployeeById = {};
+        (ordersCache || []).forEach(function (o) { if (o.employeeId) prevEmployeeById[o.id] = o.employeeId; });
+        ordersCache = data.orders.map(function (o) {
+          var mapped = mapApiOrder(o);
+          if (prevEmployeeById[mapped.id]) mapped.employeeId = prevEmployeeById[mapped.id];
+          return mapped;
+        });
+        return ordersCache;
+      })
+      .catch(function (err) {
+        console.warn("Impossible de charger les commandes depuis l'API, secours localStorage :", err.message);
+        return null;
+      });
+  }
+  function updateOrderStatusRemote(id, status) {
+    fetch("/api/admin/orders", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      credentials: "same-origin",
+      body: JSON.stringify({ id: id, status: status })
+    }).catch(function (err) {
+      console.warn("Statut non synchronisé côté serveur (backend indisponible) :", err.message);
+    });
+  }
   function getOrders() {
+    if (ordersCache !== null) return ordersCache;
     try { return JSON.parse(localStorage.getItem(ORDERS_KEY)) || []; } catch (e) { return []; }
   }
-  function saveOrders(list) { localStorage.setItem(ORDERS_KEY, JSON.stringify(list)); }
+  function saveOrders(list) {
+    localStorage.setItem(ORDERS_KEY, JSON.stringify(list));
+    ordersCache = list;
+  }
   function getSettings() {
     var raw = null;
     try { raw = JSON.parse(localStorage.getItem(SETTINGS_KEY)); } catch (e) {}
@@ -1648,7 +1717,16 @@ document.addEventListener("DOMContentLoaded", function () {
   if (logoutBtn) {
     logoutBtn.addEventListener("click", function () {
       showToast("Déconnexion...");
-      setTimeout(function () { window.location.href = "../index.html"; }, 500);
+      // Recharge la page plutôt que de quitter l'admin (comportement pré-authentification
+      // réelle) -- le rechargement redéclenche bootstrapAdmin(), qui réaffiche l'écran de
+      // connexion si le cookie de session vient d'être invalidé côté serveur. En mode
+      // local (backend pas déployé), l'appel échoue silencieusement et le rechargement
+      // ramène simplement au tableau de bord, comme avant.
+      fetch("/api/auth/admin-logout", { method: "POST", credentials: "same-origin" })
+        .catch(function () {})
+        .then(function () {
+          setTimeout(function () { window.location.reload(); }, 400);
+        });
     });
   }
 
@@ -1698,7 +1776,11 @@ document.addEventListener("DOMContentLoaded", function () {
       sel.addEventListener("change", function () {
         var list = getOrders();
         var order = findById(list, sel.getAttribute("data-order-id"));
-        if (order) { order.status = sel.value; saveOrders(list); }
+        if (order) {
+          order.status = sel.value;
+          saveOrders(list);
+          updateOrderStatusRemote(order.id, sel.value); // synchronise avec la vraie DB si le backend répond
+        }
         sel.className = "admin-status-select status-" + sel.value;
         renderDashboard();
         showToast("Statut de la commande mis à jour.");
@@ -3109,11 +3191,79 @@ document.addEventListener("DOMContentLoaded", function () {
   panelRenderers.assistant = ensureChatIntro;
   panelRenderers.catalog = function () { renderCatalog(); renderCatalogStats(); };
 
-  // ---------- Initialisation ----------
-  getProducts();
-  fillSettingsForm();
-  renderDashboard();
-  renderOrders();
-  renderCatalog();
-  renderCatalogStats();
+  // ---------- Authentification admin + Initialisation ----------
+  function startAdminApp() {
+    getProducts();
+    fillSettingsForm();
+    renderDashboard();
+    renderOrders();
+    renderCatalog();
+    renderCatalogStats();
+  }
+
+  var adminLoginScreen = document.querySelector("#adminLoginScreen");
+  var adminShellEl = document.querySelector(".admin-shell");
+  var adminLoginForm = document.querySelector("#adminLoginForm");
+  var adminLoginStatus = document.querySelector("#adminLoginStatus");
+
+  function showAdminLoginScreen() {
+    if (adminLoginScreen) adminLoginScreen.hidden = false;
+    if (adminShellEl) adminShellEl.hidden = true;
+  }
+  function hideAdminLoginScreen() {
+    if (adminLoginScreen) adminLoginScreen.hidden = true;
+    if (adminShellEl) adminShellEl.hidden = false;
+  }
+
+  if (adminLoginForm) {
+    adminLoginForm.addEventListener("submit", function (e) {
+      e.preventDefault();
+      var email = adminLoginForm.querySelector("#adminLoginEmail").value.trim();
+      var password = adminLoginForm.querySelector("#adminLoginPassword").value;
+      if (adminLoginStatus) { adminLoginStatus.textContent = ""; adminLoginStatus.classList.remove("show"); }
+      fetch("/api/auth/admin-login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "same-origin",
+        body: JSON.stringify({ email: email, password: password })
+      })
+        .then(function (res) { return res.json().then(function (data) { return { ok: res.ok, data: data }; }); })
+        .then(function (r) {
+          if (!r.ok) {
+            if (adminLoginStatus) { adminLoginStatus.textContent = r.data.error || "Connexion impossible."; adminLoginStatus.classList.add("show"); }
+            return;
+          }
+          hideAdminLoginScreen();
+          refreshOrdersFromApi().then(startAdminApp);
+        })
+        .catch(function () {
+          if (adminLoginStatus) { adminLoginStatus.textContent = "Service momentanément indisponible -- réessayez plus tard."; adminLoginStatus.classList.add("show"); }
+        });
+    });
+  }
+
+  // Vérifie la session au chargement. Une erreur réseau (backend pas encore déployé,
+  // voir la Phase 3 du plan -- aucun compte Vercel/DB actif pour l'instant) n'affiche
+  // JAMAIS l'écran de connexion : il ne pourrait jamais réussir dans ce cas, et
+  // bloquerait complètement l'accès à un admin qui n'a par ailleurs commis aucune
+  // erreur. On retombe alors sur le mode 100% local existant, identique à avant ce
+  // changement -- exactement le même principe de repli que côté site public.
+  function bootstrapAdmin() {
+    fetch("/api/admin/orders", { credentials: "same-origin" })
+      .then(function (res) {
+        if (res.status === 401) { showAdminLoginScreen(); return "unauthenticated"; }
+        if (!res.ok) throw new Error("Erreur serveur (" + res.status + ")");
+        return res.json();
+      })
+      .then(function (result) {
+        if (result === "unauthenticated") return;
+        ordersCache = result.orders.map(mapApiOrder);
+        startAdminApp();
+      })
+      .catch(function (err) {
+        console.warn("Backend admin indisponible, mode local :", err.message);
+        startAdminApp();
+      });
+  }
+  bootstrapAdmin();
 });

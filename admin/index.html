@@ -9,9 +9,27 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="admin.css?v=5">
+<link rel="stylesheet" href="admin.css?v=6">
 </head>
 <body>
+
+<div class="admin-login-screen" id="adminLoginScreen" hidden>
+  <form class="admin-login-card" id="adminLoginForm" novalidate>
+    <img src="../assets/logo-white.svg" alt="Tanger Carreaux" class="admin-login-logo">
+    <h1>Back-office</h1>
+    <p class="admin-login-sub">Connectez-vous pour accéder aux commandes réelles.</p>
+    <div class="admin-field">
+      <label for="adminLoginEmail">Email</label>
+      <input type="email" id="adminLoginEmail" required autocomplete="username">
+    </div>
+    <div class="admin-field">
+      <label for="adminLoginPassword">Mot de passe</label>
+      <input type="password" id="adminLoginPassword" required autocomplete="current-password">
+    </div>
+    <button type="submit" class="admin-btn admin-btn-primary admin-login-submit">Se connecter</button>
+    <p class="admin-login-status" id="adminLoginStatus"></p>
+  </form>
+</div>
 
 <div class="admin-shell">
 
@@ -1150,6 +1168,6 @@
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
-<script src="admin.js?v=10"></script>
+<script src="admin.js?v=11"></script>
 </body>
 </html>
