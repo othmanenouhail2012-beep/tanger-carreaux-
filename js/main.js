@@ -941,6 +941,46 @@ document.addEventListener("DOMContentLoaded", function () {
       } catch (e) {}
     }
 
+    // Envoie la commande au vrai backend (POST /api/checkout, prix revalidé serveur --
+    // voir api/checkout.js). Retourne les données confirmées par le serveur.
+    function submitCheckoutToBackend(cart, customerFields, paymentMethod) {
+      var payload = {
+        items: cart.map(function (i) { return { id: i.id, qty: i.qty }; }),
+        customer: { name: customerFields.name, phone: customerFields.phone, city: customerFields.city, address: customerFields.address },
+        paymentMethod: paymentMethod
+      };
+      return fetch("/api/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      }).then(function (res) {
+        return res.json().catch(function () { return {}; }).then(function (data) {
+          if (!res.ok) throw new Error(data.error || "Erreur serveur.");
+          return data;
+        });
+      });
+    }
+
+    // Termine la commande côté UI, que la source soit le backend réel ou le secours
+    // local -- même rendu de récap/WhatsApp dans les deux cas.
+    function finalizeOrder(order, note) {
+      renderOrderRecap(order);
+      if (note && orderRecapEl) {
+        var noteEl = document.createElement("p");
+        noteEl.className = "order-recap-note";
+        noteEl.textContent = note;
+        orderRecapEl.appendChild(noteEl);
+      }
+      wireRecapActions(order);
+      // TODO(#9 admin API) : retirer une fois admin/admin.js branché sur /api/admin/orders --
+      // gardé pour l'instant pour que l'admin (encore 100% localStorage) continue de voir
+      // les commandes, y compris celles réellement enregistrées côté serveur.
+      pushOrderToAdmin(order);
+      clearCart();
+      if (checkoutStepForm) checkoutStepForm.hidden = true;
+      if (checkoutStepRecap) checkoutStepRecap.hidden = false;
+    }
+
     if (checkoutForm) {
       checkoutForm.addEventListener("submit", function (e) {
         e.preventDefault();
@@ -965,14 +1005,37 @@ document.addEventListener("DOMContentLoaded", function () {
         }
         if (checkoutFormError) checkoutFormError.classList.remove("show");
 
-        var order = buildOrder(cart, { name: name, phone: phone, city: city, address: isDelivery ? address : "", payment: payment });
-        renderOrderRecap(order);
-        wireRecapActions(order);
-        pushOrderToAdmin(order);
-        clearCart();
+        var customerFields = { name: name, phone: phone, city: city, address: isDelivery ? address : "" };
+        var paymentMethod = isDelivery ? "cod" : "showroom";
+        var submitBtn = checkoutForm.querySelector(".btn-confirm-order");
+        if (submitBtn) submitBtn.disabled = true;
 
-        if (checkoutStepForm) checkoutStepForm.hidden = true;
-        if (checkoutStepRecap) checkoutStepRecap.hidden = false;
+        submitCheckoutToBackend(cart, customerFields, paymentMethod)
+          .then(function (serverOrder) {
+            // Commande réellement enregistrée en base -- on affiche les données
+            // confirmées par le serveur (ref/prix revalidés), pas celles du client.
+            var order = {
+              ref: serverOrder.ref,
+              date: new Date(),
+              items: serverOrder.items.map(function (i) {
+                return { name: i.name, tag: i.tag, qty: i.qty, unit: i.unit, price: i.price, total: i.total };
+              }),
+              subtotal: serverOrder.subtotal,
+              customer: { name: name, phone: phone, city: city, address: isDelivery ? address : "", payment: payment }
+            };
+            finalizeOrder(order, serverOrder.message || serverOrder.paymentError || null);
+          })
+          .catch(function (err) {
+            // Backend pas encore déployé (pas de compte Vercel/DB actif) ou souci réseau --
+            // on ne bloque jamais une commande pour cette raison : secours identique au
+            // comportement client-only d'avant ce changement, avec prix du panier local.
+            console.warn("Checkout backend indisponible, secours local :", err.message);
+            var order = buildOrder(cart, { name: name, phone: phone, city: city, address: isDelivery ? address : "", payment: payment });
+            finalizeOrder(order, null);
+          })
+          .then(function () {
+            if (submitBtn) submitBtn.disabled = false;
+          });
       });
     }
 
@@ -985,5 +1048,171 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     renderCartBadge();
+  })();
+
+  // ---------- Espace client (connexion / inscription / historique) ----------
+  // Uniquement actif sur espace-client.html (guard sur #espaceClientRoot). Le checkout
+  // invité reste toujours possible (voir le tunnel de commande ci-dessus) -- ce bloc ne
+  // fait qu'ajouter la possibilité optionnelle d'un compte avec historique.
+  (function () {
+    var root = document.querySelector("#espaceClientRoot");
+    if (!root) return;
+
+    function escapeHtml(str) {
+      var div = document.createElement("div");
+      div.textContent = str == null ? "" : String(str);
+      return div.innerHTML;
+    }
+    function formatMAD(n) {
+      var s = Math.round(n).toString();
+      s = s.replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+      return s + " MAD";
+    }
+    var STATUS_LABELS = { pending: "En attente", preparing: "En préparation", shipping: "En livraison", done: "Livrée", cancelled: "Annulée" };
+
+    var authForms = document.querySelector("#authForms");
+    var accountView = document.querySelector("#accountView");
+    var tabLogin = document.querySelector("#tabLogin");
+    var tabSignup = document.querySelector("#tabSignup");
+    var loginForm = document.querySelector("#loginForm");
+    var signupForm = document.querySelector("#signupForm");
+    var loginStatus = document.querySelector("#loginStatus");
+    var signupStatus = document.querySelector("#signupStatus");
+    var authUnavailableNote = document.querySelector("#authUnavailableNote");
+    var accountName = document.querySelector("#accountName");
+    var logoutBtn = document.querySelector("#logoutBtn");
+    var orderHistoryList = document.querySelector("#orderHistoryList");
+    var orderHistoryEmpty = document.querySelector("#orderHistoryEmpty");
+
+    // Juste pour afficher "Bonjour X" sans refaire un appel réseau dédié -- l'accès réel
+    // à l'historique reste vérifié à chaque requête via le cookie de session httpOnly,
+    // cette valeur locale n'accorde jamais d'accès par elle-même.
+    var NAME_KEY = "tc-customer-name";
+
+    function setStatus(el, text, ok) {
+      if (!el) return;
+      el.textContent = text;
+      el.classList.add("show");
+      el.classList.toggle("ok", !!ok);
+    }
+
+    function showTab(which) {
+      var isLogin = which === "login";
+      if (tabLogin) tabLogin.classList.toggle("is-active", isLogin);
+      if (tabSignup) tabSignup.classList.toggle("is-active", !isLogin);
+      if (loginForm) loginForm.hidden = !isLogin;
+      if (signupForm) signupForm.hidden = isLogin;
+    }
+    if (tabLogin) tabLogin.addEventListener("click", function () { showTab("login"); });
+    if (tabSignup) tabSignup.addEventListener("click", function () { showTab("signup"); });
+
+    function renderOrders(orders) {
+      if (!orders.length) {
+        if (orderHistoryEmpty) orderHistoryEmpty.hidden = false;
+        if (orderHistoryList) orderHistoryList.innerHTML = "";
+        return;
+      }
+      if (orderHistoryEmpty) orderHistoryEmpty.hidden = true;
+      if (!orderHistoryList) return;
+      orderHistoryList.innerHTML = orders.map(function (o) {
+        var itemsText = (o.items || []).map(function (i) { return i.name + " × " + i.qty; }).join(", ");
+        var date = new Date(o.created_at).toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit", year: "numeric" });
+        return (
+          '<div class="order-history-item">' +
+            '<div class="order-history-head"><strong>Commande ' + escapeHtml(o.ref) + "</strong><span>" + date + "</span></div>" +
+            '<span class="order-history-status">' + escapeHtml(STATUS_LABELS[o.fulfillment_status] || o.fulfillment_status) + "</span>" +
+            '<div class="order-history-items">' + escapeHtml(itemsText) + "</div>" +
+            '<div class="order-history-total">' + formatMAD(Number(o.subtotal)) + "</div>" +
+          "</div>"
+        );
+      }).join("");
+    }
+
+    function showAccountView(name) {
+      if (authForms) authForms.hidden = true;
+      if (accountView) accountView.hidden = false;
+      if (accountName) accountName.textContent = name || "";
+    }
+    function showAuthFormsView() {
+      if (authForms) authForms.hidden = false;
+      if (accountView) accountView.hidden = true;
+    }
+
+    // État initial : 200 = déjà connecté (cookie de session valide) -> vue compte ;
+    // 401 = déconnecté -> formulaires ; erreur réseau = backend pas encore déployé
+    // (voir Phase 3 du plan) -> formulaires + note honnête plutôt qu'un écran cassé.
+    fetch("/api/customer/orders")
+      .then(function (res) {
+        if (res.status === 401) { showAuthFormsView(); return null; }
+        if (!res.ok) throw new Error("Erreur serveur.");
+        return res.json();
+      })
+      .then(function (data) {
+        if (!data) return;
+        showAccountView(localStorage.getItem(NAME_KEY) || "");
+        renderOrders(data.orders || []);
+      })
+      .catch(function () {
+        showAuthFormsView();
+        if (authUnavailableNote) authUnavailableNote.hidden = false;
+      });
+
+    if (loginForm) {
+      loginForm.addEventListener("submit", function (e) {
+        e.preventDefault();
+        var email = loginForm.querySelector("#loginEmail").value.trim();
+        var password = loginForm.querySelector("#loginPassword").value;
+        fetch("/api/auth/customer-login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: email, password: password })
+        })
+          .then(function (res) { return res.json().then(function (data) { return { ok: res.ok, data: data }; }); })
+          .then(function (r) {
+            if (!r.ok) { setStatus(loginStatus, r.data.error || "Connexion impossible.", false); return; }
+            localStorage.setItem(NAME_KEY, r.data.name || "");
+            showAccountView(r.data.name);
+            return fetch("/api/customer/orders")
+              .then(function (res) { return res.json(); })
+              .then(function (data) { renderOrders(data.orders || []); });
+          })
+          .catch(function () { setStatus(loginStatus, "Service momentanément indisponible -- réessayez plus tard.", false); });
+      });
+    }
+
+    if (signupForm) {
+      signupForm.addEventListener("submit", function (e) {
+        e.preventDefault();
+        var name = signupForm.querySelector("#signupName").value.trim();
+        var email = signupForm.querySelector("#signupEmail").value.trim();
+        var phone = signupForm.querySelector("#signupPhone").value.trim();
+        var password = signupForm.querySelector("#signupPassword").value;
+        fetch("/api/auth/customer-signup", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name: name, email: email, phone: phone, password: password })
+        })
+          .then(function (res) { return res.json().then(function (data) { return { ok: res.ok, data: data }; }); })
+          .then(function (r) {
+            if (!r.ok) { setStatus(signupStatus, r.data.error || "Inscription impossible.", false); return; }
+            localStorage.setItem(NAME_KEY, r.data.name || "");
+            showAccountView(r.data.name);
+            renderOrders([]); // nouveau compte, aucune commande encore
+          })
+          .catch(function () { setStatus(signupStatus, "Service momentanément indisponible -- réessayez plus tard.", false); });
+      });
+    }
+
+    if (logoutBtn) {
+      logoutBtn.addEventListener("click", function () {
+        fetch("/api/auth/customer-logout", { method: "POST" })
+          .catch(function () {})
+          .then(function () {
+            localStorage.removeItem(NAME_KEY);
+            showAuthFormsView();
+            if (loginForm) loginForm.reset();
+          });
+      });
+    }
   })();
 });
