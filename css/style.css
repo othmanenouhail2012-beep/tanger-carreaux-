@@ -812,6 +812,128 @@ h1 { font-size: clamp(2.4rem, 5vw, 4rem); }
   margin-top: -8px;
 }
 
+/* ---------- Mise en page "Market" (façon marketplace, pilote sur carrelage.html) ----------
+   Sidebar catégories/prix/facettes + grille de résultats, plutôt que des rangées
+   horizontales par catégorie. Les cartes produit ne sont pas dupliquées : elles restent
+   déclarées dans leurs .product-row d'origine (voir le HTML) et sont déplacées dans
+   #marketGrid en JS au chargement — .product-row d'origine masquées une fois vidées. */
+.market-layout {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  gap: 36px;
+  align-items: start;
+  margin: 28px 0 8px;
+}
+@media (max-width: 860px) {
+  .market-layout { grid-template-columns: 1fr; }
+}
+.market-sidebar { position: sticky; top: 100px; display: flex; flex-direction: column; gap: 26px; }
+@media (max-width: 860px) { .market-sidebar { position: static; } }
+.market-sidebar-block h4 {
+  font-family: var(--ff-sans);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--ink);
+  margin: 0 0 12px;
+}
+.market-cat-tree { list-style: none; margin: 0; padding: 0; }
+.market-cat-tree .market-cat-group {
+  display: block;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--muted);
+  margin: 16px 0 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+.market-cat-tree li:first-child .market-cat-group { margin-top: 0; }
+.market-cat-tree ul { list-style: none; margin: 0; padding: 0; }
+.market-cat-link {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 7px 10px;
+  border: none;
+  background: none;
+  border-radius: 3px;
+  font-family: inherit;
+  font-size: 0.88rem;
+  color: var(--ink);
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.market-cat-link:hover { background: var(--stone-100); }
+.market-cat-link.is-active { background: var(--terracotta); color: #fff; font-weight: 600; }
+.market-cat-link .market-cat-count { float: right; color: var(--muted-light); font-size: 0.78rem; }
+.market-cat-link.is-active .market-cat-count { color: rgba(255, 255, 255, 0.75); }
+.market-price-range { display: flex; align-items: center; gap: 8px; }
+.market-price-range input {
+  width: 0;
+  flex: 1;
+  min-width: 0;
+  padding: 9px 10px;
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  font-family: inherit;
+  font-size: 0.86rem;
+  color: var(--ink);
+  background: var(--stone-50);
+}
+.market-price-range input:focus { outline: none; border-color: var(--terracotta); }
+.market-price-range span { color: var(--muted-light); font-size: 0.8rem; }
+.market-price-apply {
+  margin-top: 10px;
+  width: 100%;
+  padding: 8px;
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  background: var(--stone-100);
+  font-family: inherit;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--ink);
+  cursor: pointer;
+  transition: border-color 0.2s ease, color 0.2s ease;
+}
+.market-price-apply:hover { border-color: var(--terracotta); color: var(--terracotta); }
+#marketFacetsBlock .product-filter-bar { flex-direction: column; margin: 0; }
+#marketFacetsBlock .product-filter-field select { width: 100%; }
+
+.market-content { min-width: 0; }
+.market-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 18px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--line);
+}
+.market-count { margin: 0; font-size: 0.86rem; color: var(--muted); }
+.market-count strong { color: var(--ink); }
+.market-sort select {
+  padding: 9px 34px 9px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: var(--stone-100) url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="%23545b53" stroke-width="2.4"><polyline points="6 9 12 15 18 9"/></svg>') no-repeat right 12px center;
+  background-size: 12px;
+  font-family: inherit;
+  font-size: 0.86rem;
+  color: var(--ink);
+  cursor: pointer;
+}
+.market-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 20px;
+}
+.market-grid .product-card { width: auto; border-radius: var(--radius); }
+.market-grid .product-visual { height: 220px; }
+body.has-market-layout .product-row { display: none; }
+
 /* ---------- Recherche produit ---------- */
 .product-search {
   position: relative;

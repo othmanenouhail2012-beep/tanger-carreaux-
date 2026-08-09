@@ -360,8 +360,36 @@ document.addEventListener("DOMContentLoaded", function () {
     var searchEmpty = document.querySelector("#productSearchEmpty");
     var clearBtn = searchWrap ? searchWrap.querySelector(".product-search-clear") : null;
     var productRows = document.querySelectorAll(".product-row");
+    // Liste stable de TOUTES les cartes, capturée une fois avant tout déplacement --
+    // en mode Market, les cartes correspondantes sont physiquement déplacées dans
+    // #marketGrid (voir applyFilter), donc reparcourir productRows à chaque rendu ne
+    // retrouverait plus que les cartes pas encore déplacées. allProductCards reste
+    // valide quel que soit leur parent actuel dans le DOM.
+    var allProductCards = Array.prototype.slice.call(document.querySelectorAll(".product-card"));
     var filterBar = document.querySelector("#productFilterBar");
-    var activeFilters = { cat: "", format: "", couleur: "", finition: "" };
+    var activeFilters = { cat: "", format: "", couleur: "", finition: "", priceMin: null, priceMax: null };
+
+    // ----- Mise en page "Market" (pilote sur carrelage.html, voir #marketGrid) -----
+    // Regroupement de la vraie taxonomie data-cat de la page sous des intitulés parents
+    // plus lisibles façon marketplace (Sol / Mur / Effet matière / Style décoratif) --
+    // choix d'organisation, pas une donnée produit : n'invente aucune valeur, ne fait
+    // que regrouper les catégories réelles déjà présentes. Si une page n'a pas d'entrée
+    // ici, l'arborescence retombe sur une liste plate (voir buildMarketCatTree).
+    var MARKET_CATEGORY_GROUPS = {
+      "carrelage.html": [
+        { group: "Sol", cats: ["gres", "exterieur"] },
+        { group: "Mur", cats: ["faience"] },
+        { group: "Effet matière", cats: ["woods", "marbre", "ciment"] },
+        { group: "Style décoratif", cats: ["origin", "naturel"] }
+      ]
+    };
+    var marketGrid = document.querySelector("#marketGrid");
+    var marketCatTree = document.querySelector("#marketCatTree");
+    var marketCount = document.querySelector("#marketCount");
+    var marketSortSelect = document.querySelector("#marketSort");
+    var marketPriceMin = document.querySelector("#marketPriceMin");
+    var marketPriceMax = document.querySelector("#marketPriceMax");
+    var marketPriceApply = document.querySelector("#marketPriceApply");
 
     // Libellés lisibles pour les valeurs data-couleur / data-finition (celles-ci sont
     // stockées sans accents en ASCII pour rester des attributs simples) — complété au fil
@@ -411,13 +439,104 @@ document.addEventListener("DOMContentLoaded", function () {
       return values;
     }
 
+    // Extrait le prix numérique d'une carte (même lecture que parsePriceFromCard plus bas
+    // dans le module panier -- dupliqué ici car IIFE séparée, voir la convention déjà
+    // suivie ailleurs dans ce fichier). Renvoie null pour "Prix sur devis" (pas de valeur
+    // fixe, ne doit jamais être traité comme 0 par le filtre prix).
+    function parseCardPriceValue(card) {
+      var priceEl = card.querySelector(".product-price");
+      if (!priceEl || !priceEl.firstChild) return null;
+      var raw = (priceEl.firstChild.textContent || "").trim();
+      var match = raw.match(/^([\d\s ]+)\s*MAD/);
+      if (!match) return null;
+      var value = parseInt(match[1].replace(/[\s ]/g, ""), 10);
+      return value || null;
+    }
+
+    // Construit l'arborescence de catégories de la sidebar "Market" (voir #marketCatTree).
+    // Réutilise les vraies valeurs/libellés de data-cat (collectFilterValues) -- le
+    // regroupement en familles (Sol/Mur/...) est une organisation de menu, pas une donnée
+    // produit inventée. Sans entrée dans MARKET_CATEGORY_GROUPS pour cette page, retombe
+    // sur une liste plate de toutes les catégories réelles.
+    function buildMarketCatTree() {
+      if (!marketCatTree) return;
+      var catValues = collectFilterValues("data-cat", true);
+      if (!catValues.length) { marketCatTree.hidden = true; return; }
+      var pageFile = location.pathname.split("/").pop() || "";
+      var groups = MARKET_CATEGORY_GROUPS[pageFile];
+
+      function countFor(catValue) {
+        return document.querySelectorAll('.product-card[data-cat="' + catValue + '"]').length;
+      }
+      function makeLink(value, label) {
+        var li = document.createElement("li");
+        var btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "market-cat-link";
+        btn.setAttribute("data-cat-value", value);
+        btn.innerHTML = escapeHtmlLocal(label) + '<span class="market-cat-count">' + countFor(value) + "</span>";
+        btn.addEventListener("click", function () {
+          activeFilters.cat = activeFilters.cat === value ? "" : value;
+          marketCatTree.querySelectorAll(".market-cat-link").forEach(function (el) {
+            el.classList.toggle("is-active", el.getAttribute("data-cat-value") === activeFilters.cat);
+          });
+          applyFilter();
+        });
+        li.appendChild(btn);
+        return li;
+      }
+      function escapeHtmlLocal(str) {
+        var div = document.createElement("div");
+        div.textContent = str == null ? "" : String(str);
+        return div.innerHTML;
+      }
+
+      var allLi = document.createElement("li");
+      var allBtn = document.createElement("button");
+      allBtn.type = "button";
+      allBtn.className = "market-cat-link is-active";
+      allBtn.textContent = "Toutes les catégories";
+      allBtn.addEventListener("click", function () {
+        activeFilters.cat = "";
+        marketCatTree.querySelectorAll(".market-cat-link").forEach(function (el) { el.classList.remove("is-active"); });
+        allBtn.classList.add("is-active");
+        applyFilter();
+      });
+      allLi.appendChild(allBtn);
+      marketCatTree.appendChild(allLi);
+
+      if (groups) {
+        groups.forEach(function (g) {
+          var groupLi = document.createElement("li");
+          var groupLabel = document.createElement("span");
+          groupLabel.className = "market-cat-group";
+          groupLabel.textContent = g.group;
+          groupLi.appendChild(groupLabel);
+          var subUl = document.createElement("ul");
+          g.cats.forEach(function (catValue) {
+            var found = catValues.filter(function (o) { return o.value === catValue; })[0];
+            if (found) subUl.appendChild(makeLink(found.value, found.label));
+          });
+          groupLi.appendChild(subUl);
+          marketCatTree.appendChild(groupLi);
+        });
+      } else {
+        catValues.forEach(function (o) { marketCatTree.appendChild(makeLink(o.value, o.label)); });
+      }
+    }
+    buildMarketCatTree();
+
     if (filterBar) {
       [
         { key: "cat", attr: "data-cat", label: "Catégorie", useRowHeading: true },
         { key: "format", attr: "data-format", label: "Format", useRowHeading: false },
         { key: "couleur", attr: "data-couleur", label: "Couleur", useRowHeading: false },
         { key: "finition", attr: "data-finition", label: "Finition", useRowHeading: false }
-      ].forEach(function (g) {
+      ].filter(function (g) {
+        // La catégorie est déjà gérée par l'arborescence de la sidebar Market quand elle
+        // existe -- éviter un double contrôle (dropdown + sidebar) pour la même chose.
+        return !(marketCatTree && g.key === "cat");
+      }).forEach(function (g) {
         var values = collectFilterValues(g.attr, g.useRowHeading);
         if (!values.length) return;
         var field = document.createElement("div");
@@ -454,13 +573,57 @@ document.addEventListener("DOMContentLoaded", function () {
         var raw = card.getAttribute("data-" + key) || "";
         if (raw.split(/\s+/).indexOf(activeFilters[key]) === -1) return false;
       }
+      if (activeFilters.priceMin != null || activeFilters.priceMax != null) {
+        var price = parseCardPriceValue(card);
+        // "Prix sur devis" (pas de valeur fixe) exclu dès qu'un filtre prix est actif --
+        // on ne peut pas prétendre qu'il correspond à une fourchette qu'on ne connaît pas.
+        if (price == null) return false;
+        if (activeFilters.priceMin != null && price < activeFilters.priceMin) return false;
+        if (activeFilters.priceMax != null && price > activeFilters.priceMax) return false;
+      }
       return true;
     }
 
     function applyFilter() {
       var q = searchInput ? searchInput.value.trim().toLowerCase() : "";
       if (searchWrap) searchWrap.classList.toggle("has-value", q.length > 0);
-      var anyFilterActive = activeFilters.cat || activeFilters.format || activeFilters.couleur || activeFilters.finition;
+      var anyFilterActive = activeFilters.cat || activeFilters.format || activeFilters.couleur ||
+        activeFilters.finition || activeFilters.priceMin != null || activeFilters.priceMax != null;
+
+      if (marketGrid) {
+        // Mode "Market" : une seule grille plate plutôt que des rangées par catégorie.
+        // Repart de la liste stable allProductCards (pas de productRows.forEach ici --
+        // une fois une carte déplacée dans #marketGrid, elle n'est plus un descendant
+        // de .product-row et serait invisible à un parcours basé sur les rangées).
+        var matched = [];
+        allProductCards.forEach(function (card) {
+          var name = (card.querySelector("h4").textContent || "").toLowerCase();
+          var tag = (card.querySelector(".product-tag").textContent || "").toLowerCase();
+          var matchesText = !q || name.indexOf(q) !== -1 || tag.indexOf(q) !== -1;
+          var match = matchesText && cardMatchesFilters(card);
+          card.style.display = match ? "" : "none";
+          if (match) matched.push(card);
+        });
+        var sortMode = marketSortSelect ? marketSortSelect.value : "default";
+        if (sortMode === "price-asc" || sortMode === "price-desc") {
+          matched.sort(function (a, b) {
+            var pa = parseCardPriceValue(a), pb = parseCardPriceValue(b);
+            // "Prix sur devis" (null) toujours envoyé en fin de liste, jamais traité comme 0
+            if (pa == null && pb == null) return 0;
+            if (pa == null) return 1;
+            if (pb == null) return -1;
+            return sortMode === "price-asc" ? pa - pb : pb - pa;
+          });
+        }
+        matched.forEach(function (card) { marketGrid.appendChild(card); });
+        if (marketCount) {
+          marketCount.innerHTML = "<strong>" + matched.length + "</strong> produit" + (matched.length !== 1 ? "s" : "") +
+            (allProductCards.length !== matched.length ? " affiché" + (matched.length !== 1 ? "s" : "") + " sur " + allProductCards.length : "");
+        }
+        if (searchEmpty) searchEmpty.style.display = matched.length === 0 ? "block" : "none";
+        return;
+      }
+
       var anyVisible = false;
       productRows.forEach(function (row) {
         var rowHasVisible = false;
@@ -487,6 +650,19 @@ document.addEventListener("DOMContentLoaded", function () {
         });
       }
     }
+    if (marketSortSelect) marketSortSelect.addEventListener("change", applyFilter);
+    if (marketPriceApply) {
+      marketPriceApply.addEventListener("click", function () {
+        var minVal = marketPriceMin && marketPriceMin.value !== "" ? parseInt(marketPriceMin.value, 10) : null;
+        var maxVal = marketPriceMax && marketPriceMax.value !== "" ? parseInt(marketPriceMax.value, 10) : null;
+        activeFilters.priceMin = isNaN(minVal) ? null : minVal;
+        activeFilters.priceMax = isNaN(maxVal) ? null : maxVal;
+        applyFilter();
+      });
+    }
+    // Rendu initial : place les cartes dans #marketGrid dès le chargement (sinon la
+    // grille reste vide tant qu'aucun filtre n'a été touché).
+    if (marketGrid) applyFilter();
   }
 
   // Rangées de produits défilantes (une flèche gauche/droite par rangée)
