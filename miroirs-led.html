@@ -20,7 +20,7 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 <link rel="stylesheet" href="css/style.css?v=18">
 </head>
-<body>
+<body class="has-market-layout">
 
 <header class="site-header">
   <div class="topbar">
@@ -134,13 +134,48 @@
         <h2>Collection Ledimex — Série Rome</h2>
         <p class="product-note">Style chapelle à arche arrondie haute, encadrement en profilé aluminium noir mat premium. Tarif exact confirmé en showroom selon les dimensions choisies.</p>
       </div>
-      <div class="product-search" id="productSearchWrap">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></svg>
-        <input type="search" id="productSearch" placeholder="Rechercher un produit..." autocomplete="off">
-        <button type="button" class="product-search-clear" aria-label="Effacer la recherche"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+      <div class="market-layout" id="marketLayout">
+        <aside class="market-sidebar">
+          <div class="market-sidebar-block">
+            <div class="product-search" id="productSearchWrap">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></svg>
+              <input type="search" id="productSearch" placeholder="Rechercher un produit..." autocomplete="off">
+              <button type="button" class="product-search-clear" aria-label="Effacer la recherche"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+            </div>
+          </div>
+          <div class="market-sidebar-block">
+            <h4>Catégories</h4>
+            <ul class="market-cat-tree" id="marketCatTree"></ul>
+          </div>
+          <div class="market-sidebar-block">
+            <h4>Prix (MAD)</h4>
+            <div class="market-price-range">
+              <input type="number" id="marketPriceMin" placeholder="Min" min="0" inputmode="numeric">
+              <span>—</span>
+              <input type="number" id="marketPriceMax" placeholder="Max" min="0" inputmode="numeric">
+            </div>
+            <button type="button" class="market-price-apply" id="marketPriceApply">Appliquer</button>
+          </div>
+          <div class="market-sidebar-block" id="marketFacetsBlock">
+            <h4>Format, couleur &amp; finition</h4>
+            <div class="product-filter-bar" id="productFilterBar"></div>
+          </div>
+        </aside>
+        <div class="market-content">
+          <div class="market-toolbar">
+            <p class="market-count" id="marketCount"></p>
+            <div class="market-sort">
+              <select id="marketSort" aria-label="Trier par">
+                <option value="default">Tri par défaut</option>
+                <option value="price-asc">Prix croissant</option>
+                <option value="price-desc">Prix décroissant</option>
+              </select>
+            </div>
+          </div>
+          <div class="market-grid" id="marketGrid"></div>
+          <p class="product-search-empty" id="productSearchEmpty">Aucun produit ne correspond à votre recherche.</p>
+        </div>
       </div>
-      <div class="product-filter-bar" id="productFilterBar"></div>
-      <p class="product-search-empty" id="productSearchEmpty">Aucun produit ne correspond à votre recherche.</p>
       <svg width="0" height="0" style="position:absolute" aria-hidden="true">
         <defs>
           <linearGradient id="pFill" x1="0" y1="0" x2="0" y2="1">
@@ -427,6 +462,6 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
 <script src="js/vendor/lenis.min.js"></script>
 <script src="js/animations.js?v=5"></script>
-<script src="js/main.js?v=19"></script>
+<script src="js/main.js?v=20"></script>
 </body>
 </html>

@@ -381,7 +381,32 @@ document.addEventListener("DOMContentLoaded", function () {
         { group: "Mur", cats: ["faience"] },
         { group: "Effet matière", cats: ["woods", "marbre", "ciment"] },
         { group: "Style décoratif", cats: ["origin", "naturel"] }
+      ],
+      "sanitaire.html": [
+        { group: "Vasques", cats: ["lavabo"] },
+        { group: "Bains & douches", cats: ["baignoire", "douche"] },
+        { group: "Toilettes", cats: ["wc", "bidet"] }
+      ],
+      "mosaique-pierre.html": [
+        { group: "Matière", cats: ["pierre", "verre"] },
+        { group: "Formats & motifs", cats: ["formats"] }
+      ],
+      // Reprend exactement les 2 rangées déjà existantes de cette page (mêmes intitulés
+      // réels : "Meubles vasques" / "Plans, colonnes & accessoires") -- pas une nouvelle
+      // organisation, juste le même découpage retranscrit pour la sidebar.
+      "meubles-salle-de-bain.html": [
+        { group: "Meubles vasques", cats: ["simple-vasque", "double-vasque", "lave-mains", "personnalisable"] },
+        { group: "Plans, colonnes & accessoires", cats: ["plan-vasque", "colonne", "accessoire"] }
+      ],
+      // Page de déstockage multi-catégories : regroupe par famille d'origine du produit.
+      "destockage.html": [
+        { group: "Salle de bain", cats: ["sdb", "sanitaire"] },
+        { group: "Cuisine", cats: ["cuisine"] },
+        { group: "Carrelage", cats: ["carrelage"] }
       ]
+      // robinetterie.html (3 catégories) et miroirs-led.html (1 catégorie) : pas assez
+      // de catégories pour qu'un regroupement apporte quoi que ce soit -- liste plate
+      // (comportement par défaut de buildMarketCatTree en l'absence d'entrée ici).
     };
     var marketGrid = document.querySelector("#marketGrid");
     var marketCatTree = document.querySelector("#marketCatTree");
@@ -423,10 +448,30 @@ document.addEventListener("DOMContentLoaded", function () {
       }
       productRows.forEach(function (row) {
         if (useRowHeading) {
-          var firstCard = row.querySelector(".product-card[" + attr + "]");
-          if (!firstCard) return;
+          var cardsWithAttr = row.querySelectorAll(".product-card[" + attr + "]");
+          if (!cardsWithAttr.length) return;
           var heading = row.querySelector(".product-row-head h3");
-          addValue(firstCard.getAttribute(attr), heading ? heading.textContent.trim() : prettyLabel(firstCard.getAttribute(attr)));
+          var headingText = heading ? heading.textContent.trim() : null;
+          // Cas normal (une rangée = une seule catégorie, ex. carrelage/sanitaire/...) :
+          // l'intitulé de la rangée reste le meilleur libellé. Cas particulier
+          // (destockage.html : plusieurs catégories d'origine mélangées dans UNE seule
+          // rangée "À prix cassé") : l'intitulé de rangée ne convient à aucune valeur en
+          // particulier -- on retombe alors sur l'étiquette .product-tag propre à chaque
+          // carte, réelle et déjà affichée, plutôt que d'inventer un libellé.
+          var distinctValues = [];
+          cardsWithAttr.forEach(function (c) {
+            var v = c.getAttribute(attr);
+            if (distinctValues.indexOf(v) === -1) distinctValues.push(v);
+          });
+          if (distinctValues.length === 1) {
+            addValue(distinctValues[0], headingText || prettyLabel(distinctValues[0]));
+          } else {
+            cardsWithAttr.forEach(function (c) {
+              var v = c.getAttribute(attr);
+              var tagEl = c.querySelector(".product-tag");
+              addValue(v, tagEl ? tagEl.textContent.trim() : prettyLabel(v));
+            });
+          }
           return;
         }
         row.querySelectorAll(".product-card[" + attr + "]").forEach(function (card) {
