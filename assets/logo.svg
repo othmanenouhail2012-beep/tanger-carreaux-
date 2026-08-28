@@ -21,8 +21,8 @@
   <path d="M 38,88 Q 66,60 104,70" fill="none" stroke="#101210" stroke-width="4" stroke-linecap="round"/>
 
   <!-- wordmark -->
-  <text x="56" y="132" font-family="'Playfair Display', Georgia, 'Times New Roman', serif" font-weight="700" font-size="56" letter-spacing="0.5" fill="#101210">TANGER</text>
-  <text x="306" y="132" font-family="'Playfair Display', Georgia, 'Times New Roman', serif" font-weight="700" font-size="56" letter-spacing="0.5" fill="#101210">CARREAUX</text>
+  <text x="56" y="132" font-family="'Instrument Serif', Georgia, 'Times New Roman', serif" font-weight="700" font-size="56" letter-spacing="0.5" fill="#101210">TANGER</text>
+  <text x="306" y="132" font-family="'Instrument Serif', Georgia, 'Times New Roman', serif" font-weight="700" font-size="56" letter-spacing="0.5" fill="#101210">CARREAUX</text>
 
   <!-- long sweeping underline flourish (continues from the flourish accent above) -->
   <path d="M 38,88 C 45,185 240,205 380,186 C 480,172 555,157 602,143 C 616,139 626,132 632,122"

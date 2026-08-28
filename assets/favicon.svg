@@ -1,13 +1,16 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Tanger Carreaux">
+  <!-- Repris directement du bloc de tuiles du vrai logo (assets/logo.svg), pas une icône
+       générique -- même dégradé vert, même grille, pour qu'on reconnaisse la marque même
+       en tout petit dans l'onglet du navigateur. -->
   <defs>
-    <linearGradient id="f-green" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#22b795"/><stop offset="1" stop-color="#0f8f72"/>
+    <linearGradient id="tc-favicon-green" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#34a374"/><stop offset="1" stop-color="#1f7a52"/>
     </linearGradient>
   </defs>
-  <rect x="4" y="4" width="56" height="56" rx="8" fill="url(#f-green)"/>
-  <g stroke="#eafaf4" stroke-width="2">
-    <line x1="32" y1="4" x2="32" y2="60"/>
-    <line x1="4" y1="32" x2="60" y2="32"/>
+  <rect width="64" height="64" rx="12" fill="url(#tc-favicon-green)"/>
+  <g stroke="#eafaf4" stroke-width="2.4">
+    <line x1="22.5" y1="9" x2="22.5" y2="55"/>
+    <line x1="41.5" y1="9" x2="41.5" y2="55"/>
+    <line x1="9" y1="32" x2="55" y2="32"/>
   </g>
-  <path d="M 10,22 Q 18,14 28,18" fill="none" stroke="#0c1f19" stroke-width="3" stroke-linecap="round"/>
 </svg>
