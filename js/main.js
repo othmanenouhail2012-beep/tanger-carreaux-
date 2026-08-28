@@ -1519,7 +1519,7 @@ document.addEventListener("DOMContentLoaded", function () {
         e.preventDefault();
         var email = loginForm.querySelector("#loginEmail").value.trim();
         var password = loginForm.querySelector("#loginPassword").value;
-        fetch("/api/auth/customer-login", {
+        fetch("/api/auth/customer?action=login", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ email: email, password: password })
@@ -1544,7 +1544,7 @@ document.addEventListener("DOMContentLoaded", function () {
         var email = signupForm.querySelector("#signupEmail").value.trim();
         var phone = signupForm.querySelector("#signupPhone").value.trim();
         var password = signupForm.querySelector("#signupPassword").value;
-        fetch("/api/auth/customer-signup", {
+        fetch("/api/auth/customer?action=signup", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ name: name, email: email, phone: phone, password: password })
@@ -1562,7 +1562,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     if (logoutBtn) {
       logoutBtn.addEventListener("click", function () {
-        fetch("/api/auth/customer-logout", { method: "POST" })
+        fetch("/api/auth/customer?action=logout", { method: "POST" })
           .catch(function () {})
           .then(function () {
             localStorage.removeItem(NAME_KEY);
