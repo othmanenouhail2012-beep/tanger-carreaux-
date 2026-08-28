@@ -69,7 +69,7 @@ ul { margin: 0; padding: 0; list-style: none; }
 h1, h2, h3, h4 { font-family: var(--a-ff-serif); font-weight: 600; margin: 0; color: var(--a-ink); }
 
 /* ---------- Layout ---------- */
-.admin-shell { display: flex; min-height: 100vh; }
+.admin-shell { display: flex; min-height: 100vh; zoom: 0.8; } /* back-office 20% plus compact par défaut (équivalent zoom navigateur 80%), demandé explicitement */
 
 .admin-sidebar {
   width: 260px;
@@ -242,6 +242,8 @@ h1, h2, h3, h4 { font-family: var(--a-ff-serif); font-weight: 600; margin: 0; co
 .admin-notif-item strong { display: block; font-size: 0.84rem; }
 .admin-notif-item span { display: block; font-size: 0.74rem; color: var(--a-muted); margin-top: 2px; }
 .admin-notif-empty { padding: 26px 16px; text-align: center; color: var(--a-muted); font-size: 0.84rem; }
+.admin-notif-row { display: flex; align-items: center; gap: 4px; }
+.admin-notif-row .admin-notif-item { flex: 1; min-width: 0; }
 .admin-logout-btn { padding: 10px 18px; }
 .admin-logout-btn svg { width: 15px; height: 15px; }
 .admin-logout-btn:hover { border-color: var(--a-danger); color: var(--a-danger); }
@@ -281,9 +283,24 @@ h1, h2, h3, h4 { font-family: var(--a-ff-serif); font-weight: 600; margin: 0; co
   border: 1px solid var(--a-line);
   border-radius: var(--a-radius);
   padding: 16px 18px 15px;
-  transition: border-color 0.2s ease;
+  transition: border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
 }
-.admin-stat-card:hover { border-color: rgba(0, 176, 116, 0.45); }
+.admin-stat-card:hover {
+  border-color: rgba(0, 176, 116, 0.45);
+  transform: translateY(-3px);
+  box-shadow: 0 16px 30px -20px rgba(0, 176, 116, 0.45);
+}
+.admin-stat-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 9px;
+  background: rgba(0, 176, 116, 0.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 12px;
+}
+.admin-stat-icon svg { width: 16px; height: 16px; stroke: var(--a-green); }
 .admin-stat-card .label {
   font-size: 0.68rem;
   text-transform: uppercase;
@@ -296,7 +313,7 @@ h1, h2, h3, h4 { font-family: var(--a-ff-serif); font-weight: 600; margin: 0; co
   margin-bottom: 9px;
 }
 .admin-stat-card .label svg { width: 13px; height: 13px; stroke: var(--a-green); }
-.admin-stat-card .value { font-family: var(--a-ff-serif); font-size: 1.5rem; }
+.admin-stat-card .value { font-family: var(--a-ff-serif); font-size: 1.6rem; font-weight: 600; }
 .admin-stat-card .trend { font-size: 0.74rem; color: var(--a-muted); margin-top: 4px; }
 
 /* ---------- Ligne graphique + alertes stock ---------- */
@@ -466,6 +483,24 @@ h1, h2, h3, h4 { font-family: var(--a-ff-serif); font-weight: 600; margin: 0; co
 .admin-icon-btn:hover { border-color: var(--a-green); color: var(--a-green); }
 .admin-icon-btn.danger:hover { border-color: var(--a-danger); color: var(--a-danger); }
 .admin-icon-btn.is-active { border-color: var(--a-green); color: var(--a-green); background: rgba(0, 176, 116, 0.1); }
+
+/* Bouton icône seule (sans libellé), pour supprimer une commande dans une liste compacte
+   — Vue globale, notifications, kanban Livraisons — sans casser leur mise en page existante. */
+.admin-icon-btn-sm {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  flex-shrink: 0;
+  border-radius: var(--a-radius-sm);
+  border: 1px solid var(--a-line);
+  background: none;
+  color: var(--a-muted);
+  transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease;
+}
+.admin-icon-btn-sm svg { width: 13px; height: 13px; stroke: currentColor; }
+.admin-icon-btn-sm.danger:hover { border-color: var(--a-danger); color: var(--a-danger); background: rgba(255, 84, 112, 0.08); }
 
 /* ---------- Filters ---------- */
 .admin-filters { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 4px; }
@@ -648,6 +683,7 @@ h1, h2, h3, h4 { font-family: var(--a-ff-serif); font-weight: 600; margin: 0; co
 .admin-recent-item .who strong { display: block; font-size: 0.88rem; }
 .admin-recent-item .who span { font-size: 0.76rem; color: var(--a-muted); }
 .admin-recent-item .amount { font-weight: 700; font-size: 0.9rem; }
+.admin-recent-item-right { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
 
 @media (max-width: 1080px) {
   .admin-stat-grid { grid-template-columns: repeat(2, 1fr); }
@@ -754,15 +790,17 @@ h1, h2, h3, h4 { font-family: var(--a-ff-serif); font-weight: 600; margin: 0; co
 .admin-kanban-col-head h4 { font-size: 0.82rem; font-family: var(--a-ff-sans); font-weight: 700; }
 .admin-kanban-count { background: var(--a-line); color: var(--a-muted-light); font-size: 0.7rem; font-weight: 700; padding: 2px 9px; border-radius: 999px; }
 .admin-kanban-card {
+  position: relative;
   background: var(--a-charcoal-2);
   border: 1px solid var(--a-line);
   border-radius: var(--a-radius-sm);
-  padding: 12px 13px;
+  padding: 12px 34px 12px 13px;
   margin-bottom: 10px;
 }
 .admin-kanban-card:last-child { margin-bottom: 0; }
 .admin-kanban-card strong { display: block; font-size: 0.84rem; margin-bottom: 4px; }
 .admin-kanban-card span { display: block; font-size: 0.74rem; color: var(--a-muted); }
+.admin-kanban-card .admin-icon-btn-sm { position: absolute; top: 8px; right: 8px; }
 .admin-kanban-empty { color: var(--a-muted); font-size: 0.78rem; text-align: center; padding: 20px 4px; }
 
 /* ---------- État vide / module à connecter ---------- */
@@ -783,26 +821,6 @@ h1, h2, h3, h4 { font-family: var(--a-ff-serif); font-weight: 600; margin: 0; co
 .admin-placeholder h3 { font-size: 1.05rem; margin-bottom: 12px; }
 .admin-placeholder p { color: var(--a-muted); font-size: 0.88rem; max-width: 460px; margin: 0 auto; line-height: 1.65; }
 .admin-placeholder .admin-data-badge { margin-top: 22px; }
-
-/* ---------- Assistant (Q&A sur données réelles) ---------- */
-.admin-chat { display: flex; flex-direction: column; height: 440px; }
-.admin-chat-log { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; padding: 4px 6px 16px 2px; }
-.admin-chat-msg { max-width: 78%; padding: 11px 15px; border-radius: 14px; font-size: 0.86rem; line-height: 1.55; }
-.admin-chat-msg.user { align-self: flex-end; background: var(--a-green); color: #062015; border-bottom-right-radius: 4px; }
-.admin-chat-msg.bot { align-self: flex-start; background: var(--a-charcoal-3); color: var(--a-ink); border-bottom-left-radius: 4px; }
-.admin-chat-suggestions { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
-.admin-chat-chip {
-  background: var(--a-charcoal-3);
-  border: 1px solid var(--a-line);
-  color: var(--a-muted-light);
-  font-size: 0.76rem;
-  padding: 7px 13px;
-  border-radius: 999px;
-  transition: border-color 0.15s ease, color 0.15s ease;
-}
-.admin-chat-chip:hover { border-color: var(--a-green); color: var(--a-green); }
-.admin-chat-form { display: flex; gap: 10px; border-top: 1px solid var(--a-line); padding-top: 14px; margin-top: 6px; }
-.admin-chat-form input { flex: 1; }
 
 /* ---------- Bento Grid (Tableau de bord / Vue globale) ---------- */
 .admin-bento-kpi-row { display: grid; grid-template-columns: repeat(7, 1fr); gap: 12px; margin-bottom: 20px; }
@@ -847,3 +865,36 @@ h1, h2, h3, h4 { font-family: var(--a-ff-serif); font-weight: 600; margin: 0; co
   background: #fff;
 }
 #editorFrame { width: 100%; height: 100%; border: 0; display: block; }
+
+/* ---------- Médiathèque (toutes les photos d'ambiance du site) ---------- */
+.admin-media-page-group { margin-bottom: 24px; }
+.admin-media-page-group h3 { font-size: 0.98rem; margin-bottom: 4px; }
+.admin-media-page-group .hint { margin: 0 0 14px; }
+.admin-media-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 14px; }
+.admin-media-tile {
+  position: relative;
+  height: 118px;
+  border-radius: var(--a-radius-sm);
+  overflow: hidden;
+  background: var(--a-charcoal-3);
+  border: 1px solid var(--a-line);
+}
+.admin-media-tile img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.admin-media-tile-btn {
+  position: absolute;
+  inset: auto 0 0 0;
+  border: none;
+  background: rgba(13, 13, 13, 0.8);
+  color: #fff;
+  font-family: inherit;
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 8px 6px;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.15s ease, background 0.15s ease;
+}
+.admin-media-tile:hover .admin-media-tile-btn, .admin-media-tile:focus-within .admin-media-tile-btn { opacity: 1; }
+.admin-media-tile-btn:hover { background: var(--a-green); }
+.admin-media-tile-logo { width: 120px; flex-shrink: 0; }
+.admin-media-tile-logo img { object-fit: contain; background: #fff; padding: 10px; }

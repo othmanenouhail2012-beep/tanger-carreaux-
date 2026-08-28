@@ -1,7 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 230" role="img" aria-label="Tanger Carreaux">
   <defs>
     <linearGradient id="tc-green" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#22b795"/><stop offset="1" stop-color="#0f8f72"/>
+      <stop offset="0" stop-color="#34a374"/><stop offset="1" stop-color="#1f7a52"/>
     </linearGradient>
   </defs>
 
@@ -18,17 +18,17 @@
   </g>
 
   <!-- small flourish accent above/through the T -->
-  <path d="M 38,88 Q 66,60 104,70" fill="none" stroke="#101210" stroke-width="5" stroke-linecap="round"/>
+  <path d="M 38,88 Q 66,60 104,70" fill="none" stroke="#101210" stroke-width="4" stroke-linecap="round"/>
 
   <!-- wordmark -->
-  <text x="58" y="133" font-family="Arial, Helvetica, sans-serif" font-weight="700" font-size="54" letter-spacing="1" fill="#101210">TANGER</text>
-  <text x="308" y="133" font-family="Arial, Helvetica, sans-serif" font-weight="700" font-size="54" letter-spacing="1" fill="#101210">CARREAUX</text>
+  <text x="56" y="132" font-family="'Playfair Display', Georgia, 'Times New Roman', serif" font-weight="700" font-size="56" letter-spacing="0.5" fill="#101210">TANGER</text>
+  <text x="306" y="132" font-family="'Playfair Display', Georgia, 'Times New Roman', serif" font-weight="700" font-size="56" letter-spacing="0.5" fill="#101210">CARREAUX</text>
 
   <!-- long sweeping underline flourish (continues from the flourish accent above) -->
   <path d="M 38,88 C 45,185 240,205 380,186 C 480,172 555,157 602,143 C 616,139 626,132 632,122"
-        fill="none" stroke="#101210" stroke-width="5" stroke-linecap="round"/>
+        fill="none" stroke="#1f7a52" stroke-width="4" stroke-linecap="round"/>
 
   <!-- S.A.R.L. small vertical label -->
-  <text x="656" y="150" font-family="Arial, Helvetica, sans-serif" font-size="12" letter-spacing="2" fill="#6f7873"
+  <text x="656" y="150" font-family="'Playfair Display', Georgia, serif" font-size="12" letter-spacing="2" fill="#545b53"
         transform="rotate(-90 656 150)">S.A.R.L.</text>
 </svg>

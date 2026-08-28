@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="admin.css?v=7">
+<link rel="stylesheet" href="admin.css?v=11">
 </head>
 <body>
 
@@ -155,6 +155,10 @@
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
             Éditeur visuel
           </button>
+          <button type="button" class="admin-nav-link" data-panel="mediatheque">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
+            Médiathèque
+          </button>
           <button type="button" class="admin-nav-link" data-panel="ia">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2a4 4 0 0 0-4 4v1a4 4 0 0 0-3 6.3V16a3 3 0 0 0 3 3h1v2h6v-2h1a3 3 0 0 0 3-3v-2.7A4 4 0 0 0 16 7V6a4 4 0 0 0-4-4Z"/><path d="M9 21h6"/></svg>
             IA &amp; Recommandations
@@ -191,9 +195,9 @@
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
             Import / Export
           </button>
-          <button type="button" class="admin-nav-link" data-panel="assistant">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 11.5a8.38 8.38 0 0 1-6.9 8.24 8.5 8.5 0 0 1-5.4-.8L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 8.5-8.5h.1a8.5 8.5 0 0 1 8.4 8.3v.2Z"/></svg>
-            Assistant
+          <button type="button" class="admin-nav-link" data-panel="qrcode">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3zM19 14v2M14 19h2M19 19h2v2h-2z"/></svg>
+            QR Codes
           </button>
           <button type="button" class="admin-nav-link" data-panel="settings">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"/></svg>
@@ -244,13 +248,34 @@
 
       <!-- Ligne 1 — 6 KPI -->
       <div class="admin-bento-kpi-row">
-        <div class="admin-stat-card"><p class="label">CA aujourd'hui</p><p class="value" id="revToday">0 MAD</p></div>
-        <div class="admin-stat-card"><p class="label">CA ce mois</p><p class="value" id="revMonth">0 MAD</p></div>
-        <div class="admin-stat-card"><p class="label">Commandes du jour</p><p class="value" id="kpiOrdersToday">0</p></div>
-        <div class="admin-stat-card"><p class="label">Commandes en attente</p><p class="value" id="kpiOrdersPending">0</p></div>
-        <div class="admin-stat-card"><p class="label">Nouveaux clients</p><p class="value" id="kpiNewClients">0</p></div>
-        <div class="admin-stat-card"><p class="label">Panier moyen</p><p class="value" id="kpiAvgBasket">0 MAD</p></div>
-        <div class="admin-stat-card"><p class="label">Bénéfices (ce mois)</p><p class="value" id="kpiProfit">—</p></div>
+        <div class="admin-stat-card">
+          <div class="admin-stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+          <p class="label">CA aujourd'hui</p><p class="value" id="revToday">0 MAD</p>
+        </div>
+        <div class="admin-stat-card">
+          <div class="admin-stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M23 6l-9.5 9.5-5-5L1 18"/><path d="M17 6h6v6"/></svg></div>
+          <p class="label">CA ce mois</p><p class="value" id="revMonth">0 MAD</p>
+        </div>
+        <div class="admin-stat-card">
+          <div class="admin-stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 2 4 6v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V6l-2-4Z"/><path d="M4 6h16"/><path d="M9 10a3 3 0 0 0 6 0"/></svg></div>
+          <p class="label">Commandes du jour</p><p class="value" id="kpiOrdersToday">0</p>
+        </div>
+        <div class="admin-stat-card">
+          <div class="admin-stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div>
+          <p class="label">Commandes en attente</p><p class="value" id="kpiOrdersPending">0</p>
+        </div>
+        <div class="admin-stat-card">
+          <div class="admin-stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg></div>
+          <p class="label">Nouveaux clients</p><p class="value" id="kpiNewClients">0</p>
+        </div>
+        <div class="admin-stat-card">
+          <div class="admin-stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg></div>
+          <p class="label">Panier moyen</p><p class="value" id="kpiAvgBasket">0 MAD</p>
+        </div>
+        <div class="admin-stat-card">
+          <div class="admin-stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2v10z"/></svg></div>
+          <p class="label">Bénéfices (ce mois)</p><p class="value" id="kpiProfit">—</p>
+        </div>
       </div>
 
       <!-- Ligne 2 -->
@@ -475,7 +500,7 @@
             <div class="admin-field">
               <label for="pStock">Quantité en stock</label>
               <input type="number" id="pStock" min="0" step="1" placeholder="20 par défaut">
-              <p class="hint">Une alerte apparaît sur le tableau de bord sous 5 unités.</p>
+              <p class="hint">Une alerte apparaît sur le tableau de bord sous le seuil de 5 unités.</p>
             </div>
             <div class="admin-field full">
               <label for="pDescription">Description</label>
@@ -789,27 +814,60 @@
       </div>
     </section>
 
-    <!-- ===== ASSISTANT ===== -->
-    <section class="admin-panel" id="panel-assistant">
+    <!-- ===== QR CODES ===== -->
+    <section class="admin-panel" id="panel-qrcode">
       <div class="admin-topbar">
-        <div><h1>Assistant</h1><p>Répond à des questions simples en interrogeant vos données réelles — une recherche guidée, pas une IA générative.</p></div>
-        <span class="admin-data-badge live">Données réelles</span>
-      </div>
-      <div class="admin-card">
-        <div class="admin-chat">
-          <div class="admin-chat-log" id="chatLog"></div>
-          <div class="admin-chat-suggestions">
-            <button type="button" class="admin-chat-chip" data-question="ca casablanca ce mois">CA de Casablanca ce mois-ci ?</button>
-            <button type="button" class="admin-chat-chip" data-question="ca tanger ce mois">CA de Tanger ce mois-ci ?</button>
-            <button type="button" class="admin-chat-chip" data-question="rupture stock">Produits en rupture de stock ?</button>
-            <button type="button" class="admin-chat-chip" data-question="commandes en attente">Commandes en attente ?</button>
-            <button type="button" class="admin-chat-chip" data-question="meilleur produit">Produit le plus vendu ?</button>
-          </div>
-          <form class="admin-chat-form" id="chatForm">
-            <input type="text" id="chatInput" placeholder="Posez une question sur vos données...">
-            <button type="submit" class="admin-btn admin-btn-primary">Envoyer</button>
-          </form>
+        <div>
+          <h1>QR Codes</h1>
+          <p>Générez un QR code à imprimer ou partager — numéro de téléphone, WhatsApp, email ou lien personnalisé.</p>
         </div>
+      </div>
+
+      <div class="admin-card">
+        <form id="qrForm">
+          <div class="admin-form-grid">
+            <div class="admin-field">
+              <label for="qrPreset">Raccourci</label>
+              <select id="qrPreset">
+                <option value="tel1" selected>Téléphone Tanger (ligne 1)</option>
+                <option value="tel2">Téléphone Tanger (ligne 2)</option>
+                <option value="telcasa">Téléphone Casablanca</option>
+                <option value="whatsapp">WhatsApp</option>
+                <option value="email">Email</option>
+                <option value="instagram">Instagram</option>
+                <option value="product">Produit du catalogue</option>
+                <option value="custom">Texte ou lien personnalisé</option>
+              </select>
+            </div>
+            <div class="admin-field full" id="qrProductField" hidden>
+              <label for="qrProductPicker">Choisir le produit</label>
+              <select id="qrProductPicker"></select>
+              <p class="hint">Le QR pointera vers la fiche de ce produit sur le site public (ouverture directe de sa fiche). Adresse basée sur l'URL actuelle de l'admin — si le site n'est pas encore en ligne sur un nom de domaine, remplacez le début du lien ci-dessous avant impression.</p>
+            </div>
+            <div class="admin-field">
+              <label for="qrSize">Taille</label>
+              <select id="qrSize">
+                <option value="180">Petite (180 px)</option>
+                <option value="256" selected>Moyenne (256 px)</option>
+                <option value="512">Grande (512 px, impression)</option>
+              </select>
+            </div>
+            <div class="admin-field full">
+              <label for="qrValue">Contenu du QR code</label>
+              <input type="text" id="qrValue" placeholder="https://... ou texte libre">
+              <p class="hint">Pré-rempli à partir du raccourci choisi ci-dessus — modifiable librement.</p>
+            </div>
+          </div>
+          <div class="admin-form-actions">
+            <button type="submit" class="admin-btn admin-btn-primary">Générer le QR code</button>
+            <button type="button" class="admin-btn admin-btn-outline" id="qrDownloadBtn" disabled>Télécharger en PNG</button>
+          </div>
+        </form>
+      </div>
+
+      <div class="admin-card" style="text-align:center;">
+        <div id="qrPreview" style="display:inline-block; min-height:60px; padding:16px; background:#fff; border-radius:8px;"></div>
+        <p class="hint" id="qrEmptyHint">Choisissez un raccourci ou saisissez un contenu, puis cliquez sur « Générer le QR code ».</p>
       </div>
     </section>
 
@@ -869,12 +927,37 @@
             Réinitialiser cette page
           </button>
         </div>
-        <p class="admin-editor-note">En mode édition : cliquez un texte pour le réécrire (comme sur une diapo), survolez une image pour afficher « Changer la photo ». Les fiches produits ne sont jamais modifiables ici — passez par « Produits ». Changer le logo l'applique sur tout le site en un clic. Les modifications sont enregistrées dans ce navigateur et s'affichent immédiatement sur le site public.</p>
+        <p class="admin-editor-note">En mode édition : cliquez sur un texte pour le réécrire (comme sur une diapo), survolez une image pour afficher « Changer la photo ». Les fiches produits ne sont jamais modifiables ici — passez par « Produits ». Changer le logo l'actualise sur tout le site en un clic. Les modifications sont enregistrées dans ce navigateur et s'affichent immédiatement sur le site public.</p>
       </div>
 
       <div class="admin-editor-frame-wrap">
         <iframe id="editorFrame" title="Aperçu éditable du site public"></iframe>
       </div>
+    </section>
+
+    <!-- ===== MÉDIATHÈQUE ===== -->
+    <section class="admin-panel" id="panel-mediatheque">
+      <div class="admin-topbar">
+        <div>
+          <h1>Médiathèque</h1>
+          <p>Toutes les photos d'ambiance du site (bannières, sections, logo), toutes pages confondues, réunies au même endroit. Cliquez sur une photo pour la remplacer — visible immédiatement sur le site public. Les photos des fiches produits se gèrent depuis « Catalogue Produits ».</p>
+        </div>
+        <button type="button" class="admin-btn admin-btn-outline" id="mediaRefreshBtn">Rafraîchir</button>
+      </div>
+
+      <div class="admin-card" id="mediaLogoCard" style="display:flex; align-items:center; gap:18px;">
+        <div class="admin-media-tile admin-media-tile-logo" id="mediaLogoTile">
+          <img alt="Logo actuel">
+          <button type="button" class="admin-media-tile-btn">Changer</button>
+        </div>
+        <div>
+          <h3 style="font-size:0.98rem; margin-bottom:4px;">Logo (site entier)</h3>
+          <p class="hint" style="margin:0;">Utilisé dans l'en-tête et le pied de page de toutes les pages publiques.</p>
+        </div>
+      </div>
+
+      <div id="mediaGalleryStatus" class="admin-card" style="text-align:center; color:var(--a-muted);">Analyse des pages du site…</div>
+      <div id="mediaGalleryGroups"></div>
     </section>
 
     <section class="admin-panel" id="panel-ia">
@@ -1150,6 +1233,7 @@
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
-<script src="admin.js?v=13"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="admin.js?v=19"></script>
 </body>
 </html>

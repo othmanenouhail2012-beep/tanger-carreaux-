@@ -1185,7 +1185,7 @@ document.addEventListener("DOMContentLoaded", function () {
   var ordersCache = null;
   var PAYMENT_METHOD_LABELS = {
     cod: "Paiement à la livraison",
-    showroom: "Paiement au Showroom",
+    showroom: "Paiement au showroom",
     online_card: "Paiement en ligne"
   };
   function mapApiOrder(o) {
@@ -1271,6 +1271,25 @@ document.addEventListener("DOMContentLoaded", function () {
   function findById(list, id) {
     for (var i = 0; i < list.length; i++) if (list[i].id === id) return list[i];
     return null;
+  }
+
+  // Bouton "supprimer" compact, réutilisé partout où une commande est listée (Vue globale,
+  // notifications, Livraisons) en plus du tableau Commandes — ouvre la même confirmation.
+  function orderDeleteBtnHtml(id) {
+    return '<button type="button" class="admin-icon-btn-sm danger" data-action="delete-order" data-id="' + escapeHtml(id) +
+      '" title="Supprimer cette commande" aria-label="Supprimer cette commande">' +
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6"/></svg></button>';
+  }
+  function bindOrderDeleteButtons(root) {
+    root.querySelectorAll('[data-action="delete-order"]').forEach(function (btn) {
+      if (btn._tcDeleteBound) return;
+      btn._tcDeleteBound = true;
+      btn.addEventListener("click", function (e) {
+        e.stopPropagation();
+        e.preventDefault();
+        openDeleteModal(btn.getAttribute("data-id"), "order");
+      });
+    });
   }
 
   // ---------- Navigation (sidebar) ----------
@@ -1552,7 +1571,7 @@ document.addEventListener("DOMContentLoaded", function () {
     allOrders.forEach(function (o) {
       var pay = (o.customer && o.customer.payment) || "";
       if (pay.indexOf("livraison") !== -1) delivery += o.subtotal || 0;
-      else if (pay.indexOf("Showroom") !== -1) showroomPay += o.subtotal || 0;
+      else if (pay.toLowerCase().indexOf("showroom") !== -1) showroomPay += o.subtotal || 0;
     });
     renderDonut("bentoPaymentDonut", "bentoPaymentLegend", ["Livraison", "Showroom"], [delivery, showroomPay], ["#00b074", "#00875a"],
       function () { return bentoPaymentDonut; }, function (c) { bentoPaymentDonut = c; });
@@ -1619,10 +1638,11 @@ document.addEventListener("DOMContentLoaded", function () {
           return (
             '<div class="admin-recent-item">' +
               '<div class="who"><strong>' + escapeHtml(o.customer.name) + '</strong><span>' + escapeHtml(o.ref) + " · " + escapeHtml(o.customer.city) + '</span></div>' +
-              '<span class="amount">' + formatMAD(o.subtotal) + '</span>' +
+              '<div class="admin-recent-item-right"><span class="amount">' + formatMAD(o.subtotal) + '</span>' + orderDeleteBtnHtml(o.id) + '</div>' +
             '</div>'
           );
         }).join("");
+        bindOrderDeleteButtons(recentList);
       }
     }
 
@@ -1654,12 +1674,16 @@ document.addEventListener("DOMContentLoaded", function () {
     }
     list.innerHTML = pendingOrders.map(function (o) {
       return (
-        '<button type="button" class="admin-notif-item" data-notif-order="' + escapeHtml(o.id) + '">' +
-          "<strong>Nouvelle commande — " + escapeHtml(o.ref) + "</strong>" +
-          "<span>" + escapeHtml(o.customer.name) + " · " + formatMAD(o.subtotal) + "</span>" +
-        "</button>"
+        '<div class="admin-notif-row">' +
+          '<button type="button" class="admin-notif-item" data-notif-order="' + escapeHtml(o.id) + '">' +
+            "<strong>Nouvelle commande — " + escapeHtml(o.ref) + "</strong>" +
+            "<span>" + escapeHtml(o.customer.name) + " · " + formatMAD(o.subtotal) + "</span>" +
+          "</button>" +
+          orderDeleteBtnHtml(o.id) +
+        "</div>"
       );
     }).join("");
+    bindOrderDeleteButtons(list);
     list.querySelectorAll("[data-notif-order]").forEach(function (btn) {
       btn.addEventListener("click", function () {
         closeNotifPanel();
@@ -1913,7 +1937,7 @@ document.addEventListener("DOMContentLoaded", function () {
       priceModalInput.value = product.price;
     } else if (mode === "stock") {
       priceModalTitle.textContent = "Gérer le stock";
-      priceModalSub.textContent = product.name + " — une alerte apparaît sous " + STOCK_ALERT_THRESHOLD + " unités.";
+      priceModalSub.textContent = product.name + " — une alerte apparaît sous le seuil de " + STOCK_ALERT_THRESHOLD + " unités.";
       priceModalLabel.textContent = "Quantité en stock";
       priceModalInput.value = product.stock;
     } else {
@@ -2012,8 +2036,14 @@ document.addEventListener("DOMContentLoaded", function () {
       saveOrders(orders);
       showToast("Commande " + order.ref + " supprimée.");
       closeDeleteModal();
+      // Une commande peut être supprimée depuis plusieurs endroits (Commandes, Vue globale,
+      // notifications, Livraisons) : on rafraîchit toutes les vues qui en listent, pas
+      // seulement celle d'où vient le clic.
       renderOrders();
       renderDashboard();
+      renderLivraisons();
+      renderNotifications();
+      renderNotificationsFull();
       return;
     }
     var list = getProducts();
@@ -2416,8 +2446,9 @@ document.addEventListener("DOMContentLoaded", function () {
       var el = document.querySelector("#" + elId);
       if (!list.length) { el.innerHTML = '<p class="admin-kanban-empty">Aucune commande.</p>'; return; }
       el.innerHTML = list.map(function (o) {
-        return '<div class="admin-kanban-card"><strong>' + escapeHtml(o.ref) + '</strong><span>' + escapeHtml(o.customer.name) + ' · ' + escapeHtml(o.customer.city) + '</span><span>' + formatMAD(o.subtotal) + '</span></div>';
+        return '<div class="admin-kanban-card"><strong>' + escapeHtml(o.ref) + '</strong><span>' + escapeHtml(o.customer.name) + ' · ' + escapeHtml(o.customer.city) + '</span><span>' + formatMAD(o.subtotal) + '</span>' + orderDeleteBtnHtml(o.id) + '</div>';
       }).join("");
+      bindOrderDeleteButtons(el);
     }
     renderCol(groups.pending, "kanbanPending", "kanbanCountPending");
     renderCol(groups.preparing, "kanbanPreparing", "kanbanCountPreparing");
@@ -2434,7 +2465,7 @@ document.addEventListener("DOMContentLoaded", function () {
     orders.forEach(function (o) {
       var pay = (o.customer && o.customer.payment) || "";
       if (pay.indexOf("livraison") !== -1) delivery += o.subtotal || 0;
-      else if (pay.indexOf("Showroom") !== -1) showroom += o.subtotal || 0;
+      else if (pay.toLowerCase().indexOf("showroom") !== -1) showroom += o.subtotal || 0;
       if (o.status === "done") doneTotal += o.subtotal || 0;
       else pendingTotal += o.subtotal || 0;
     });
@@ -2480,9 +2511,12 @@ document.addEventListener("DOMContentLoaded", function () {
     var el1 = document.querySelector("#notifOrdersFull");
     if (el1) {
       if (!pendingOrders.length) el1.innerHTML = '<p class="admin-notif-empty">Aucune commande en attente.</p>';
-      else el1.innerHTML = pendingOrders.map(function (o) {
-        return '<div class="admin-recent-item"><div class="who"><strong>' + escapeHtml(o.ref) + '</strong><span>' + escapeHtml(o.customer.name) + ' · ' + escapeHtml(o.customer.city) + '</span></div><span class="amount">' + formatMAD(o.subtotal) + '</span></div>';
-      }).join("");
+      else {
+        el1.innerHTML = pendingOrders.map(function (o) {
+          return '<div class="admin-recent-item"><div class="who"><strong>' + escapeHtml(o.ref) + '</strong><span>' + escapeHtml(o.customer.name) + ' · ' + escapeHtml(o.customer.city) + '</span></div><div class="admin-recent-item-right"><span class="amount">' + formatMAD(o.subtotal) + '</span>' + orderDeleteBtnHtml(o.id) + '</div></div>';
+        }).join("");
+        bindOrderDeleteButtons(el1);
+      }
     }
     var lowStock = getProducts().filter(function (p) { return !p.deleted && typeof p.stock === "number" && p.stock < STOCK_ALERT_THRESHOLD; });
     var el2 = document.querySelector("#notifStockFull");
@@ -2545,81 +2579,6 @@ document.addEventListener("DOMContentLoaded", function () {
     downloadCsv("clients.csv", rows);
     showToast("Export clients téléchargé.");
   });
-
-  // ---------- Assistant (questions/réponses sur données réelles) ----------
-  function addChatMsg(text, who) {
-    var log = document.querySelector("#chatLog");
-    if (!log) return;
-    var div = document.createElement("div");
-    div.className = "admin-chat-msg " + who;
-    div.textContent = text;
-    log.appendChild(div);
-    log.scrollTop = log.scrollHeight;
-  }
-  function answerQuestion(q) {
-    var ql = q.toLowerCase();
-    var orders = getOrders();
-    var now = new Date();
-    var startMonth = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
-    var ordersMonth = orders.filter(function (o) { return o.date >= startMonth; });
-
-    if (ql.indexOf("casablanca") !== -1) {
-      var revC = sumRevenue(ordersMonth.filter(function (o) { return o.customer.city === "Casablanca"; }));
-      return "Le chiffre d'affaires de Casablanca ce mois-ci est de " + formatMAD(revC) + ".";
-    }
-    if (ql.indexOf("tanger") !== -1) {
-      var revT = sumRevenue(ordersMonth.filter(function (o) { return o.customer.city === "Tanger"; }));
-      return "Le chiffre d'affaires de Tanger ce mois-ci est de " + formatMAD(revT) + ".";
-    }
-    if (ql.indexOf("rupture") !== -1) {
-      var out = getProducts().filter(function (p) { return !p.deleted && (p.stock || 0) <= 0; });
-      if (!out.length) return "Aucun produit n'est actuellement en rupture de stock.";
-      return out.length + " produit(s) en rupture : " + out.slice(0, 5).map(function (p) { return p.name; }).join(", ") + (out.length > 5 ? "…" : "");
-    }
-    if (ql.indexOf("attente") !== -1) {
-      var pending = orders.filter(function (o) { return o.status === "pending"; }).length;
-      return pending + " commande(s) sont actuellement en attente.";
-    }
-    if (ql.indexOf("vendu") !== -1 || ql.indexOf("meilleur") !== -1 || ql.indexOf("populaire") !== -1) {
-      var counts = {};
-      orders.forEach(function (o) { o.items.forEach(function (i) { counts[i.name] = (counts[i.name] || 0) + i.qty; }); });
-      var names = Object.keys(counts);
-      if (!names.length) return "Aucune vente enregistrée pour le moment.";
-      names.sort(function (a, b) { return counts[b] - counts[a]; });
-      return "Le produit le plus vendu est « " + names[0] + " » avec " + counts[names[0]] + " unité(s) vendue(s).";
-    }
-    if (ql.indexOf("ca") !== -1 || ql.indexOf("chiffre") !== -1) {
-      return "Le chiffre d'affaires total ce mois-ci est de " + formatMAD(sumRevenue(ordersMonth)) + ".";
-    }
-    return "Je peux répondre à des questions sur le CA par ville, les ruptures de stock, les commandes en attente et le produit le plus vendu — essayez l'une des suggestions ci-dessous.";
-  }
-  var chatForm = document.querySelector("#chatForm");
-  var chatStarted = false;
-  function ensureChatIntro() {
-    if (chatStarted || !document.querySelector("#chatLog")) return;
-    chatStarted = true;
-    addChatMsg("Bonjour, je peux répondre à des questions simples sur vos données réelles (ventes, stock, commandes). Essayez une suggestion ci-dessous ou tapez votre question.", "bot");
-  }
-  if (chatForm) {
-    chatForm.addEventListener("submit", function (e) {
-      e.preventDefault();
-      var input = document.querySelector("#chatInput");
-      var q = input.value.trim();
-      if (!q) return;
-      ensureChatIntro();
-      addChatMsg(q, "user");
-      input.value = "";
-      setTimeout(function () { addChatMsg(answerQuestion(q), "bot"); }, 300);
-    });
-    document.querySelectorAll(".admin-chat-chip").forEach(function (chip) {
-      chip.addEventListener("click", function () {
-        ensureChatIntro();
-        var label = chip.textContent;
-        addChatMsg(label, "user");
-        setTimeout(function () { addChatMsg(answerQuestion(chip.getAttribute("data-question")), "bot"); }, 300);
-      });
-    });
-  }
 
   // ---------- Fournisseurs ----------
   var SUPPLIERS_KEY = "tc-admin-suppliers-v1";
@@ -2873,6 +2832,51 @@ document.addEventListener("DOMContentLoaded", function () {
   var EDIT_TEXT_SELECTOR = "main h1, main h2, main h3, main h4, main p, main li, main span.eyebrow";
   var EDIT_EXCLUDE_SELECTOR = ".product-card, .product-modal, .cart-drawer, .checkout-modal, form";
 
+  // Synchronisation serveur (api/admin/page-edits.js) -- le localStorage local reste la
+  // source utilisée en lecture par getPageEdits()/le reste du code ci-dessous (aperçu
+  // instantané dans l'iframe, résilience hors-ligne), mais chaque écriture est aussi
+  // envoyée au serveur pour que les visiteurs réels du site public (autre navigateur,
+  // autre appareil) voient le même contenu -- voir js/main.js pour la lecture côté public.
+  function refreshPageEditsFromApi() {
+    return fetch("/api/admin/page-edits", { credentials: "same-origin" })
+      .then(function (res) {
+        if (res.status === 401 || !res.ok) return null;
+        return res.json();
+      })
+      .then(function (data) {
+        if (!data) return null;
+        try { localStorage.setItem(PAGE_EDITS_KEY, JSON.stringify(data.pages || {})); } catch (e) {}
+        if (data.globalLogo) { try { localStorage.setItem(GLOBAL_LOGO_KEY, data.globalLogo); } catch (e) {} }
+        return data;
+      })
+      .catch(function (err) {
+        console.warn("Impossible de charger l'éditeur de contenu depuis l'API, secours localStorage :", err.message);
+        return null;
+      });
+  }
+  function syncPageEditsRemote(page, edits, logo) {
+    var body = {};
+    if (page && edits) { body.page = page; body.edits = edits; }
+    if (logo) body.logo = logo;
+    if (!body.page && !body.logo) return;
+    fetch("/api/admin/page-edits", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      credentials: "same-origin",
+      body: JSON.stringify(body)
+    }).catch(function (err) {
+      console.warn("Modification non synchronisée côté serveur (backend indisponible) :", err.message);
+    });
+  }
+  function deletePageEditsRemote(page) {
+    fetch("/api/admin/page-edits?page=" + encodeURIComponent(page), {
+      method: "DELETE",
+      credentials: "same-origin"
+    }).catch(function (err) {
+      console.warn("Réinitialisation non synchronisée côté serveur (backend indisponible) :", err.message);
+    });
+  }
+
   function tcEditableTextEls(doc) {
     return Array.prototype.filter.call(doc.querySelectorAll(EDIT_TEXT_SELECTOR), function (el) {
       return !el.closest(EDIT_EXCLUDE_SELECTOR);
@@ -3060,7 +3064,7 @@ document.addEventListener("DOMContentLoaded", function () {
       "position:fixed; top:0; left:0; right:0; z-index:99999; background:#00b074; color:#fff; text-align:center;" +
       "padding:10px 14px; font-family:Inter,Arial,sans-serif; font-size:0.82rem; font-weight:700; letter-spacing:.02em;" +
       "box-shadow:0 4px 16px rgba(0,0,0,.25);";
-    banner.textContent = "✏️ MODE ÉDITION ACTIF — cliquez un texte pour le réécrire, cliquez « Changer la photo » sur une image";
+    banner.textContent = "✏️ MODE ÉDITION ACTIF — cliquez sur un texte pour le réécrire, cliquez « Changer la photo » sur une image";
     doc.body.insertBefore(banner, doc.body.firstChild);
   }
   function removeEditorBanner(doc) {
@@ -3128,15 +3132,17 @@ document.addEventListener("DOMContentLoaded", function () {
     all[page] = merged;
     savePageEdits(all);
     if (editorLogoChanged) { try { localStorage.setItem(GLOBAL_LOGO_KEY, editorLogoChanged); } catch (e) {} }
+    syncPageEditsRemote(page, merged, editorLogoChanged);
     editorPendingEdits = {};
     editorLogoChanged = null;
     updateEditorPendingUi();
-    showToast("Modifications enregistrées — visibles immédiatement sur le site public.");
+    showToast("Modifications enregistrées — visibles sur le site public pour tous les visiteurs.");
   }
   function resetCurrentPageEdits() {
     var all = getPageEdits();
     delete all[currentEditorPage()];
     savePageEdits(all);
+    deletePageEditsRemote(currentEditorPage());
     showToast("Page réinitialisée.");
     editorFrame.contentWindow.location.reload();
   }
@@ -3168,7 +3174,264 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
+  // ---------- Médiathèque (toutes les photos d'ambiance du site, regroupées en un seul endroit) ----------
+  // Réutilise le même mécanisme de stockage que l'Éditeur visuel (PAGE_EDITS_KEY / GLOBAL_LOGO_KEY,
+  // mêmes index tcEditableImgEls/tcEditableBgEls) : les deux vues restent parfaitement compatibles.
+  var mediaScanFrame = null;
+  var mediaLibraryBound = false;
+  var mediaLibraryScanned = false;
+
+  function scanMediaLibrary() {
+    var statusEl = document.querySelector("#mediaGalleryStatus");
+    var groupsEl = document.querySelector("#mediaGalleryGroups");
+    if (!groupsEl) return;
+    groupsEl.innerHTML = "";
+    if (statusEl) { statusEl.hidden = false; statusEl.textContent = "Analyse des pages du site…"; }
+
+    if (!mediaScanFrame) {
+      mediaScanFrame = document.createElement("iframe");
+      mediaScanFrame.setAttribute("aria-hidden", "true");
+      mediaScanFrame.style.cssText = "position:absolute; width:1px; height:1px; opacity:0; pointer-events:none; left:-9999px; top:-9999px;";
+      document.body.appendChild(mediaScanFrame);
+    }
+
+    var results = [];
+    var pageIndex = 0;
+
+    function scanNextPage() {
+      if (pageIndex >= EDITOR_PAGES.length) { finishScan(); return; }
+      var entry = EDITOR_PAGES[pageIndex];
+      var page = entry[0], label = entry[1];
+      if (statusEl) statusEl.textContent = "Analyse de « " + label + " »… (" + (pageIndex + 1) + "/" + EDITOR_PAGES.length + ")";
+      var handled = false;
+      function onLoaded() {
+        if (handled) return;
+        handled = true;
+        mediaScanFrame.removeEventListener("load", onLoaded);
+        var doc = mediaScanFrame.contentDocument;
+        if (doc) {
+          tcEditableImgEls(doc).forEach(function (el, i) {
+            results.push({ page: page, pageLabel: label, type: "img", index: i, src: el.src, alt: el.alt || "" });
+          });
+          tcEditableBgEls(doc).forEach(function (el, i) {
+            // getComputedStyle résout l'URL en absolu (contrairement à el.style.backgroundImage,
+            // qui reste relatif à la page d'origine — invalide une fois affiché dans l'admin).
+            var computed = doc.defaultView.getComputedStyle(el).backgroundImage;
+            var m = /url\((['"]?)(.*?)\1\)/.exec(computed || "");
+            results.push({ page: page, pageLabel: label, type: "bg", index: i, src: m ? m[2] : "", alt: "Photo de fond" });
+          });
+        }
+        pageIndex++;
+        scanNextPage();
+      }
+      mediaScanFrame.addEventListener("load", onLoaded);
+      mediaScanFrame.src = "../" + page;
+    }
+
+    function finishScan() {
+      if (statusEl) statusEl.hidden = true;
+      renderMediaGroups(results);
+    }
+
+    scanNextPage();
+  }
+
+  function renderMediaGroups(results) {
+    var groupsEl = document.querySelector("#mediaGalleryGroups");
+    if (!groupsEl) return;
+    if (!results.length) {
+      groupsEl.innerHTML = '<div class="admin-card" style="text-align:center; color:var(--a-muted);">Aucune photo d’ambiance modifiable trouvée.</div>';
+      return;
+    }
+    var byPage = {};
+    results.forEach(function (r) { (byPage[r.page] = byPage[r.page] || []).push(r); });
+    var html = EDITOR_PAGES.filter(function (entry) { return byPage[entry[0]] && byPage[entry[0]].length; }).map(function (entry) {
+      var page = entry[0], label = entry[1];
+      var items = byPage[page];
+      var tiles = items.map(function (r) {
+        return '<div class="admin-media-tile" data-page="' + escapeHtml(r.page) + '" data-type="' + r.type + '" data-index="' + r.index + '">' +
+          '<img src="' + escapeHtml(r.src) + '" alt="' + escapeHtml(r.alt) + '">' +
+          '<button type="button" class="admin-media-tile-btn">Changer la photo</button>' +
+          "</div>";
+      }).join("");
+      return '<div class="admin-media-page-group"><h3>' + escapeHtml(label) + '</h3><p class="hint">' + items.length + " photo(s) modifiable(s)</p>" +
+        '<div class="admin-media-grid">' + tiles + "</div></div>";
+    }).join("");
+    groupsEl.innerHTML = html;
+
+    groupsEl.querySelectorAll(".admin-media-tile").forEach(function (tile) {
+      var btn = tile.querySelector(".admin-media-tile-btn");
+      var img = tile.querySelector("img");
+      btn.addEventListener("click", function () {
+        var page = tile.getAttribute("data-page");
+        var type = tile.getAttribute("data-type");
+        var index = tile.getAttribute("data-index");
+        promptImageReplace(function (dataUrl) {
+          var all = getPageEdits();
+          var merged = all[page] || {};
+          merged[type + ":" + index] = { type: type, value: dataUrl };
+          all[page] = merged;
+          savePageEdits(all);
+          syncPageEditsRemote(page, merged, null);
+          img.src = dataUrl;
+          showToast("Photo mise à jour — visible sur le site public pour tous les visiteurs.");
+        });
+      });
+    });
+  }
+
+  function renderMediaLibrary() {
+    var refreshBtn = document.querySelector("#mediaRefreshBtn");
+    var groupsEl = document.querySelector("#mediaGalleryGroups");
+    var logoImg = document.querySelector("#mediaLogoTile img");
+    var logoBtn = document.querySelector("#mediaLogoTile .admin-media-tile-btn");
+    if (!groupsEl) return;
+
+    if (!mediaLibraryBound) {
+      mediaLibraryBound = true;
+      if (refreshBtn) refreshBtn.addEventListener("click", scanMediaLibrary);
+      if (logoBtn) {
+        logoBtn.addEventListener("click", function () {
+          promptImageReplace(function (dataUrl) {
+            try { localStorage.setItem(GLOBAL_LOGO_KEY, dataUrl); } catch (e) {}
+            syncPageEditsRemote(null, null, dataUrl);
+            logoImg.src = dataUrl;
+            showToast("Logo mis à jour sur tout le site, pour tous les visiteurs.");
+          });
+        });
+      }
+    }
+
+    var savedLogo = null;
+    try { savedLogo = localStorage.getItem(GLOBAL_LOGO_KEY); } catch (e) {}
+    if (logoImg) logoImg.src = savedLogo || "../assets/logo.svg";
+
+    if (!mediaLibraryScanned) {
+      mediaLibraryScanned = true;
+      scanMediaLibrary();
+    }
+  }
+
+  // ---------- QR Codes ----------
+  function localPhoneToIntl(local) {
+    var digits = (local || "").replace(/\D/g, "");
+    if (digits.charAt(0) === "0") digits = digits.slice(1);
+    return "+212" + digits;
+  }
+  function qrPresetValue(key) {
+    var s = getSettings();
+    switch (key) {
+      case "tel1": return "tel:" + localPhoneToIntl(s.tangerPhone1);
+      case "tel2": return "tel:" + localPhoneToIntl(s.tangerPhone2);
+      case "telcasa": return "tel:" + localPhoneToIntl(s.casaPhone);
+      case "whatsapp": return "https://wa.me/212653775609";
+      case "email": return "mailto:tangercarreaux1@gmail.com";
+      case "instagram": return "https://www.instagram.com/tangercarreaux";
+      default: return "";
+    }
+  }
+  // Racine du site déduite de l'URL courante de l'admin (fonctionne en local, sur un
+  // hébergement de test ou une fois le site en ligne sur un vrai nom de domaine).
+  function siteBaseUrl() {
+    var href = location.href;
+    var m = href.match(/^(.*\/)admin\/[^/?#]*/);
+    return m ? m[1] : href.replace(/[^/]*$/, "");
+  }
+  function productDeepLink(p) {
+    return siteBaseUrl() + p.page + "?produit=" + encodeURIComponent(p.id);
+  }
+  function fillQrProductPicker(selectEl) {
+    var previous = selectEl.value;
+    var products = getProducts().filter(function (p) { return !p.deleted; });
+    var byPage = {};
+    products.forEach(function (p) { (byPage[p.page] = byPage[p.page] || []).push(p); });
+    var pages = Object.keys(byPage).sort(function (a, b) {
+      return (CATEGORY_LABELS[a] || a).localeCompare(CATEGORY_LABELS[b] || b);
+    });
+    if (!products.length) {
+      selectEl.innerHTML = '<option value="">Aucun produit actif au catalogue</option>';
+      return;
+    }
+    selectEl.innerHTML = pages.map(function (page) {
+      var opts = byPage[page]
+        .slice()
+        .sort(function (a, b) { return a.name.localeCompare(b.name); })
+        .map(function (p) { return '<option value="' + escapeHtml(p.id) + '">' + escapeHtml(p.name) + "</option>"; })
+        .join("");
+      return '<optgroup label="' + escapeHtml(CATEGORY_LABELS[page] || page) + '">' + opts + "</optgroup>";
+    }).join("");
+    var stillExists = products.some(function (p) { return p.id === previous; });
+    if (stillExists) selectEl.value = previous;
+  }
+  function renderQrPanel() {
+    var presetEl = document.querySelector("#qrPreset");
+    var valueEl = document.querySelector("#qrValue");
+    var sizeEl = document.querySelector("#qrSize");
+    var previewEl = document.querySelector("#qrPreview");
+    var downloadBtn = document.querySelector("#qrDownloadBtn");
+    var emptyHint = document.querySelector("#qrEmptyHint");
+    var form = document.querySelector("#qrForm");
+    var productField = document.querySelector("#qrProductField");
+    var productPicker = document.querySelector("#qrProductPicker");
+    if (!form) return;
+
+    if (productPicker) fillQrProductPicker(productPicker);
+
+    function applyProductValue() {
+      if (!productPicker || !productPicker.value) return;
+      var product = getProducts().filter(function (p) { return !p.deleted; }).find(function (p) { return p.id === productPicker.value; });
+      if (product) valueEl.value = productDeepLink(product);
+    }
+
+    if (!form.dataset.qrBound) {
+      form.dataset.qrBound = "1";
+      presetEl.addEventListener("change", function () {
+        var isProduct = presetEl.value === "product";
+        if (productField) productField.hidden = !isProduct;
+        if (isProduct) applyProductValue();
+        else valueEl.value = presetEl.value === "custom" ? "" : qrPresetValue(presetEl.value);
+        valueEl.focus();
+      });
+      if (productPicker) productPicker.addEventListener("change", applyProductValue);
+      form.addEventListener("submit", function (e) {
+        e.preventDefault();
+        var text = valueEl.value.trim();
+        if (!text) { valueEl.focus(); return; }
+        var size = parseInt(sizeEl.value, 10) || 256;
+        previewEl.innerHTML = "";
+        new QRCode(previewEl, {
+          text: text,
+          width: size,
+          height: size,
+          colorDark: "#101210",
+          colorLight: "#ffffff",
+          correctLevel: QRCode.CorrectLevel.M
+        });
+        if (emptyHint) emptyHint.hidden = true;
+        if (downloadBtn) downloadBtn.disabled = false;
+      });
+      if (downloadBtn) {
+        downloadBtn.addEventListener("click", function () {
+          var canvas = previewEl.querySelector("canvas");
+          if (!canvas) return;
+          var link = document.createElement("a");
+          var product = productPicker && presetEl.value === "product"
+            ? getProducts().find(function (p) { return p.id === productPicker.value; })
+            : null;
+          link.download = product ? "qr-" + product.name.replace(/[^a-z0-9]+/gi, "-").toLowerCase() + ".png" : "qr-code-tanger-carreaux.png";
+          link.href = canvas.toDataURL("image/png");
+          link.click();
+        });
+      }
+    }
+    if (productField) productField.hidden = presetEl.value !== "product";
+    if (presetEl.value === "product") { if (!valueEl.value) applyProductValue(); }
+    else if (presetEl && valueEl && !valueEl.value) valueEl.value = qrPresetValue(presetEl.value);
+  }
+
   panelRenderers.editeur = renderEditor;
+  panelRenderers.mediatheque = renderMediaLibrary;
+  panelRenderers.qrcode = renderQrPanel;
   panelRenderers.dashboard = renderDashboard;
   panelRenderers.orders = renderOrders;
 
@@ -3179,7 +3442,6 @@ document.addEventListener("DOMContentLoaded", function () {
   panelRenderers.paiements = renderPaiements;
   panelRenderers.showrooms = renderShowrooms;
   panelRenderers.notifications = renderNotificationsFull;
-  panelRenderers.assistant = ensureChatIntro;
   panelRenderers.catalog = function () { renderCatalog(); renderCatalogStats(); };
 
   // ---------- Authentification admin + Initialisation ----------
@@ -3202,7 +3464,7 @@ document.addEventListener("DOMContentLoaded", function () {
   // seul l'écran qui forçait une connexion ici a été retiré.
   function bootstrapAdmin() {
     if (location.protocol === "file:") { startAdminApp(); return; }
-    refreshOrdersFromApi().then(startAdminApp);
+    Promise.all([refreshOrdersFromApi(), refreshPageEditsFromApi()]).then(startAdminApp);
   }
   bootstrapAdmin();
 });

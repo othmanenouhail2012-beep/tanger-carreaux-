@@ -9,6 +9,7 @@
     "seed:products": "node db/seed-products.js"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.70.0",
     "@neondatabase/serverless": "^0.10.4",
     "bcryptjs": "^2.4.3"
   },

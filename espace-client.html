@@ -17,9 +17,9 @@
 <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Archivo:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
-<link rel="stylesheet" href="css/style.css?v=18">
+<link rel="stylesheet" href="css/style.css?v=22">
 </head>
 <body class="has-grain">
 
@@ -39,10 +39,10 @@
   </div>
   <nav class="nav container">
     <a href="index.html" class="brand">
-      <img src="assets/logo.svg" alt="Tanger Carreaux" class="brand-mark">
+      <img src="assets/logo.svg?v=2" alt="Tanger Carreaux" class="brand-mark">
     </a>
     <div class="nav-links" id="navLinks">
-      <a href="destockage.html">Destockage</a>
+      <a href="destockage.html">Déstockage</a>
       <div class="nav-item-dropdown" id="navProduitsDropdown">
         <button type="button" class="nav-dropdown-toggle" aria-expanded="false">Produits<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="6 9 12 15 18 9"/></svg></button>
         <div class="nav-dropdown">
@@ -155,7 +155,7 @@
     <div class="footer-grid">
       <div class="footer-brand">
         <a href="index.html" class="brand">
-          <img src="assets/logo.svg" alt="Tanger Carreaux" class="brand-mark">
+          <img src="assets/logo.svg?v=2" alt="Tanger Carreaux" class="brand-mark">
         </a>
         <p>Négoce de carrelage, faïence, sanitaire, robinetterie, mosaïque et pierre naturelle. Deux showrooms au Maroc — Tanger et Casablanca.</p>
         <div class="footer-social">
@@ -166,7 +166,7 @@
       <div>
         <h5>Navigation</h5>
         <ul>
-          <li><a href="destockage.html">Destockage</a></li>
+          <li><a href="destockage.html">Déstockage</a></li>
           <li><a href="carrelage.html">Carrelage</a></li>
           <li><a href="sanitaire.html">Sanitaire</a></li>
           <li><a href="robinetterie.html">Robinetterie</a></li>
@@ -199,7 +199,29 @@
 </footer>
 
 <div class="float-actions">
+  <button type="button" class="float-btn assistant" id="assistantToggle" aria-label="Ouvrir l'assistant" aria-expanded="false">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 11.5a8.38 8.38 0 0 1-6.9 8.24 8.5 8.5 0 0 1-5.4-.8L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 8.5-8.5h.1a8.5 8.5 0 0 1 8.4 8.3v.2Z"/></svg>
+  </button>
   <a class="float-btn whatsapp" href="https://wa.me/212653775609" target="_blank" rel="noopener" aria-label="WhatsApp"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884M20.52 3.449C18.24 1.245 15.24 0 12.045 0 5.463 0 .104 5.36.101 11.943c0 2.096.549 4.142 1.595 5.945L0 24l6.335-1.652a11.882 11.882 0 0 0 5.706 1.447h.006c6.585 0 11.946-5.36 11.949-11.944a11.87 11.87 0 0 0-3.476-8.402"/></svg></a>
+</div>
+
+<div class="assistant-panel" id="assistantPanel" aria-hidden="true">
+  <div class="assistant-head">
+    <div><strong>Assistant Tanger Carreaux</strong><span>Réponses instantanées</span></div>
+    <button type="button" class="assistant-close" id="assistantClose" aria-label="Fermer">&times;</button>
+  </div>
+  <div class="assistant-log" id="assistantLog"></div>
+  <div class="assistant-suggestions">
+    <button type="button" class="assistant-chip" data-question="quels sont vos horaires">Horaires</button>
+    <button type="button" class="assistant-chip" data-question="adresse des showrooms tanger casablanca">Adresses</button>
+    <button type="button" class="assistant-chip" data-question="livraison et paiement">Livraison</button>
+    <button type="button" class="assistant-chip" data-question="quelles categories de produits vendez vous">Nos produits</button>
+    <button type="button" class="assistant-chip" data-question="je veux un devis conseil">Un devis</button>
+  </div>
+  <form class="assistant-form" id="assistantForm">
+    <input type="text" id="assistantInput" placeholder="Posez votre question..." autocomplete="off">
+    <button type="submit" aria-label="Envoyer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></button>
+  </form>
 </div>
 
 <div class="cart-drawer" id="cartDrawer" aria-hidden="true">
@@ -253,7 +275,7 @@
               <label for="ckDeliveryMode">Mode de réception</label>
               <select id="ckDeliveryMode">
                 <option value="Paiement à la livraison">Livraison à domicile</option>
-                <option value="Paiement au Showroom">Retrait en Showroom</option>
+                <option value="Paiement au showroom">Retrait en showroom</option>
               </select>
             </div>
           </div>
@@ -269,9 +291,9 @@
             <span>Paiement à la livraison</span>
           </label>
           <label class="payment-tab">
-            <input type="radio" name="payment" value="Paiement au Showroom">
+            <input type="radio" name="payment" value="Paiement au showroom">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l1.5-5h15L21 9"/><path d="M3 9v11h18V9"/><path d="M9 20v-6h6v6"/><path d="M3 9a2.2 2.2 0 0 0 4.4 0 2.2 2.2 0 0 0 4.4 0 2.2 2.2 0 0 0 4.4 0 2.2 2.2 0 0 0 4.4 0"/></svg>
-            <span>Paiement au Showroom</span>
+            <span>Paiement au showroom</span>
           </label>
           <label class="payment-tab">
             <input type="radio" name="payment" value="Paiement en ligne">
@@ -325,6 +347,6 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
 <script src="js/vendor/lenis.min.js"></script>
 <script src="js/animations.js?v=5"></script>
-<script src="js/main.js?v=20"></script>
+<script src="js/main.js?v=21"></script>
 </body>
 </html>

@@ -157,11 +157,8 @@ document.addEventListener("DOMContentLoaded", function () {
         return !el.closest(".product-card");
       });
     }
-
-    var currentPageEdit = location.pathname.split("/").pop() || "index.html";
-    var pageEdits = null;
-    try { pageEdits = (JSON.parse(localStorage.getItem(PAGE_EDITS_KEY)) || {})[currentPageEdit]; } catch (e) {}
-    if (pageEdits) {
+    function applyEdits(pageEdits) {
+      if (!pageEdits) return;
       var texts = editableTextEls(), imgs = editableImgEls(), bgs = editableBgEls();
       Object.keys(pageEdits).forEach(function (key) {
         var edit = pageEdits[key];
@@ -171,11 +168,37 @@ document.addEventListener("DOMContentLoaded", function () {
         else if (edit.type === "bg" && bgs[idx]) bgs[idx].style.backgroundImage = "url('" + edit.value + "')";
       });
     }
-
-    var globalLogo = null;
-    try { globalLogo = localStorage.getItem(GLOBAL_LOGO_KEY); } catch (e) {}
-    if (globalLogo) {
+    function applyLogo(globalLogo) {
+      if (!globalLogo) return;
       document.querySelectorAll(".brand-mark").forEach(function (el) { el.src = globalLogo; });
+    }
+
+    var currentPageEdit = location.pathname.split("/").pop() || "index.html";
+
+    // 1) Application instantanée depuis localStorage -- utile surtout dans le même
+    //    navigateur que celui qui vient de faire la modification (aperçu immédiat),
+    //    et comme secours si l'API est indisponible.
+    var localPageEdits = null, localLogo = null;
+    try { localPageEdits = (JSON.parse(localStorage.getItem(PAGE_EDITS_KEY)) || {})[currentPageEdit]; } catch (e) {}
+    try { localLogo = localStorage.getItem(GLOBAL_LOGO_KEY); } catch (e) {}
+    applyEdits(localPageEdits);
+    applyLogo(localLogo);
+
+    // 2) Source de vérité réelle : api/page-content.js (base de données), pour que TOUT
+    //    visiteur voie les modifications faites par le manager -- pas seulement le
+    //    navigateur où elles ont été faites (le localStorage seul ne suffit pas une fois
+    //    le site publié pour de vrais visiteurs). Réapplique par-dessus l'étape 1 dès que
+    //    la réponse arrive ; silencieux si hors-ligne, en local via file://, ou backend
+    //    pas encore déployé -- le contenu déjà présent dans le HTML reste affiché.
+    if (location.protocol !== "file:") {
+      fetch("/api/page-content?page=" + encodeURIComponent(currentPageEdit))
+        .then(function (res) { return res.ok ? res.json() : null; })
+        .then(function (data) {
+          if (!data) return;
+          applyEdits(data.edits);
+          applyLogo(data.globalLogo);
+        })
+        .catch(function () { /* backend indisponible -- le contenu déjà affiché suffit */ });
     }
   })();
 
@@ -318,6 +341,29 @@ document.addEventListener("DOMContentLoaded", function () {
     document.addEventListener("keydown", function (e) {
       if (e.key === "Escape" && productModal.classList.contains("open")) closeProductModal();
     });
+
+    // Lien direct vers une fiche produit — utilisé par les QR codes générés dans le
+    // back-office (admin/ > QR Codes > Produit du catalogue), ex: carrelage.html?produit=...
+    // Même logique d'identifiant (marque::nom, ou data-admin-id) que la synchro admin ci-dessus.
+    (function openProductFromQuery() {
+      var wantedId = new URLSearchParams(location.search).get("produit");
+      if (!wantedId) return;
+      var target = null;
+      productCards.forEach(function (card) {
+        if (target) return;
+        var id = card.getAttribute("data-admin-id");
+        if (!id) {
+          var tagEl = card.querySelector(".product-tag");
+          var h4 = card.querySelector("h4");
+          if (tagEl && h4) id = tagEl.textContent.trim() + "::" + h4.textContent.trim();
+        }
+        if (id === wantedId) target = card;
+      });
+      if (target) {
+        target.scrollIntoView({ block: "center" });
+        openProductModal(target);
+      }
+    })();
 
     // Favoris (mémorisés dans ce navigateur, par nom de produit)
     var FAV_KEY = "tc-favorites";
@@ -1525,5 +1571,163 @@ document.addEventListener("DOMContentLoaded", function () {
           });
       });
     }
+  })();
+
+  // ---------- Assistant (Claude côté serveur, avec repli local si indisponible) ----------
+  (function () {
+    var toggle = document.querySelector("#assistantToggle");
+    var panel = document.querySelector("#assistantPanel");
+    var closeBtn = document.querySelector("#assistantClose");
+    var log = document.querySelector("#assistantLog");
+    var form = document.querySelector("#assistantForm");
+    var input = document.querySelector("#assistantInput");
+    if (!toggle || !panel || !form || !log) return;
+
+    // Les suggestions rejoignent la zone de messages défilante (au lieu de rester un
+    // bloc fixe entre le journal et le formulaire) : sur un petit écran -- ou clavier
+    // mobile ouvert, qui réduit fortement la hauteur visible -- c'est cette zone qui se
+    // comprime en premier, jamais le champ de saisie ni le bouton d'envoi.
+    var suggestions = document.querySelector(".assistant-suggestions");
+    if (suggestions) log.appendChild(suggestions);
+
+    var started = false;
+    // Historique envoyé à /api/assistant pour le contexte de conversation (jamais
+    // persisté au-delà de la session en cours -- remis à zéro au rechargement).
+    var history = [];
+
+    function escapeHtml(str) {
+      var div = document.createElement("div");
+      div.textContent = str == null ? "" : String(str);
+      return div.innerHTML;
+    }
+    function addMsg(html, who) {
+      var div = document.createElement("div");
+      div.className = "assistant-msg " + who;
+      div.innerHTML = html;
+      log.appendChild(div);
+      log.scrollTop = log.scrollHeight;
+      return div;
+    }
+    function intro() {
+      if (started) return;
+      started = true;
+      addMsg("Bonjour 👋 Je peux répondre à vos questions sur nos horaires, nos adresses, la livraison, le paiement ou nos gammes de produits. Choisissez une suggestion ci-dessous ou écrivez votre question.", "bot");
+    }
+    function openPanel() {
+      panel.classList.add("open");
+      panel.setAttribute("aria-hidden", "false");
+      toggle.setAttribute("aria-expanded", "true");
+      intro();
+      if (input) input.focus();
+    }
+    function closePanel() {
+      panel.classList.remove("open");
+      panel.setAttribute("aria-hidden", "true");
+      toggle.setAttribute("aria-expanded", "false");
+    }
+    toggle.addEventListener("click", function () {
+      if (panel.classList.contains("open")) closePanel(); else openPanel();
+    });
+    if (closeBtn) closeBtn.addEventListener("click", closePanel);
+
+    // Raccourci clavier : "/" ouvre l'assistant depuis n'importe quelle page, sauf si
+    // l'utilisateur est en train de taper dans un champ (formulaire, recherche...).
+    toggle.title = "Ouvrir l'assistant (raccourci : /)";
+    document.addEventListener("keydown", function (e) {
+      if (e.key === "Escape" && panel.classList.contains("open")) { closePanel(); return; }
+      if (e.key !== "/") return;
+      var active = document.activeElement;
+      var tag = active && active.tagName;
+      var isEditable = tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" || (active && active.isContentEditable);
+      if (isEditable) return;
+      e.preventDefault();
+      if (panel.classList.contains("open")) { if (input) input.focus(); } else { openPanel(); }
+    });
+
+    // Lien direct : www.site.../n-importe-quelle-page.html#assistant (ou #chat) ouvre
+    // le widget automatiquement au chargement -- pratique pour un lien partagé ou un bouton
+    // "Discuter avec nous" ailleurs sur le site.
+    function maybeOpenFromHash() {
+      var h = (window.location.hash || "").replace("#", "").toLowerCase();
+      if (h === "assistant" || h === "chat") openPanel();
+    }
+    maybeOpenFromHash();
+    window.addEventListener("hashchange", maybeOpenFromHash);
+
+    // Repli local à mots-clés -- utilisé uniquement si /api/assistant est indisponible
+    // (clé API non configurée, service en panne, hors ligne...). Garantit que le widget
+    // répond toujours, même sans IA générative.
+    function localAnswer(q) {
+      var s = q.toLowerCase();
+      if (/horaire|heure|ouvert|ferm/.test(s)) {
+        return "Nos horaires précis sont en cours de confirmation en showroom — le plus simple est de nous appeler avant votre visite : <a href=\"tel:+212539324696\">Tanger</a> ou <a href=\"tel:+212653775609\">Casablanca</a>.";
+      }
+      if (/adresse|\boù\b|localis|magasin|showroom/.test(s)) {
+        return "Showroom Tanger : Avenue Moulay Youssef, angle Rue Mimosa, Immeuble Mimosa N°1-2, Magasin 21. Showroom Casablanca : Route de Mediouna, km 12. Plans et itinéraires sur <a href=\"showrooms.html\">notre page Showrooms</a>.";
+      }
+      if (/livrai|paiement|payer|carte bancaire|esp[eè]ces/.test(s)) {
+        return "Trois modes sont proposés au tunnel de commande : paiement à la livraison, paiement en showroom, ou paiement en ligne par carte. Les prix affichés sont indicatifs, hors pose, et confirmés à la commande ou en showroom.";
+      }
+      if (/carrelage/.test(s)) return "Sol, mur, extérieur, céramique, grès cérame et pâte de verre — <a href=\"carrelage.html\">voir la gamme Carrelage</a>.";
+      if (/sanitaire|vasque|baignoire|\bwc\b|douche/.test(s)) return "Vasques, WC, baignoires, receveurs de douche et meubles de salle de bain — <a href=\"sanitaire.html\">voir la gamme Sanitaire</a>.";
+      if (/robinet|mitigeur/.test(s)) return "Robinetterie sanitaire et de bâtiment, douches et accessoires — <a href=\"robinetterie.html\">voir la gamme Robinetterie</a>.";
+      if (/mosa[iï]que|pierre|marbre/.test(s)) return "Mosaïque décorative, pierre naturelle, marbre et pâte de verre — <a href=\"mosaique-pierre.html\">voir Mosaïque &amp; Pierre</a>.";
+      if (/meuble/.test(s)) return "Meubles vasques cannelés livrés montés d'usine, plans et colonnes — <a href=\"meubles-salle-de-bain.html\">voir les Meubles de salle de bain</a>.";
+      if (/miroir|led/.test(s)) return "Miroirs rétro-éclairés Ledimex, antibuée et à capteur tactile — <a href=\"miroirs-led.html\">voir les Miroirs LED</a>.";
+      if (/d[ée]stockage|promo|solde|prix r[ée]duit/.test(s)) return "Fins de série et surstock à prix réduit, disponibles jusqu'à épuisement — <a href=\"destockage.html\">voir le Déstockage</a>.";
+      if (/devis|conseil|contact|parler/.test(s)) return "Notre équipe vous répond à Tanger et à Casablanca — <a href=\"contact.html\">contactez-nous</a> ou appelez directement au <a href=\"tel:+212539324696\">05 39 32 46 96</a>.";
+      if (/produit|cat[ée]gorie|gamme/.test(s)) return "Nos univers : Carrelage, Sanitaire, Robinetterie, Mosaïque &amp; Pierre, Meubles de salle de bain et Miroirs LED — plus le Déstockage pour les bonnes affaires.";
+      return "Je peux vous renseigner sur nos horaires, nos adresses, la livraison, le paiement ou nos catégories de produits — essayez l'une des suggestions ci-dessous, ou appelez-nous directement au <a href=\"tel:+212539324696\">05 39 32 46 96</a>.";
+    }
+
+    function setTyping(on) {
+      var existing = log.querySelector(".assistant-msg.typing");
+      if (on && !existing) {
+        var div = addMsg("…", "bot");
+        div.classList.add("typing");
+      } else if (!on && existing) {
+        existing.parentNode.removeChild(existing);
+      }
+    }
+
+    function askAssistant(q) {
+      history.push({ role: "user", content: q });
+      setTyping(true);
+      fetch("/api/assistant", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ messages: history })
+      })
+        .then(function (res) { return res.json().then(function (data) { return { ok: res.ok, data: data }; }); })
+        .then(function (r) {
+          setTyping(false);
+          if (!r.ok || !r.data || !r.data.reply) throw new Error("assistant indisponible");
+          history.push({ role: "assistant", content: r.data.reply });
+          addMsg(escapeHtml(r.data.reply).replace(/\n/g, "<br>"), "bot");
+        })
+        .catch(function () {
+          setTyping(false);
+          history.pop(); // l'échange raté ne pollue pas le contexte des prochains appels
+          addMsg(localAnswer(q), "bot");
+        });
+    }
+
+    form.addEventListener("submit", function (e) {
+      e.preventDefault();
+      var q = input.value.trim();
+      if (!q) return;
+      intro();
+      addMsg(escapeHtml(q), "user");
+      input.value = "";
+      askAssistant(q);
+    });
+    document.querySelectorAll(".assistant-chip").forEach(function (chip) {
+      chip.addEventListener("click", function () {
+        intro();
+        var q = chip.getAttribute("data-question") || chip.textContent;
+        addMsg(escapeHtml(chip.textContent), "user");
+        askAssistant(q);
+      });
+    });
   })();
 });
