@@ -562,6 +562,16 @@
       <form id="settingsForm">
         <div class="admin-card">
           <div class="admin-card-head">
+            <div><h3>Prix du catalogue</h3><p>Recharge la table des prix serveur depuis les pages catalogue réelles du site — nécessaire après chaque changement de prix, sinon le tunnel de commande refuse les articles concernés.</p></div>
+          </div>
+          <div class="admin-form-actions">
+            <button type="button" class="admin-btn admin-btn-outline" id="seedProductsBtn">Recharger les prix depuis le site</button>
+          </div>
+          <p class="admin-form-status" id="seedProductsStatus"></p>
+        </div>
+
+        <div class="admin-card">
+          <div class="admin-card-head">
             <div><h3>Objectifs</h3><p>Utilisé pour la jauge du tableau de bord.</p></div>
           </div>
           <div class="admin-form-grid">
@@ -1280,6 +1290,6 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-<script src="admin.js?v=20"></script>
+<script src="admin.js?v=21"></script>
 </body>
 </html>

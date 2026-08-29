@@ -2222,6 +2222,42 @@ document.addEventListener("DOMContentLoaded", function () {
     showToast("Paramètres réinitialisés aux valeurs actuelles du site.");
   });
 
+  // ---------- Recharger les prix du catalogue en base ----------
+  var seedProductsBtn = document.querySelector("#seedProductsBtn");
+  if (seedProductsBtn) {
+    seedProductsBtn.addEventListener("click", function () {
+      var status = document.querySelector("#seedProductsStatus");
+      status.classList.remove("is-error");
+      if (location.protocol === "file:") {
+        status.textContent = "Indisponible en local (fichier ouvert directement) -- utilisable une fois le site déployé.";
+        status.classList.add("show", "is-error");
+        return;
+      }
+      seedProductsBtn.disabled = true;
+      status.textContent = "Rechargement en cours...";
+      status.classList.add("show");
+      fetch("/api/admin/seed-products", { method: "POST", credentials: "same-origin" })
+        .then(function (res) { return res.json().then(function (data) { return { ok: res.ok, data: data }; }); })
+        .then(function (r) {
+          seedProductsBtn.disabled = false;
+          if (!r.ok) {
+            status.textContent = r.data.error || "Échec du rechargement.";
+            status.classList.add("is-error");
+            return;
+          }
+          status.textContent = r.data.total + " produits à prix fixe rechargés en base." +
+            (r.data.errors && r.data.errors.length ? " Pages en échec : " + r.data.errors.join(", ") : "");
+          status.classList.remove("is-error");
+          showToast("Prix du catalogue rechargés.");
+        })
+        .catch(function () {
+          seedProductsBtn.disabled = false;
+          status.textContent = "Service momentanément indisponible -- réessaie plus tard.";
+          status.classList.add("is-error");
+        });
+    });
+  }
+
   // ---------- Mon compte (changer email / mot de passe) ----------
   var accountForm = document.querySelector("#accountForm");
   if (accountForm) {
