@@ -605,6 +605,11 @@ h1, h2, h3, h4 { font-family: var(--a-ff-serif); font-weight: 600; margin: 0; co
   border: 1px solid rgba(0, 176, 116, 0.3);
 }
 .admin-form-status.show { display: block; }
+.admin-form-status.is-error {
+  background: rgba(255, 84, 112, 0.1);
+  color: var(--a-danger);
+  border-color: rgba(255, 84, 112, 0.3);
+}
 
 @media (max-width: 720px) {
   .admin-form-grid { grid-template-columns: 1fr; }
@@ -898,3 +903,31 @@ h1, h2, h3, h4 { font-family: var(--a-ff-serif); font-weight: 600; margin: 0; co
 .admin-media-tile-btn:hover { background: var(--a-green); }
 .admin-media-tile-logo { width: 120px; flex-shrink: 0; }
 .admin-media-tile-logo img { object-fit: contain; background: #fff; padding: 10px; }
+
+/* ---------- Écran de connexion ---------- */
+.admin-login-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 900;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--a-charcoal);
+  padding: 24px;
+}
+.admin-login-card {
+  width: 100%;
+  max-width: 380px;
+  background: var(--a-charcoal-2);
+  border: 1px solid var(--a-line);
+  border-radius: var(--a-radius-lg);
+  box-shadow: var(--a-shadow);
+  padding: 40px 32px;
+  text-align: center;
+}
+.admin-login-logo { height: 34px; margin: 0 auto 22px; display: block; }
+.admin-login-card h1 { font-family: var(--a-ff-serif); font-size: 1.5rem; color: var(--a-ink); margin: 0 0 6px; }
+.admin-login-card > p { color: var(--a-muted); font-size: 0.86rem; margin: 0 0 26px; }
+.admin-login-card form { text-align: left; display: flex; flex-direction: column; gap: 16px; }
+.admin-btn-block { width: 100%; justify-content: center; }
+.admin-login-card .admin-form-status { min-height: 18px; }

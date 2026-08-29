@@ -9,11 +9,31 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="admin.css?v=11">
+<link rel="stylesheet" href="admin.css?v=12">
 </head>
 <body>
 
-<div class="admin-shell">
+<div class="admin-login-screen" id="adminLoginScreen" aria-hidden="true">
+  <div class="admin-login-card">
+    <img src="../assets/logo-white.svg?v=2" alt="Tanger Carreaux" class="admin-login-logo">
+    <h1>Back-office</h1>
+    <p>Connectez-vous pour accéder au tableau de bord.</p>
+    <form id="adminLoginForm" novalidate>
+      <div class="admin-field">
+        <label for="loginEmail">Email</label>
+        <input type="email" id="loginEmail" name="email" required autocomplete="username">
+      </div>
+      <div class="admin-field">
+        <label for="loginPassword">Mot de passe</label>
+        <input type="password" id="loginPassword" name="password" required autocomplete="current-password">
+      </div>
+      <button type="submit" class="admin-btn admin-btn-primary admin-btn-block">Se connecter</button>
+      <p class="admin-form-status" id="loginStatus"></p>
+    </form>
+  </div>
+</div>
+
+<div class="admin-shell" id="adminShell" hidden>
 
   <aside class="admin-sidebar">
     <div class="admin-brand">
@@ -593,6 +613,32 @@
           <button type="button" class="admin-btn admin-btn-outline" id="settingsReset">Réinitialiser aux valeurs actuelles du site</button>
         </div>
         <p class="admin-form-status" id="settingsStatus"></p>
+      </form>
+
+      <form id="accountForm" novalidate>
+        <div class="admin-card">
+          <div class="admin-card-head">
+            <div><h3>Mon compte</h3><p>Changer l'email et/ou le mot de passe de connexion au back-office.</p></div>
+          </div>
+          <div class="admin-form-grid">
+            <div class="admin-field">
+              <label for="accCurrentPassword">Mot de passe actuel *</label>
+              <input type="password" id="accCurrentPassword" required autocomplete="current-password">
+            </div>
+            <div class="admin-field">
+              <label for="accNewEmail">Nouvel email</label>
+              <input type="email" id="accNewEmail" autocomplete="username" placeholder="Laisser vide pour ne pas changer">
+            </div>
+            <div class="admin-field">
+              <label for="accNewPassword">Nouveau mot de passe</label>
+              <input type="password" id="accNewPassword" autocomplete="new-password" placeholder="8 caractères minimum, laisser vide pour ne pas changer">
+            </div>
+          </div>
+        </div>
+        <div class="admin-form-actions">
+          <button type="submit" class="admin-btn admin-btn-primary">Mettre à jour mon compte</button>
+        </div>
+        <p class="admin-form-status" id="accountStatus"></p>
       </form>
     </section>
 
@@ -1234,6 +1280,6 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-<script src="admin.js?v=19"></script>
+<script src="admin.js?v=20"></script>
 </body>
 </html>

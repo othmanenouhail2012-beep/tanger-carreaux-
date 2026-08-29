@@ -1183,6 +1183,10 @@ document.addEventListener("DOMContentLoaded", function () {
   // suppression de commande et attribution vendeur restent volontairement locales
   // (pas d'endpoint dédié dans le périmètre validé), voir updateOrderStatusRemote.
   var ordersCache = null;
+  // Mis à true uniquement sur un vrai 401 (pas de session valide) -- distingue "pas
+  // connecté" (doit afficher l'écran de connexion) d'une simple panne réseau/DB (ne
+  // doit jamais bloquer l'accès, voir bootstrapAdmin plus bas).
+  var authRequired = false;
   var PAYMENT_METHOD_LABELS = {
     cod: "Paiement à la livraison",
     showroom: "Paiement au showroom",
@@ -1210,7 +1214,8 @@ document.addEventListener("DOMContentLoaded", function () {
   function refreshOrdersFromApi() {
     return fetch("/api/admin/orders", { credentials: "same-origin" })
       .then(function (res) {
-        if (res.status === 401) { return null; } // pas de compte connecté -- secours silencieux sur les données locales, jamais d'écran bloquant
+        if (res.status === 401) { authRequired = true; return null; }
+        authRequired = false;
         if (!res.ok) throw new Error("Erreur serveur (" + res.status + ")");
         return res.json();
       })
@@ -1741,7 +1746,11 @@ document.addEventListener("DOMContentLoaded", function () {
   if (logoutBtn) {
     logoutBtn.addEventListener("click", function () {
       showToast("Déconnexion...");
-      setTimeout(function () { window.location.href = "../index.html"; }, 500);
+      var done = function () { window.location.href = "../index.html"; };
+      if (location.protocol === "file:") { setTimeout(done, 500); return; }
+      fetch("/api/auth/admin?action=logout", { method: "POST", credentials: "same-origin" })
+        .catch(function () {})
+        .then(function () { setTimeout(done, 400); });
     });
   }
 
@@ -2212,6 +2221,64 @@ document.addEventListener("DOMContentLoaded", function () {
     fillSettingsForm();
     showToast("Paramètres réinitialisés aux valeurs actuelles du site.");
   });
+
+  // ---------- Mon compte (changer email / mot de passe) ----------
+  var accountForm = document.querySelector("#accountForm");
+  if (accountForm) {
+    accountForm.addEventListener("submit", function (e) {
+      e.preventDefault();
+      var status = document.querySelector("#accountStatus");
+      status.classList.remove("is-error");
+      var currentPassword = document.querySelector("#accCurrentPassword").value;
+      var newEmail = document.querySelector("#accNewEmail").value.trim();
+      var newPassword = document.querySelector("#accNewPassword").value;
+
+      if (location.protocol === "file:") {
+        status.textContent = "Indisponible en local (fichier ouvert directement) -- utilisable une fois le site déployé.";
+        status.classList.add("show", "is-error");
+        return;
+      }
+      if (!newEmail && !newPassword) {
+        status.textContent = "Renseigne un nouvel email et/ou un nouveau mot de passe.";
+        status.classList.add("show", "is-error");
+        return;
+      }
+      if (newPassword && newPassword.length < 8) {
+        status.textContent = "Le nouveau mot de passe doit contenir au moins 8 caractères.";
+        status.classList.add("show", "is-error");
+        return;
+      }
+
+      var body = { currentPassword: currentPassword };
+      if (newEmail) body.newEmail = newEmail;
+      if (newPassword) body.newPassword = newPassword;
+
+      fetch("/api/auth/admin?action=update-account", {
+        method: "POST",
+        credentials: "same-origin",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body)
+      })
+        .then(function (res) { return res.json().then(function (data) { return { ok: res.ok, data: data }; }); })
+        .then(function (r) {
+          if (!r.ok) {
+            status.textContent = r.data.error || "Mise à jour impossible.";
+            status.classList.add("show", "is-error");
+            return;
+          }
+          status.textContent = "Compte mis à jour avec succès.";
+          status.classList.remove("is-error");
+          status.classList.add("show");
+          document.querySelector("#accCurrentPassword").value = "";
+          document.querySelector("#accNewPassword").value = "";
+          showToast("Identifiants du compte mis à jour.");
+        })
+        .catch(function () {
+          status.textContent = "Service momentanément indisponible -- réessaie plus tard.";
+          status.classList.add("show", "is-error");
+        });
+    });
+  }
 
   // ==========================================================
   // Nouveaux modules — données réelles (commandes / produits)
@@ -3445,7 +3512,25 @@ document.addEventListener("DOMContentLoaded", function () {
   panelRenderers.catalog = function () { renderCatalog(); renderCatalogStats(); };
 
   // ---------- Authentification admin + Initialisation ----------
+  var adminLoginScreen = document.querySelector("#adminLoginScreen");
+  var adminShell = document.querySelector("#adminShell");
+  var adminLoginForm = document.querySelector("#adminLoginForm");
+
+  function showAdminShell() {
+    if (adminLoginScreen) adminLoginScreen.setAttribute("aria-hidden", "true");
+    if (adminLoginScreen) adminLoginScreen.style.display = "none";
+    if (adminShell) adminShell.hidden = false;
+  }
+  function showAdminLoginScreen() {
+    if (adminShell) adminShell.hidden = true;
+    if (adminLoginScreen) {
+      adminLoginScreen.style.display = "";
+      adminLoginScreen.setAttribute("aria-hidden", "false");
+    }
+  }
+
   function startAdminApp() {
+    showAdminShell();
     getProducts();
     fillSettingsForm();
     renderDashboard();
@@ -3454,17 +3539,50 @@ document.addEventListener("DOMContentLoaded", function () {
     renderCatalogStats();
   }
 
-  // Pas d'écran de connexion : accès direct au tableau de bord dans tous les cas
-  // (demande explicite -- l'écran bloquait l'accès local sans qu'aucun compte ne
-  // puisse de toute façon être créé tant qu'aucune base de données réelle n'existe).
-  // Si un vrai backend répond un jour avec des commandes réelles, elles sont utilisées
-  // silencieusement en arrière-plan ; sinon, secours sur les données locales comme
-  // avant -- dans les deux cas, jamais rien qui bloque l'affichage du tableau de bord.
-  // Note : l'API elle-même (api/admin/orders.js) reste protégée côté serveur --
-  // seul l'écran qui forçait une connexion ici a été retiré.
+  // Ouvert directement en local (double-clic sur le fichier, file://) : aucune API
+  // n'est joignable dans ce contexte, donc jamais d'écran de connexion -- accès direct
+  // au tableau de bord (données locales uniquement). Voir aussi accountForm plus haut.
+  // Sur le vrai site déployé : l'écran de connexion protège l'accès (compte manager
+  // requis, voir api/auth/admin.js). Toute panne réseau/DB une fois connecté ne
+  // redonne jamais cet écran (authRequired ne passe à true que sur un vrai 401).
   function bootstrapAdmin() {
     if (location.protocol === "file:") { startAdminApp(); return; }
-    Promise.all([refreshOrdersFromApi(), refreshPageEditsFromApi()]).then(startAdminApp);
+    Promise.all([refreshOrdersFromApi(), refreshPageEditsFromApi()]).then(function () {
+      if (authRequired) { showAdminLoginScreen(); return; }
+      startAdminApp();
+    });
   }
+
+  if (adminLoginForm) {
+    adminLoginForm.addEventListener("submit", function (e) {
+      e.preventDefault();
+      var status = document.querySelector("#loginStatus");
+      status.classList.remove("is-error");
+      var email = document.querySelector("#loginEmail").value.trim();
+      var password = document.querySelector("#loginPassword").value;
+      fetch("/api/auth/admin?action=login", {
+        method: "POST",
+        credentials: "same-origin",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: email, password: password })
+      })
+        .then(function (res) { return res.json().then(function (data) { return { ok: res.ok, data: data }; }); })
+        .then(function (r) {
+          if (!r.ok) {
+            status.textContent = r.data.error || "Connexion impossible.";
+            status.classList.add("show", "is-error");
+            return;
+          }
+          authRequired = false;
+          adminLoginForm.reset();
+          bootstrapAdmin();
+        })
+        .catch(function () {
+          status.textContent = "Service momentanément indisponible -- réessaie plus tard.";
+          status.classList.add("show", "is-error");
+        });
+    });
+  }
+
   bootstrapAdmin();
 });
