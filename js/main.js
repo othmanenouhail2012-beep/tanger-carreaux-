@@ -369,11 +369,11 @@ document.addEventListener("DOMContentLoaded", function () {
       card.setAttribute("tabindex", "0");
       card.setAttribute("role", "button");
       card.addEventListener("click", function (e) {
-        if (e.target.closest(".product-quote-link, .product-fav-btn")) return;
+        if (e.target.closest(".product-quote-link, .product-fav-btn, .product-quote-whatsapp")) return;
         openProductModal(card);
       });
       card.addEventListener("keydown", function (e) {
-        if (e.target.closest(".product-quote-link, .product-fav-btn")) return;
+        if (e.target.closest(".product-quote-link, .product-fav-btn, .product-quote-whatsapp")) return;
         if (e.key === "Enter" || e.key === " ") {
           e.preventDefault();
           openProductModal(card);
@@ -1020,9 +1020,31 @@ document.addEventListener("DOMContentLoaded", function () {
     // dashboard, voir plus bas "onAdminProductsReady") -- pas seulement celles déjà
     // présentes dans le HTML au chargement. Idempotent (les gardes ci-dessous sautent une
     // carte déjà câblée), donc sûr à rappeler.
+    // "Prix sur devis" (demande explicite du 04/09/2026) : ces cartes n'ont pas de prix
+    // fixe à ajouter au panier -- avant, elles n'avaient donc AUCUN bouton d'action du
+    // tout. À la place du (futur) bouton panier, un lien WhatsApp pré-rempli avec le nom
+    // du produit, vers le vrai numéro professionnel (voir WHATSAPP_NUMBER plus haut).
+    function wireDevisCard(card) {
+      var row = card.querySelector(".product-price-row");
+      if (!row || row.parentNode.querySelector(".product-quote-whatsapp")) return; // idempotent
+      var h4 = card.querySelector("h4");
+      var name = h4 ? h4.textContent.trim() : "";
+      var msg = "Bonjour, je suis intéressé(e) par « " + name + " » (Tanger Carreaux). Pouvez-vous me communiquer le prix ?";
+      var link = document.createElement("a");
+      link.className = "product-quote-whatsapp";
+      link.target = "_blank";
+      link.rel = "noopener";
+      link.href = "https://wa.me/" + WHATSAPP_NUMBER + "?text=" + encodeURIComponent(msg);
+      link.innerHTML =
+        '<svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38a9.9 9.9 0 0 0 4.74 1.21h.01c5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.82 9.82 0 0 0 12.04 2Zm5.8 14.14c-.24.68-1.4 1.3-1.93 1.35-.5.05-.94.24-3.17-.66-2.68-1.07-4.4-3.8-4.53-3.98-.13-.18-1.08-1.43-1.08-2.73s.68-1.93.92-2.2c.24-.26.53-.33.7-.33.18 0 .35 0 .5.01.16.01.38-.06.6.46.24.55.8 1.9.87 2.04.07.14.11.3.02.48-.09.18-.14.29-.27.45-.14.16-.29.36-.41.48-.14.14-.28.29-.12.57.16.28.71 1.17 1.53 1.9 1.05.94 1.94 1.23 2.22 1.37.28.14.44.12.6-.07.16-.19.7-.82.89-1.1.19-.28.37-.23.63-.14.26.1 1.63.77 1.91.91.28.14.47.21.53.33.07.12.07.68-.17 1.36Z"/></svg>' +
+        "<span>Demander sur WhatsApp</span>";
+      link.addEventListener("click", function (e) { e.stopPropagation(); });
+      row.insertAdjacentElement("afterend", link);
+    }
+
     function wireOneProductCard(card) {
       var data = dataFromCard(card);
-      if (!data) return;
+      if (!data) { wireDevisCard(card); return; }
 
       // Étiquette + bouton d'ajout rapide au survol de l'image
       var visual = card.querySelector(".product-visual");
@@ -1130,13 +1152,35 @@ document.addEventListener("DOMContentLoaded", function () {
         });
         modalPriceRow.appendChild(modalAddBtn);
 
-        // Cache le bouton pour les produits "Prix sur devis" (pas de prix fixe à ajouter)
+        // "Prix sur devis" (demande explicite du 04/09/2026) : pas de prix fixe à ajouter
+        // au panier -- à la place, un bouton WhatsApp pré-rempli avec le nom du produit,
+        // vers le vrai numéro professionnel (même numéro que "Envoyer par WhatsApp" au
+        // récapitulatif de commande, voir WHATSAPP_NUMBER plus haut dans ce fichier).
+        var modalWhatsappBtn = document.createElement("a");
+        modalWhatsappBtn.className = "btn btn-outline btn-sm product-quote-whatsapp";
+        modalWhatsappBtn.target = "_blank";
+        modalWhatsappBtn.rel = "noopener";
+        modalWhatsappBtn.innerHTML =
+          '<svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor" style="vertical-align:-3px; margin-right:6px;"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38a9.9 9.9 0 0 0 4.74 1.21h.01c5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.82 9.82 0 0 0 12.04 2Zm5.8 14.14c-.24.68-1.4 1.3-1.93 1.35-.5.05-.94.24-3.17-.66-2.68-1.07-4.4-3.8-4.53-3.98-.13-.18-1.08-1.43-1.08-2.73s.68-1.93.92-2.2c.24-.26.53-.33.7-.33.18 0 .35 0 .5.01.16.01.38-.06.6.46.24.55.8 1.9.87 2.04.07.14.11.3.02.48-.09.18-.14.29-.27.45-.14.16-.29.36-.41.48-.14.14-.28.29-.12.57.16.28.71 1.17 1.53 1.9 1.05.94 1.94 1.23 2.22 1.37.28.14.44.12.6-.07.16-.19.7-.82.89-1.1.19-.28.37-.23.63-.14.26.1 1.63.77 1.91.91.28.14.47.21.53.33.07.12.07.68-.17 1.36Z"/></svg>' +
+          "<span>Demander le prix</span>";
+        modalPriceRow.appendChild(modalWhatsappBtn);
+
         var modalObserver = new MutationObserver(function () {
           if (!productModalEl.classList.contains("open")) return;
           var card = productModalEl._currentCardEl;
           var data = card ? dataFromCard(card) : null;
           modalAddBtn.style.display = data ? "" : "none";
           modalAddBtn.querySelector("span").textContent = "Ajouter au panier";
+          // "flex" explicite (pas "") : le CSS par défaut de .product-quote-whatsapp dans
+          // .product-modal-price-row est display:none pour éviter un flash au premier
+          // rendu -- passer "" retomberait sur cette règle CSS au lieu de l'afficher.
+          modalWhatsappBtn.style.display = data ? "none" : "flex";
+          if (!data && card) {
+            var h4 = card.querySelector("h4");
+            var name = h4 ? h4.textContent.trim() : "";
+            var msg = "Bonjour, je suis intéressé(e) par « " + name + " » (Tanger Carreaux). Pouvez-vous me communiquer le prix ?";
+            modalWhatsappBtn.href = "https://wa.me/" + WHATSAPP_NUMBER + "?text=" + encodeURIComponent(msg);
+          }
         });
         modalObserver.observe(productModalEl, { attributes: true, attributeFilter: ["class"] });
       }

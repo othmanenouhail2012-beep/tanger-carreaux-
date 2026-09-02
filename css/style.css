@@ -2012,6 +2012,31 @@ body.page-leaving .page-transition {
 .product-card.dark .product-add-btn { border-color: var(--line-light); color: #fff; }
 .product-modal-price-row .product-add-btn { width: auto; margin-top: 0; }
 
+/* ---------- "Prix sur devis" -> bouton WhatsApp (demande explicite du 04/09/2026) ----------
+   Même gabarit que .product-add-btn, couleur WhatsApp pour signaler une action différente
+   (pas un ajout au panier -- une vraie conversation). */
+.product-quote-whatsapp {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  margin-top: 12px;
+  padding: 10px 16px;
+  border-radius: var(--radius);
+  border: 1px solid #25d366;
+  background: none;
+  color: #1da851;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-decoration: none;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+.product-quote-whatsapp svg { flex-shrink: 0; }
+.product-quote-whatsapp:hover { background: #25d366; color: #fff; }
+.product-modal-price-row .product-quote-whatsapp { width: auto; margin-top: 0; display: none; }
+
 /* ---------- Tiroir panier ---------- */
 .cart-drawer {
   position: fixed;
