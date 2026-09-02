@@ -77,16 +77,34 @@ CREATE TABLE IF NOT EXISTS payments (
   created_at    TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
--- Table de prix "produits" utilisée UNIQUEMENT pour la revalidation serveur du prix au
--- checkout (voir lib/... et api/checkout.js) -- ce n'est pas un catalogue, juste un
--- miroir minimal id -> prix, seedé depuis les pages HTML réelles (db/seed-products.js).
+-- Table "produits" : sert à la fois de miroir de prix pour la revalidation serveur au
+-- checkout (voir api/checkout.js) ET de vrai catalogue pour les produits créés depuis le
+-- dashboard (admin/ > Ajouter un produit, voir api/admin/manage.js resource=products).
+-- source='site' = seedé depuis les pages HTML réelles (db/seed-products.js /
+-- api/admin/seed-products.js) -- ces lignes n'ont ni description/image/page, juste le prix.
+-- source='admin' = créé par un manager, visible de TOUS les visiteurs via
+-- api/page-content.js (injecté sur sa page catégorie + section "Nouveautés" de l'accueil).
+-- Colonnes description/image/page/row_label/promo_price/deleted/source/created_at ajoutées
+-- défensivement (ADD COLUMN IF NOT EXISTS) au début de api/page-content.js et
+-- api/admin/manage.js -- pas besoin de rejouer ce fichier à la main sur la base déjà en prod.
 CREATE TABLE IF NOT EXISTS products (
-  id         TEXT PRIMARY KEY, -- "tag::name", identique à dataFromCard() dans js/main.js
-  name       TEXT NOT NULL,
-  tag        TEXT NOT NULL,
-  price      NUMERIC(10, 2) NOT NULL,
-  unit       TEXT NOT NULL,
-  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+  id          TEXT PRIMARY KEY, -- "tag::name", identique à dataFromCard() dans js/main.js
+  name        TEXT NOT NULL,
+  tag         TEXT NOT NULL,
+  price       NUMERIC(10, 2) NOT NULL,
+  unit        TEXT NOT NULL,
+  updated_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
+  description TEXT NOT NULL DEFAULT '',
+  image       TEXT NOT NULL DEFAULT '',
+  page        TEXT NOT NULL DEFAULT '',        -- ex. "carrelage.html" -- vide pour les lignes source='site'
+  row_label      TEXT NOT NULL DEFAULT '',
+  -- `price` reste TOUJOURS le montant réellement facturé au checkout (jamais changé de
+  -- sens) ; original_price n'est que l'ancien prix à afficher barré quand il y a une
+  -- promo -- jamais lu par api/checkout.js. Voir la note dans api/admin/manage.js.
+  original_price NUMERIC(10, 2),
+  deleted        BOOLEAN NOT NULL DEFAULT false,  -- suppression douce -- retiré du site sans perdre l'historique
+  source         TEXT NOT NULL DEFAULT 'site',    -- 'site' | 'admin'
+  created_at     TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
 CREATE INDEX IF NOT EXISTS idx_orders_customer_id ON orders(customer_id);

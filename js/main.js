@@ -1,6 +1,15 @@
 // TANGER CARREAUX — comportements partagés du site
 
 document.addEventListener("DOMContentLoaded", function () {
+  // Pont entre deux IIFE indépendantes de ce fichier (demande explicite du 03/09/2026) :
+  // celle plus bas qui sait construire/câbler une vraie fiche produit (bouton panier,
+  // survol, favoris -- voir "wireOneProductCard") s'enregistre ici ; celle qui récupère
+  // les produits ajoutés au dashboard depuis /api/page-content (visible pour TOUS les
+  // visiteurs, pas juste ce navigateur) l'appelle une fois la réponse arrivée. Nécessaire
+  // car l'appel réseau est asynchrone : par le temps qu'il répond, tout le reste du script
+  // (y compris la mise en page Market) a déjà fini de s'exécuter une première fois.
+  var onAdminProductsReady = null;
+
   // ---------- Synchronisation simulée avec le back-office (admin/) ----------
   // Lit les mêmes clés localStorage que admin/admin.js : simule une base de données
   // partagée (même navigateur / même origine uniquement — voir note de sécurité).
@@ -56,43 +65,10 @@ document.addEventListener("DOMContentLoaded", function () {
         }
       });
 
-      // 2) Nouveaux produits ajoutés depuis le back-office, injectés sur la bonne page catégorie
-      var currentPage = location.pathname.split("/").pop() || "index.html";
-      var currentPageNoExt = currentPage.replace(/\.html$/, "");
-      var searchWrap = document.querySelector("#productSearchWrap");
-      var newProducts = adminProducts.filter(function (p) {
-        var pPageNoExt = p.page.replace(/\.html$/, "");
-        return p.source === "admin" && pPageNoExt === currentPageNoExt && !p.deleted;
-      });
-      if (newProducts.length && searchWrap) {
-        var cardsContainer = document.querySelector("#adminNewProductsCards");
-        if (!cardsContainer) {
-          var row = document.createElement("div");
-          row.className = "product-row";
-          row.id = "adminNewProductsRow";
-          row.innerHTML =
-            '<div class="product-row-head"><h3>Ajoutés récemment</h3></div>' +
-            '<div class="scroll-cards" id="adminNewProductsCards"></div>';
-          searchWrap.insertAdjacentElement("afterend", row);
-          cardsContainer = row.querySelector("#adminNewProductsCards");
-        }
-        newProducts.forEach(function (p) {
-          if (cardsContainer.querySelector('[data-admin-id="' + p.id + '"]')) return;
-          var sellPrice = p.promoPrice != null ? p.promoPrice : p.price;
-          var priceHtml = sellPrice + " MAD<span>à partir de</span>";
-          var card = document.createElement("div");
-          card.className = "card product-card";
-          card.setAttribute("data-admin-id", p.id);
-          card.innerHTML =
-            '<div class="product-visual"><span class="product-tag">' + escapeHtmlSync(p.tag || "Nouveau") + "</span>" +
-            '<img src="' + escapeHtmlSync(p.image || PLACEHOLDER_IMAGE) + '" alt="' + escapeHtmlSync(p.name) + '" loading="lazy"></div>' +
-            '<div class="product-body"><h4>' + escapeHtmlSync(p.name) + "</h4><p>" + escapeHtmlSync(p.description || "") + "</p>" +
-            '<div class="product-price-row"><span class="product-price' + (p.promoPrice != null ? " has-promo" : "") + '">' + priceHtml +
-            (p.promoPrice != null ? '<s class="admin-old-price">' + p.price + " MAD</s>" : "") + "</span>" +
-            '<a href="contact.html" class="product-quote-link">Demander →</a></div></div>';
-          cardsContainer.appendChild(card);
-        });
-      }
+      // 2) Les nouveaux produits ajoutés depuis le back-office ne sont plus injectés depuis
+      // localStorage ici (visible seulement dans CE navigateur) -- remplacé par une vraie
+      // synchronisation via /api/page-content (visible pour tous les visiteurs), voir plus
+      // bas dans ce fichier ("Application des modifications de l'Éditeur visuel").
     }
 
     // 3) Numéros de téléphone / WhatsApp / horaires (Paramètres du site)
@@ -216,6 +192,51 @@ document.addEventListener("DOMContentLoaded", function () {
     //    le site publié pour de vrais visiteurs). Réapplique par-dessus l'étape 1 dès que
     //    la réponse arrive ; silencieux si hors-ligne, en local via file://, ou backend
     //    pas encore déployé -- le contenu déjà présent dans le HTML reste affiché.
+    // ---------- Accueil : "Nouveautés" et "Meilleures ventes" (demande explicite du
+    // 03/09/2026) ---------- Sections purement d'aiguillage (image + nom + prix, clic vers
+    // la page catégorie) -- pas de bouton panier directement ici, le visiteur clique pour
+    // aller sur la vraie fiche produit. #nouveautesGrid/#bestSellersGrid n'existent que sur
+    // index.html : ces fonctions ne font simplement rien ailleurs.
+    function escapeHtmlHome(str) {
+      var div = document.createElement("div");
+      div.textContent = str == null ? "" : String(str);
+      return div.innerHTML;
+    }
+    var HOME_PLACEHOLDER_IMG =
+      "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23232a27'/%3E%3Cpath d='M22 70l18-24 14 17 10-12 18 19z' fill='%233a4440'/%3E%3Ccircle cx='32' cy='32' r='9' fill='%233a4440'/%3E%3C/svg%3E";
+    function renderNouveautes(list) {
+      var grid = document.querySelector("#nouveautesGrid");
+      var section = document.querySelector("#nouveautesSection");
+      if (!grid || !section) return;
+      if (!list || !list.length) { section.hidden = true; return; }
+      section.hidden = false;
+      grid.innerHTML = list.map(function (p) {
+        var sellPrice = p.promoPrice != null ? p.promoPrice : p.price;
+        return (
+          '<a class="discovery-card" href="' + escapeHtmlHome(p.page) + '?produit=' + encodeURIComponent(p.id) + '">' +
+          '<div class="discovery-card-visual"><img src="' + escapeHtmlHome(p.image || HOME_PLACEHOLDER_IMG) + '" alt="' + escapeHtmlHome(p.name) + '" loading="lazy"></div>' +
+          '<div class="discovery-card-body"><span class="discovery-card-tag">' + escapeHtmlHome(p.tag || "Nouveau") + "</span>" +
+          "<h4>" + escapeHtmlHome(p.name) + "</h4>" +
+          '<span class="discovery-card-price">' + sellPrice + " MAD</span></div></a>"
+        );
+      }).join("");
+    }
+    function renderBestSellers(list) {
+      var grid = document.querySelector("#bestSellersGrid");
+      var section = document.querySelector("#bestSellersSection");
+      if (!grid || !section) return;
+      if (!list || !list.length) { section.hidden = true; return; }
+      section.hidden = false;
+      grid.innerHTML = list.map(function (p, i) {
+        return (
+          '<div class="discovery-card discovery-card--rank">' +
+          '<span class="discovery-card-rank">#' + (i + 1) + "</span>" +
+          '<div class="discovery-card-body"><span class="discovery-card-tag">' + escapeHtmlHome(p.tag || "") + "</span>" +
+          "<h4>" + escapeHtmlHome(p.name) + "</h4></div></div>"
+        );
+      }).join("");
+    }
+
     if (location.protocol !== "file:") {
       fetch("/api/page-content?page=" + encodeURIComponent(currentPageEdit))
         .then(function (res) { return res.ok ? res.json() : null; })
@@ -223,6 +244,13 @@ document.addEventListener("DOMContentLoaded", function () {
           if (!data) return;
           applyEdits(data.edits);
           applyLogo(data.globalLogo);
+          // Produits ajoutés au dashboard : injectés sur leur page catégorie (voir
+          // onAdminProductsReady, défini plus bas dans ce fichier -- peut ne pas encore
+          // être assigné si cette page n'a pas de grille Market, auquel cas cet appel ne
+          // fait rien) et/ou dans les sections "Nouveautés"/"Meilleures ventes" de l'accueil.
+          if (onAdminProductsReady && data.adminProducts) onAdminProductsReady(data.adminProducts);
+          renderNouveautes(data.newest);
+          renderBestSellers(data.bestSellers);
         })
         .catch(function () { /* backend indisponible -- le contenu déjà affiché suffit */ });
     }
@@ -1004,7 +1032,12 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     // ----- Boutons "Ajouter au panier" sur les fiches produits -----
-    document.querySelectorAll(".product-card").forEach(function (card) {
+    // Extrait en fonction nommée (demande explicite du 03/09/2026) pour pouvoir câbler
+    // aussi les fiches injectées après coup depuis /api/page-content (produits ajoutés au
+    // dashboard, voir plus bas "onAdminProductsReady") -- pas seulement celles déjà
+    // présentes dans le HTML au chargement. Idempotent (les gardes ci-dessous sautent une
+    // carte déjà câblée), donc sûr à rappeler.
+    function wireOneProductCard(card) {
       var data = dataFromCard(card);
       if (!data) return;
 
@@ -1046,7 +1079,52 @@ document.addEventListener("DOMContentLoaded", function () {
         }, 1600);
       });
       row.insertAdjacentElement("afterend", btn);
-    });
+    }
+    document.querySelectorAll(".product-card").forEach(wireOneProductCard);
+
+    // ----- Produits ajoutés depuis le dashboard (admin/ > Ajouter un produit) -----
+    // Construit une fiche produit identique aux fiches statiques du HTML, à partir des
+    // données réelles renvoyées par /api/page-content (voir onAdminProductsReady plus
+    // bas) -- remplace l'ancienne injection basée sur localStorage (visible seulement
+    // dans le navigateur du manager, jamais pour un vrai visiteur).
+    var ADMIN_PRODUCT_PLACEHOLDER =
+      "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23232a27'/%3E%3Cpath d='M22 70l18-24 14 17 10-12 18 19z' fill='%233a4440'/%3E%3Ccircle cx='32' cy='32' r='9' fill='%233a4440'/%3E%3C/svg%3E";
+    function buildAdminProductCard(p) {
+      var sellPrice = p.promoPrice != null ? p.promoPrice : p.price;
+      var priceHtml = sellPrice + " MAD<span>à partir de</span>";
+      var card = document.createElement("div");
+      card.className = "card product-card";
+      card.setAttribute("data-admin-id", p.id);
+      card.innerHTML =
+        '<div class="product-visual"><span class="product-tag">' + escapeHtml(p.tag || "Nouveau") + "</span>" +
+        '<img src="' + escapeHtml(p.image || ADMIN_PRODUCT_PLACEHOLDER) + '" alt="' + escapeHtml(p.name) + '" loading="lazy"></div>' +
+        '<div class="product-body"><h4>' + escapeHtml(p.name) + "</h4><p>" + escapeHtml(p.description || "") + "</p>" +
+        '<div class="product-price-row"><span class="product-price' + (p.promoPrice != null ? " has-promo" : "") + '">' + priceHtml +
+        (p.promoPrice != null ? '<s class="admin-old-price">' + p.price + " MAD</s>" : "") + "</span>" +
+        '<a href="contact.html" class="product-quote-link">Demander →</a></div></div>';
+      return card;
+    }
+    // Appelé une fois la réponse de /api/page-content arrivée (voir plus bas dans ce
+    // fichier) avec les produits admin de CETTE page. Injecte dans #marketGrid s'il
+    // existe (les 7 pages catalogue sont toutes en mise en page Market) et laisse
+    // applyFilter() les intégrer au tri/recherche existants comme n'importe quelle autre
+    // fiche -- sans ça, ces cartes resteraient invisibles à toute recherche ultérieure.
+    onAdminProductsReady = function (products) {
+      if (!products || !products.length || typeof marketGrid === "undefined" || !marketGrid) return;
+      // Comparaison directe (pas de sélecteur CSS interpolé) -- p.id vient du nom du
+      // produit tapé par le manager et peut contenir des guillemets ou autres caractères
+      // qui casseraient un sélecteur [data-admin-id="..."] construit par concaténation.
+      var existingIds = allProductCards
+        .map(function (c) { return c.getAttribute && c.getAttribute("data-admin-id"); })
+        .filter(Boolean);
+      products.forEach(function (p) {
+        if (existingIds.indexOf(p.id) !== -1) return; // déjà injecté
+        var card = buildAdminProductCard(p);
+        allProductCards.push(card);
+        wireOneProductCard(card);
+      });
+      applyFilter();
+    };
 
     // ----- Bouton "Ajouter au panier" dans la fiche produit modale -----
     var productModalEl = document.querySelector("#productModal");

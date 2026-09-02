@@ -2170,6 +2170,17 @@ document.addEventListener("DOMContentLoaded", function () {
     closeDeleteModal();
     renderCatalog();
     renderDashboard();
+    // Les produits créés au dashboard (source="admin") vivent aussi dans la vraie base
+    // (voir "Ajouter un produit" plus haut) -- il faut y répercuter la suppression/
+    // réactivation, sinon le produit resterait visible pour les vrais visiteurs malgré le
+    // "supprimé" affiché ici. L'id de la ligne en base est "tag::nom" (voir
+    // api/admin/manage.js), différent de l'id local "admin-xxxxx" utilisé dans ce tableau.
+    if (product.source === "admin") {
+      fetch("/api/admin/manage?resource=products", {
+        method: "PATCH", credentials: "same-origin", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: product.tag + "::" + product.name, deleted: product.deleted })
+      }).catch(function () { showToast("Suppression non synchronisée côté serveur (service indisponible)."); });
+    }
   });
 
   document.addEventListener("keydown", function (e) {
@@ -2280,16 +2291,42 @@ document.addEventListener("DOMContentLoaded", function () {
     });
     saveProducts(list);
 
-    status.textContent = "« " + name + " » a été ajouté au catalogue et est visible sur la page " + (CATEGORY_LABELS[page] || page) + " du site public.";
-    status.classList.add("show");
     addProductForm.reset();
     pendingImageDataUrl = null;
     pImagePreview.classList.remove("show");
-
-    showToast("Produit ajouté au catalogue.");
     renderCatalog();
     renderDashboard();
     showPanel("catalog");
+
+    // Sauvegarde aussi dans la vraie base de données (demande explicite du 03/09/2026) :
+    // sans ça, ce produit ne serait visible QUE dans ce navigateur (voir getProducts() plus
+    // haut) -- jamais pour un vrai visiteur. C'est ÇA qui rend le produit réellement public,
+    // pas la ligne saveProducts() ci-dessus qui ne sert qu'à garder l'affichage du dashboard
+    // cohérent (Catalogue, Stock, statistiques, export PDF...).
+    status.textContent = "« " + name + " » ajouté -- publication en cours...";
+    status.classList.add("show");
+    fetch("/api/admin/manage?resource=products", {
+      method: "POST", credentials: "same-origin", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name: name, tag: CATEGORY_LABELS[page] || "", page: page, price: price, promoPrice: promoPrice,
+        unit: "unité", description: description, image: pendingImageDataUrl || ""
+      })
+    }).then(function (res) { return res.json().then(function (d) { return { ok: res.ok, d: d }; }); })
+      .then(function (r) {
+        if (!r.ok) {
+          status.textContent = "« " + name + " » ajouté au catalogue local, mais PAS ENCORE visible pour les vrais visiteurs (" + (r.d.error || "erreur serveur") + "). Réessaie depuis Catalogue Produits.";
+          status.classList.add("is-error");
+          showToast("Produit ajouté localement, publication échouée.");
+          return;
+        }
+        status.textContent = "« " + name + " » ajouté et visible dès maintenant pour tous les visiteurs sur la page " + (CATEGORY_LABELS[page] || page) + ".";
+        showToast("Produit publié sur le site.");
+      })
+      .catch(function () {
+        status.textContent = "« " + name + " » ajouté au catalogue local, mais PAS ENCORE visible pour les vrais visiteurs (service indisponible). Réessaie plus tard.";
+        status.classList.add("is-error");
+        showToast("Produit ajouté localement, publication échouée.");
+      });
   });
 
   // ---------- Paramètres du site ----------
