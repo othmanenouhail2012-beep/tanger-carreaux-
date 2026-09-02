@@ -3117,6 +3117,15 @@ document.addEventListener("DOMContentLoaded", function () {
       return !el.closest(".product-card");
     });
   }
+  // Petites icônes de contenu (fiches showroom, bandeau de confiance, cartes valeurs) --
+  // volontairement PAS tous les SVG de la page (menu, panier, etc. restent hors édition).
+  // Sélecteur identique à editableIconEls() dans js/main.js -- garder synchronisé.
+  function tcEditableIconEls(doc) {
+    return Array.prototype.filter.call(
+      doc.querySelectorAll(".showroom-detail > svg, .trust-item > svg, .icon-badge > svg"),
+      function (el) { return !el.closest(EDIT_EXCLUDE_SELECTOR); }
+    );
+  }
 
   var editorFrame = document.querySelector("#editorFrame");
   var editorPageSelect = document.querySelector("#editorPageSelect");
@@ -3185,14 +3194,37 @@ document.addEventListener("DOMContentLoaded", function () {
       "[data-tc-editable-text]:focus{outline:3px solid #00b074; background:rgba(0,176,116,.16);}" +
       ".tc-img-edit-wrap{position:relative;}" +
       ".tc-img-edit-btn{position:absolute; top:10px; right:10px; z-index:80; background:rgba(13,13,13,.85); color:#fff; border:1px solid rgba(255,255,255,.55); border-radius:999px; padding:7px 14px; font-size:.72rem; font-weight:600; letter-spacing:.02em; cursor:pointer; font-family:Inter,Arial,sans-serif; white-space:nowrap;}" +
-      ".tc-img-edit-btn:hover{background:#00b074; border-color:#00b074;}";
+      ".tc-img-edit-btn:hover{background:#00b074; border-color:#00b074;}" +
+      ".tc-icon-edit-wrap{position:relative; display:inline-flex;}" +
+      ".tc-icon-edit-btn{position:absolute; top:-8px; left:50%; transform:translateX(-50%); z-index:80; background:rgba(13,13,13,.9); color:#fff; border:1px solid rgba(255,255,255,.55); border-radius:999px; padding:3px 8px; font-size:.6rem; font-weight:600; cursor:pointer; font-family:Inter,Arial,sans-serif; white-space:nowrap; opacity:0; transition:opacity .15s;}" +
+      ".tc-icon-edit-wrap:hover .tc-icon-edit-btn{opacity:1;}" +
+      "#tc-color-popup{position:absolute; z-index:99998; display:none; background:#161616; border:1px solid rgba(255,255,255,.2); border-radius:8px; padding:6px; box-shadow:0 8px 24px rgba(0,0,0,.5);}" +
+      "#tc-color-popup input[type=color]{width:34px; height:34px; padding:0; border:none; background:none; cursor:pointer;}";
     doc.head.appendChild(style);
+  }
+
+  // Popup couleur unique par iframe (pas un bouton par texte -- trop de textes sur une
+  // page pour que ce soit lisible) : réapparaît positionné sur le texte actuellement
+  // ciblé au clic (mousedown, avant que le blur ne se déclenche).
+  function getColorPopup(doc) {
+    var popup = doc.querySelector("#tc-color-popup");
+    if (!popup) {
+      popup = doc.createElement("div");
+      popup.id = "tc-color-popup";
+      var input = doc.createElement("input");
+      input.type = "color";
+      popup.appendChild(input);
+      doc.body.appendChild(popup);
+    }
+    return popup;
   }
 
   function attachEditingHandlers() {
     var doc = editorFrame.contentDocument;
     if (!doc || !doc.body) return;
     injectEditorStyles(doc);
+    var colorPopup = getColorPopup(doc);
+    var colorInput = colorPopup.querySelector("input");
 
     tcEditableTextEls(doc).forEach(function (el, i) {
       el.setAttribute("contenteditable", "true");
@@ -3202,6 +3234,25 @@ document.addEventListener("DOMContentLoaded", function () {
       el.addEventListener("blur", function () {
         editorPendingEdits["text:" + i] = { type: "text", value: el.innerHTML };
         updateEditorPendingUi();
+      });
+      // mousedown (pas click) : se déclenche avant le blur de l'élément précédemment
+      // édité, donc le popup reste toujours positionné sur le bon texte.
+      el.addEventListener("mousedown", function () {
+        var rect = el.getBoundingClientRect();
+        colorPopup.style.display = "block";
+        colorPopup.style.top = (rect.top + doc.defaultView.scrollY - 46) + "px";
+        colorPopup.style.left = (rect.left + doc.defaultView.scrollX) + "px";
+        var current = getComputedStyle(el).color;
+        var hexMatch = current.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
+        if (hexMatch) {
+          var toHex = function (n) { return ("0" + parseInt(n, 10).toString(16)).slice(-2); };
+          colorInput.value = "#" + toHex(hexMatch[1]) + toHex(hexMatch[2]) + toHex(hexMatch[3]);
+        }
+        colorInput.oninput = function () {
+          el.style.color = colorInput.value;
+          editorPendingEdits["color:" + i] = { type: "color", value: colorInput.value };
+          updateEditorPendingUi();
+        };
       });
     });
 
@@ -3250,6 +3301,43 @@ document.addEventListener("DOMContentLoaded", function () {
         });
       });
       el.appendChild(btn);
+    });
+
+    tcEditableIconEls(doc).forEach(function (el, i) {
+      if (el._tcBound) return;
+      el._tcBound = true;
+      if (!el.parentElement.classList.contains("tc-icon-edit-wrap")) {
+        var wrap = doc.createElement("span");
+        wrap.className = "tc-icon-edit-wrap";
+        el.parentElement.insertBefore(wrap, el);
+        wrap.appendChild(el);
+      }
+      var btn = doc.createElement("button");
+      btn.type = "button";
+      btn.className = "tc-icon-edit-btn";
+      btn.textContent = "Changer";
+      btn.addEventListener("click", function (e) {
+        e.preventDefault(); e.stopPropagation();
+        promptImageReplace(function (dataUrl) {
+          el.style.display = "none";
+          var img = el.nextElementSibling;
+          if (!img || !img.classList || !img.classList.contains("tc-icon-override")) {
+            img = doc.createElement("img");
+            img.className = "tc-icon-override";
+            img.alt = "";
+            var cs = getComputedStyle(el);
+            img.style.width = cs.width;
+            img.style.height = cs.height;
+            img.style.flexShrink = "0";
+            img.style.objectFit = "contain";
+            el.parentNode.insertBefore(img, el.nextSibling);
+          }
+          img.src = dataUrl;
+          editorPendingEdits["icon:" + i] = { type: "icon", value: dataUrl };
+          updateEditorPendingUi();
+        });
+      });
+      el.parentElement.appendChild(btn);
     });
 
     // Logo (global — s'applique à toutes les pages, pas seulement celle-ci)

@@ -157,15 +157,41 @@ document.addEventListener("DOMContentLoaded", function () {
         return !el.closest(".product-card");
       });
     }
+    // Petites icônes de contenu (fiches showroom, bandeau de confiance, cartes valeurs) --
+    // volontairement PAS tous les SVG du site (menu, panier, etc. restent hors édition).
+    function editableIconEls() {
+      return Array.prototype.filter.call(
+        document.querySelectorAll(".showroom-detail > svg, .trust-item > svg, .icon-badge > svg"),
+        function (el) { return !el.closest(EDIT_EXCLUDE_SELECTOR); }
+      );
+    }
+    function applyIconEdit(svg, dataUrl) {
+      svg.style.display = "none";
+      var img = svg.nextElementSibling;
+      if (!img || !img.classList || !img.classList.contains("tc-icon-override")) {
+        img = document.createElement("img");
+        img.className = "tc-icon-override";
+        img.alt = "";
+        var cs = getComputedStyle(svg);
+        img.style.width = cs.width;
+        img.style.height = cs.height;
+        img.style.flexShrink = "0";
+        img.style.objectFit = "contain";
+        svg.parentNode.insertBefore(img, svg.nextSibling);
+      }
+      img.src = dataUrl;
+    }
     function applyEdits(pageEdits) {
       if (!pageEdits) return;
-      var texts = editableTextEls(), imgs = editableImgEls(), bgs = editableBgEls();
+      var texts = editableTextEls(), imgs = editableImgEls(), bgs = editableBgEls(), icons = editableIconEls();
       Object.keys(pageEdits).forEach(function (key) {
         var edit = pageEdits[key];
         var idx = parseInt(key.split(":")[1], 10);
         if (edit.type === "text" && texts[idx]) texts[idx].innerHTML = edit.value;
         else if (edit.type === "img" && imgs[idx]) imgs[idx].src = edit.value;
         else if (edit.type === "bg" && bgs[idx]) bgs[idx].style.backgroundImage = "url('" + edit.value + "')";
+        else if (edit.type === "color" && texts[idx]) texts[idx].style.color = edit.value;
+        else if (edit.type === "icon" && icons[idx]) applyIconEdit(icons[idx], edit.value);
       });
     }
     function applyLogo(globalLogo) {

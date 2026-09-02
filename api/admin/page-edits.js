@@ -14,7 +14,7 @@
 const { sql } = require("../../lib/db");
 const { requireAdmin } = require("../../lib/auth");
 
-var VALID_TYPES = { text: true, img: true, bg: true };
+var VALID_TYPES = { text: true, img: true, bg: true, color: true, icon: true };
 
 module.exports = async function handler(req, res) {
   var session = requireAdmin(req, res);

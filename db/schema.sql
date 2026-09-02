@@ -96,7 +96,7 @@ CREATE INDEX IF NOT EXISTS idx_payments_order_id ON payments(order_id);
 CREATE TABLE IF NOT EXISTS site_content_edits (
   page       TEXT NOT NULL,       -- ex. "index.html", "carrelage.html"
   edit_key   TEXT NOT NULL,       -- ex. "text:0", "img:3", "bg:1"
-  edit_type  TEXT NOT NULL,       -- 'text' | 'img' | 'bg'
+  edit_type  TEXT NOT NULL,       -- 'text' | 'img' | 'bg' | 'color' | 'icon'
   value      TEXT NOT NULL,
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   PRIMARY KEY (page, edit_key)
