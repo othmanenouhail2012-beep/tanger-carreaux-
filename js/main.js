@@ -315,17 +315,24 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   // Fiches produits (modal au clic sur une carte produit)
+  // NOTE : #productModal n'existe sur AUCUNE page du site (jamais ajouté au HTML) --
+  // avant, tout ce bloc (y compris la recherche, les filtres ET la mise en page Market
+  // avec #marketGrid plus bas) était gardé par "if (productModal && ...)" et donc ne
+  // s'exécutait JAMAIS nulle part : aucune erreur, mais aucun produit affiché non plus.
+  // On ne garde le if que sur productCards.length ; chaque usage de productModal est
+  // protégé individuellement pour rester silencieux tant que la modale n'existe pas.
   var productModal = document.querySelector("#productModal");
   var productCards = document.querySelectorAll(".product-card");
-  if (productModal && productCards.length) {
-    var modalVisual = productModal.querySelector(".product-modal-visual");
-    var modalTag = productModal.querySelector(".product-modal-tag");
-    var modalTitle = productModal.querySelector("#productModalTitle");
-    var modalDesc = productModal.querySelector(".product-modal-desc");
-    var modalPrice = productModal.querySelector(".product-modal-price-row .product-price");
+  if (productCards.length) {
+    var modalVisual = productModal ? productModal.querySelector(".product-modal-visual") : null;
+    var modalTag = productModal ? productModal.querySelector(".product-modal-tag") : null;
+    var modalTitle = productModal ? productModal.querySelector("#productModalTitle") : null;
+    var modalDesc = productModal ? productModal.querySelector(".product-modal-desc") : null;
+    var modalPrice = productModal ? productModal.querySelector(".product-modal-price-row .product-price") : null;
     var lastFocused = null;
 
     function openProductModal(card) {
+      if (!productModal) return;
       var media = card.querySelector(".product-visual img, .product-visual svg");
       modalVisual.innerHTML = media ? media.outerHTML : "";
       modalTag.textContent = card.querySelector(".product-tag").textContent;
@@ -340,6 +347,7 @@ document.addEventListener("DOMContentLoaded", function () {
       productModal.querySelector(".product-modal-close").focus();
     }
     function closeProductModal() {
+      if (!productModal) return;
       productModal.classList.remove("open");
       productModal.setAttribute("aria-hidden", "true");
       document.body.style.overflow = "";
@@ -361,12 +369,14 @@ document.addEventListener("DOMContentLoaded", function () {
         }
       });
     });
-    productModal.querySelectorAll("[data-modal-close]").forEach(function (el) {
-      el.addEventListener("click", closeProductModal);
-    });
-    document.addEventListener("keydown", function (e) {
-      if (e.key === "Escape" && productModal.classList.contains("open")) closeProductModal();
-    });
+    if (productModal) {
+      productModal.querySelectorAll("[data-modal-close]").forEach(function (el) {
+        el.addEventListener("click", closeProductModal);
+      });
+      document.addEventListener("keydown", function (e) {
+        if (e.key === "Escape" && productModal.classList.contains("open")) closeProductModal();
+      });
+    }
 
     // Lien direct vers une fiche produit — utilisé par les QR codes générés dans le
     // back-office (admin/ > QR Codes > Produit du catalogue), ex: carrelage.html?produit=...
