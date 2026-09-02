@@ -93,7 +93,7 @@ h1, h2, h3, h4 { font-family: var(--a-ff-serif); font-weight: 600; margin: 0; co
 .admin-brand-text strong { display: block; font-family: var(--a-ff-serif); font-size: 1.05rem; color: #fff; }
 .admin-brand-text span { display: block; font-size: 0.66rem; color: var(--a-green-light); letter-spacing: 0.1em; text-transform: uppercase; margin-top: 3px; }
 
-.admin-nav { flex: 1; padding: 12px 10px; display: flex; flex-direction: column; gap: 2px; overflow-y: auto; }
+.admin-nav { flex: 1; padding: 12px 10px; display: flex; flex-direction: column; justify-content: center; gap: 2px; overflow-y: auto; }
 .admin-nav-link {
   display: flex;
   align-items: center;
