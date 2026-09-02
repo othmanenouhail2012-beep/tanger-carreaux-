@@ -1277,6 +1277,23 @@ document.addEventListener("DOMContentLoaded", function () {
         changed = true;
       }
     });
+    // Migration : les 8 produits Déstockage ajoutés à SEED_PRODUCTS le 29/08/2026
+    // n'apparaissent jamais tout seuls dans un navigateur qui avait déjà un catalogue
+    // enregistré (le seed ci-dessus ne tourne qu'une fois, sur localStorage vide) --
+    // complète les entrées manquantes sans toucher à celles déjà là.
+    var existingIds = {};
+    raw.forEach(function (p) { existingIds[p.id] = true; });
+    SEED_PRODUCTS.forEach(function (p) {
+      if (p.page === "destockage.html" && !existingIds[p.id]) {
+        raw.push({
+          id: p.id, name: p.name, tag: p.tag, cat: p.cat, price: p.price, unit: p.unit,
+          description: p.description, image: p.image, page: p.page, row: p.row,
+          promoPrice: p.promoPrice != null ? p.promoPrice : null,
+          deleted: false, source: "site", createdAt: 0, stock: DEFAULT_STOCK
+        });
+        changed = true;
+      }
+    });
     if (changed) saveProducts(raw);
     return raw;
   }
