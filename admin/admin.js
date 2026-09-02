@@ -1122,6 +1122,110 @@ document.addEventListener("DOMContentLoaded", function () {
     "image": "https://images.unsplash.com/photo-1758548157276-00c54fd4a9fa?auto=format&fit=crop&w=800&q=80",
     "page": "miroirs-led.html",
     "row": "Miroirs LED — Série Rome (Ledimex)"
+  },
+  {
+    "id": "Salle de bain::Robinet baignoire sur pied — Chromé",
+    "name": "Robinet baignoire sur pied — Chromé",
+    "tag": "Salle de bain",
+    "cat": "sdb",
+    "price": 2900,
+    "promoPrice": 2290,
+    "unit": "unité",
+    "description": "Fin de série, stock limité. Colonne autoportante avec douchette à main.",
+    "image": "../assets/images/produits/robinet-baignoire-sur-pied-chrome.jpg",
+    "page": "destockage.html",
+    "row": "À prix cassé"
+  },
+  {
+    "id": "Salle de bain::Kit douche encastrée + bec baignoire — Noir mat",
+    "name": "Kit douche encastrée + bec baignoire — Noir mat",
+    "tag": "Salle de bain",
+    "cat": "sdb",
+    "price": 2690,
+    "promoPrice": 2190,
+    "unit": "unité",
+    "description": "Surstock, quantité limitée. Tête ronde, douchette et bec de remplissage.",
+    "image": "../assets/images/produits/kit-douche-encastree-noir.jpg",
+    "page": "destockage.html",
+    "row": "À prix cassé"
+  },
+  {
+    "id": "Salle de bain::Kit douche encastrée + bec baignoire — Doré brossé",
+    "name": "Kit douche encastrée + bec baignoire — Doré brossé",
+    "tag": "Salle de bain",
+    "cat": "sdb",
+    "price": 3090,
+    "promoPrice": 2390,
+    "unit": "unité",
+    "description": "Dernières pièces en stock. Tête ronde, douchette et bec de remplissage.",
+    "image": "../assets/images/produits/kit-douche-encastree-dore.jpg",
+    "page": "destockage.html",
+    "row": "À prix cassé"
+  },
+  {
+    "id": "Salle de bain::Mitigeur vasque mural 3 trous — Chromé",
+    "name": "Mitigeur vasque mural 3 trous — Chromé",
+    "tag": "Salle de bain",
+    "cat": "sdb",
+    "price": 1290,
+    "promoPrice": 990,
+    "unit": "unité",
+    "description": "Fin de série. Set 3 trous à poignées croisillon, corps encastré.",
+    "image": "../assets/images/produits/mitigeur-vasque-mural-3trous-chrome.jpg",
+    "page": "destockage.html",
+    "row": "À prix cassé"
+  },
+  {
+    "id": "Salle de bain::Mitigeur de vasque compact",
+    "name": "Mitigeur de vasque compact",
+    "tag": "Salle de bain",
+    "cat": "sdb",
+    "price": 950,
+    "promoPrice": 690,
+    "unit": "unité",
+    "description": "Surstock. Mono-commande à poser, noir mat, doré brossé ou cuivré.",
+    "image": "../assets/images/produits/mitigeur-vasque-compact-3finitions.jpg",
+    "page": "destockage.html",
+    "row": "À prix cassé"
+  },
+  {
+    "id": "Cuisine::Mitigeur cuisine bec pivotant — Anthracite",
+    "name": "Mitigeur cuisine bec pivotant — Anthracite",
+    "tag": "Cuisine",
+    "cat": "cuisine",
+    "price": 1590,
+    "promoPrice": 1190,
+    "unit": "unité",
+    "description": "Dernières pièces. Bec haut pivotant à 360°, commande mono-levier.",
+    "image": "../assets/images/produits/mitigeur-cuisine-bec-pivotant-anthracite.jpg",
+    "page": "destockage.html",
+    "row": "À prix cassé"
+  },
+  {
+    "id": "Carrelage::Grès cérame émaillé — fin de série",
+    "name": "Grès cérame émaillé — fin de série",
+    "tag": "Carrelage",
+    "cat": "carrelage",
+    "price": 160,
+    "promoPrice": 119,
+    "unit": "m²",
+    "description": "Lot limité, coloris classique. Idéal salons, cuisines et chambres.",
+    "image": "../assets/images/carrelage-interieur.jpg",
+    "page": "destockage.html",
+    "row": "À prix cassé"
+  },
+  {
+    "id": "Sanitaire::Vasque à poser — fin de série",
+    "name": "Vasque à poser — fin de série",
+    "tag": "Sanitaire",
+    "cat": "sanitaire",
+    "price": 1200,
+    "promoPrice": 890,
+    "unit": "unité",
+    "description": "Modèle en céramique, quantité limitée en showroom.",
+    "image": "../assets/images/sanitaire.jpg",
+    "page": "destockage.html",
+    "row": "À prix cassé"
   }
 ];
 
@@ -1140,7 +1244,8 @@ document.addEventListener("DOMContentLoaded", function () {
     "robinetterie.html": "Robinetterie",
     "mosaique-pierre.html": "Mosaïque & Pierre",
     "meubles-salle-de-bain.html": "Meubles de salle de bain",
-    "miroirs-led.html": "Miroirs LED"
+    "miroirs-led.html": "Miroirs LED",
+    "destockage.html": "Déstockage"
   };
 
   var STATUS_LABELS = { pending: "En attente", preparing: "En préparation", shipping: "En livraison", done: "Livrée", cancelled: "Annulée" };
