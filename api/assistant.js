@@ -10,10 +10,10 @@
 // alors sur son assistant local à mots-clés.
 const Anthropic = require("@anthropic-ai/sdk");
 
-// Modèle recommandé par défaut. Pour réduire le coût par message (assistant FAQ à domaine
-// restreint), remplacer par "claude-haiku-4-5" -- nettement moins cher, largement
-// suffisant pour ce cas d'usage. Voir la doc Anthropic pour les tarifs à jour.
-var MODEL = "claude-opus-5";
+// Haiku plutôt qu'Opus/Sonnet : assistant FAQ à domaine restreint, coût par message
+// nettement plus faible, largement suffisant pour ce cas d'usage (choix explicite du
+// 29/08/2026). Voir la doc Anthropic pour les tarifs à jour.
+var MODEL = "claude-haiku-4-5-20251001";
 
 // Garde-fous simples : ce widget est public et non authentifié, donc on borne la taille
 // de chaque message et de l'historique envoyé pour contenir le coût par requête.
