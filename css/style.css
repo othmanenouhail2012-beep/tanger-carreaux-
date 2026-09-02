@@ -1210,20 +1210,6 @@ a.discovery-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-s
   font-weight: 600;
   color: var(--ink);
 }
-.discovery-card--rank {
-  flex-direction: row;
-  align-items: center;
-  gap: 14px;
-  padding: 16px 18px;
-}
-.discovery-card--rank .discovery-card-body { padding: 0; }
-.discovery-card-rank {
-  font-family: var(--ff-serif);
-  font-size: 1.6rem;
-  color: var(--terracotta);
-  flex-shrink: 0;
-}
-
 /* ---------- Product modal (fiche produit) ---------- */
 .product-modal {
   position: fixed;

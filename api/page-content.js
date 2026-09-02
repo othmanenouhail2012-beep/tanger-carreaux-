@@ -13,9 +13,6 @@
 //   sauvegardé dans la vraie table `products` (source='admin'), donc visible par tous.
 // - newest : les 6 produits admin les plus récents TOUTES pages confondues, pour la section
 //   "Nouveautés" de la page d'accueil (voir index.html).
-// - bestSellers : les 6 produits les plus vendus (vraies commandes, jamais annulées), pour la
-//   section "Meilleures ventes" de la page d'accueil. Agrégat public mais anonyme -- aucune
-//   donnée client (nom, téléphone, adresse) n'est jamais renvoyée ici.
 const { sql } = require("../lib/db");
 
 var productColumnsReady = false;
@@ -76,18 +73,6 @@ module.exports = async function handler(req, res) {
     ORDER BY created_at DESC LIMIT 6
   `;
 
-  // Meilleures ventes : agrégat public et anonyme -- uniquement nom/tag/quantité, jamais de
-  // donnée client. Exclut les commandes annulées (jamais réellement vendues).
-  var bestSellerRows = await sql`
-    SELECT oi.name, oi.tag, SUM(oi.qty) AS qty
-    FROM order_items oi
-    JOIN orders o ON o.id = oi.order_id
-    WHERE o.fulfillment_status != 'cancelled'
-    GROUP BY oi.name, oi.tag
-    ORDER BY qty DESC
-    LIMIT 6
-  `;
-
   // Cache court côté CDN Vercel : les visites successives ne retapent pas la base à chaque
   // fois, tout en gardant les changements de l'admin visibles en moins d'une minute.
   res.setHeader("Cache-Control", "public, max-age=30, stale-while-revalidate=120");
@@ -95,7 +80,6 @@ module.exports = async function handler(req, res) {
     edits: edits,
     globalLogo: logoRows[0] ? logoRows[0].value : null,
     adminProducts: adminProducts,
-    newest: newestRows.map(publicProduct),
-    bestSellers: bestSellerRows.map(function (r) { return { name: r.name, tag: r.tag, qty: Number(r.qty) }; })
+    newest: newestRows.map(publicProduct)
   });
 };

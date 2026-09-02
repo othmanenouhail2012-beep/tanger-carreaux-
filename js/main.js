@@ -221,22 +221,6 @@ document.addEventListener("DOMContentLoaded", function () {
         );
       }).join("");
     }
-    function renderBestSellers(list) {
-      var grid = document.querySelector("#bestSellersGrid");
-      var section = document.querySelector("#bestSellersSection");
-      if (!grid || !section) return;
-      if (!list || !list.length) { section.hidden = true; return; }
-      section.hidden = false;
-      grid.innerHTML = list.map(function (p, i) {
-        return (
-          '<div class="discovery-card discovery-card--rank">' +
-          '<span class="discovery-card-rank">#' + (i + 1) + "</span>" +
-          '<div class="discovery-card-body"><span class="discovery-card-tag">' + escapeHtmlHome(p.tag || "") + "</span>" +
-          "<h4>" + escapeHtmlHome(p.name) + "</h4></div></div>"
-        );
-      }).join("");
-    }
-
     if (location.protocol !== "file:") {
       fetch("/api/page-content?page=" + encodeURIComponent(currentPageEdit))
         .then(function (res) { return res.ok ? res.json() : null; })
@@ -250,7 +234,6 @@ document.addEventListener("DOMContentLoaded", function () {
           // fait rien) et/ou dans les sections "Nouveautés"/"Meilleures ventes" de l'accueil.
           if (onAdminProductsReady && data.adminProducts) onAdminProductsReady(data.adminProducts);
           renderNouveautes(data.newest);
-          renderBestSellers(data.bestSellers);
         })
         .catch(function () { /* backend indisponible -- le contenu déjà affiché suffit */ });
     }
