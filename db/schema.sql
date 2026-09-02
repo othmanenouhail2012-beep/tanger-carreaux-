@@ -19,7 +19,17 @@ CREATE TABLE IF NOT EXISTS admin_users (
   id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   email         TEXT NOT NULL UNIQUE,
   password_hash TEXT NOT NULL,
-  created_at    TIMESTAMPTZ NOT NULL DEFAULT now()
+  created_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
+  -- Comptes employés limités (demande explicite) : staff_role distingue 'manager' (accès
+  -- total, peut créer/supprimer d'autres comptes) de 'employee' (accès limité aux panneaux
+  -- listés dans permissions). DEFAULT 'manager' pour que le compte déjà en prod avant cette
+  -- migration reste automatiquement gérant sans script de rattrapage. Ces 4 colonnes sont
+  -- aussi ajoutées défensivement (ADD COLUMN IF NOT EXISTS) au tout début de
+  -- api/auth/admin.js -- pas besoin de rejouer ce fichier à la main sur la base déjà en prod.
+  full_name     TEXT NOT NULL DEFAULT '',
+  staff_role    TEXT NOT NULL DEFAULT 'manager', -- 'manager' | 'employee'
+  permissions   JSONB NOT NULL DEFAULT '[]',     -- ids de panneaux admin, ex. ["orders","stock"] -- ignoré si staff_role='manager'
+  active        BOOLEAN NOT NULL DEFAULT true
 );
 
 CREATE TABLE IF NOT EXISTS customers (
@@ -43,7 +53,15 @@ CREATE TABLE IF NOT EXISTS orders (
   fulfillment_status TEXT NOT NULL DEFAULT 'pending', -- pending/preparing/shipping/done/cancelled -- voir lib/orderStatus.js, NE PAS diverger
   payment_method     TEXT NOT NULL, -- 'cod' | 'showroom' | 'online_card'
   payment_status     TEXT NOT NULL DEFAULT 'not_applicable', -- voir lib/orderStatus.js PAYMENT_STATUS
-  created_at         TIMESTAMPTZ NOT NULL DEFAULT now()
+  created_at         TIMESTAMPTZ NOT NULL DEFAULT now(),
+  -- Codes promo (demande explicite) : promo_code est le code TEL QUE saisi par le client
+  -- (déjà validé/appliqué serveur, voir api/checkout.js) ; discount est le montant MAD
+  -- déjà déduit de subtotal ci-dessus (subtotal reste donc le montant réellement dû, pas
+  -- le sous-total avant remise -- cohérent avec tout le reste du dashboard qui lit
+  -- subtotal comme le vrai chiffre d'affaires de la commande). Ajoutées défensivement
+  -- (ADD COLUMN IF NOT EXISTS) au début de api/checkout.js, pas de script à rejouer.
+  promo_code         TEXT,
+  discount           NUMERIC(10, 2) NOT NULL DEFAULT 0
 );
 
 CREATE TABLE IF NOT EXISTS order_items (
@@ -109,4 +127,20 @@ CREATE TABLE IF NOT EXISTS site_settings (
   key        TEXT PRIMARY KEY,
   value      TEXT NOT NULL,
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+-- Codes promo (demande explicite) : gérés depuis admin/ > Commercial > Codes promo (voir
+-- api/admin/manage.js), appliqués côté client au checkout (voir api/checkout.js). Créée
+-- défensivement (CREATE TABLE IF NOT EXISTS) au début de api/admin/manage.js -- pas besoin
+-- de rejouer ce fichier à la main sur la base déjà en prod.
+CREATE TABLE IF NOT EXISTS promo_codes (
+  id             UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  code           TEXT NOT NULL UNIQUE, -- stocké en MAJUSCULES, comparé insensible à la casse
+  discount_type  TEXT NOT NULL,        -- 'percent' | 'fixed'
+  discount_value NUMERIC(10, 2) NOT NULL,
+  active         BOOLEAN NOT NULL DEFAULT true,
+  max_uses       INTEGER,              -- NULL = illimité
+  used_count     INTEGER NOT NULL DEFAULT 0,
+  expires_at     TIMESTAMPTZ,          -- NULL = jamais
+  created_at     TIMESTAMPTZ NOT NULL DEFAULT now()
 );

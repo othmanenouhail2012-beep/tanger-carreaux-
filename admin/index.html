@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="admin.css?v=13">
+<link rel="stylesheet" href="admin.css?v=14">
 </head>
 <body>
 
@@ -80,6 +80,10 @@
           <button type="button" class="admin-nav-link" data-panel="paiements">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="1" y="4" width="22" height="16" rx="2"/><path d="M1 10h22"/></svg>
             Paiements
+          </button>
+          <button type="button" class="admin-nav-link" data-panel="promo-codes">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20.59 13.41 11 3.83A2 2 0 0 0 9.59 3.24L4 3a1 1 0 0 0-1 1l.24 5.59a2 2 0 0 0 .59 1.41l9.58 9.58a2 2 0 0 0 2.83 0l4.35-4.35a2 2 0 0 0 0-2.82Z"/><circle cx="8.5" cy="8.5" r="1.5"/></svg>
+            Codes promo
           </button>
           <button type="button" class="admin-nav-link" data-panel="facturation" hidden style="display:none">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 2h16v20l-3-2-3 2-3-2-3 2-3-2-1 1V2Z"/><path d="M8 7h8M8 11h8M8 15h5"/></svg>
@@ -235,7 +239,7 @@
   <main class="admin-main">
 
     <div class="admin-global-bar">
-      <span class="admin-role-badge">Manager</span>
+      <span class="admin-role-badge" id="adminRoleBadge">Manager</span>
       <button type="button" class="admin-icon-action" id="themeToggleBtn" aria-label="Changer le thème">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" id="themeIconMoon"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79Z"/></svg>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" id="themeIconSun" hidden><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
@@ -417,6 +421,10 @@
           <h1>Catalogue Produits</h1>
           <p>Tous les produits actuellement publiés sur le site.</p>
         </div>
+        <button type="button" class="admin-btn admin-btn-outline" id="exportCatalogPdfBtn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="16" height="16" style="vertical-align:-3px; margin-right:6px;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M12 18v-6M9 15l3 3 3-3"/></svg>
+          Exporter le catalogue en PDF
+        </button>
         <span class="admin-data-badge live">Données réelles</span>
       </div>
 
@@ -692,6 +700,21 @@
         <div class="admin-stat-card"><p class="label">Articles vendus</p><p class="value" id="ventesStatItems">0</p></div>
         <div class="admin-stat-card"><p class="label">Panier moyen</p><p class="value" id="ventesStatAvg">0 MAD</p></div>
       </div>
+
+      <!-- Produits les plus vendus (demande explicite) : calculé côté client à partir des
+           commandes réelles déjà chargées (order_items) -- même période/ville que les
+           cartes ci-dessus, aucun nouvel appel serveur. Les "vues" produit ne sont pas
+           incluses ici : ça demande un traceur d'audience (type Google Analytics), pas
+           encore branché sur le site public -- voir le panneau "Site web". -->
+      <div class="admin-card">
+        <div class="admin-card-head"><div><h3>Produits les plus vendus</h3><p>Sur la période sélectionnée ci-dessus, à partir des commandes réelles.</p></div></div>
+        <div class="admin-table-wrap">
+          <table class="admin-table">
+            <thead><tr><th>#</th><th>Produit</th><th>Catégorie</th><th>Quantité vendue</th><th>CA généré</th></tr></thead>
+            <tbody id="topProductsBody"></tbody>
+          </table>
+        </div>
+      </div>
     </section>
 
     <!-- ===== STOCK ===== -->
@@ -803,6 +826,59 @@
         <h3>CB, virement, chèque &amp; remboursements</h3>
         <p>Le site ne propose actuellement que deux modes de paiement (livraison / showroom). Le suivi bancaire détaillé nécessite une intégration de paiement en ligne.</p>
         <span class="admin-data-badge pending">À connecter</span>
+      </div>
+    </section>
+
+    <!-- ===== CODES PROMO (demande explicite) ===== -->
+    <section class="admin-panel" id="panel-promo-codes">
+      <div class="admin-topbar">
+        <div><h1>Codes promo</h1><p>Codes de réduction utilisables au tunnel de commande du site.</p></div>
+        <span class="admin-data-badge live">Données réelles</span>
+      </div>
+
+      <div class="admin-card">
+        <div class="admin-card-head"><div><h3>Créer un code promo</h3></div></div>
+        <form id="promoForm">
+          <div class="admin-form-grid">
+            <div class="admin-field">
+              <label for="promoCodeInput">Code</label>
+              <input type="text" id="promoCodeInput" required placeholder="Ex : BIENVENUE10" style="text-transform:uppercase">
+            </div>
+            <div class="admin-field">
+              <label for="promoType">Type de remise</label>
+              <select id="promoType">
+                <option value="percent">Pourcentage (%)</option>
+                <option value="fixed">Montant fixe (MAD)</option>
+              </select>
+            </div>
+            <div class="admin-field">
+              <label for="promoValue">Valeur</label>
+              <input type="number" id="promoValue" min="1" step="1" required placeholder="Ex : 10">
+            </div>
+            <div class="admin-field">
+              <label for="promoMaxUses">Utilisations max</label>
+              <input type="number" id="promoMaxUses" min="1" step="1" placeholder="Laisser vide = illimité">
+            </div>
+            <div class="admin-field">
+              <label for="promoExpires">Expire le</label>
+              <input type="date" id="promoExpires">
+            </div>
+          </div>
+          <div class="admin-form-actions">
+            <button type="submit" class="admin-btn admin-btn-primary">Créer le code</button>
+          </div>
+          <p class="admin-form-status" id="promoFormStatus"></p>
+        </form>
+      </div>
+
+      <div class="admin-card">
+        <div class="admin-card-head"><div><h3>Codes existants</h3><p id="promoCount">0 code</p></div></div>
+        <div class="admin-table-wrap">
+          <table class="admin-table">
+            <thead><tr><th>Code</th><th>Remise</th><th>Utilisations</th><th>Expire le</th><th>Statut</th><th>Actions</th></tr></thead>
+            <tbody id="promoTableBody"></tbody>
+          </table>
+        </div>
       </div>
     </section>
 
@@ -1095,6 +1171,55 @@
         </form>
       </div>
 
+      <!-- Comptes du dashboard = identifiants de connexion (email + mot de passe), séparé
+           des "Fiches employés" ci-dessus qui ne sont qu'un annuaire RH sans accès au
+           back-office. Réservé au gérant (data-manager-only, masqué en JS pour un compte
+           employé -- et de toute façon refusé côté serveur, voir requireManager). -->
+      <div class="admin-card" data-manager-only>
+        <div class="admin-card-head"><div><h3>Créer un compte employé limité</h3><p>Un identifiant de connexion au dashboard, avec accès restreint aux sections cochées ci-dessous.</p></div></div>
+        <form id="staffForm">
+          <div class="admin-form-grid">
+            <div class="admin-field">
+              <label for="staffFullName">Nom complet</label>
+              <input type="text" id="staffFullName" required placeholder="Ex : Yassine El Amrani">
+            </div>
+            <div class="admin-field">
+              <label for="staffEmail">Email de connexion</label>
+              <input type="email" id="staffEmail" required autocomplete="off">
+            </div>
+            <div class="admin-field">
+              <label for="staffPassword">Mot de passe</label>
+              <input type="password" id="staffPassword" required autocomplete="new-password" placeholder="8 caractères minimum">
+            </div>
+            <div class="admin-field">
+              <label for="staffRoleSelect">Rôle</label>
+              <select id="staffRoleSelect">
+                <option value="employee">Employé (accès limité)</option>
+                <option value="manager">Manager (accès total)</option>
+              </select>
+            </div>
+          </div>
+          <div class="admin-field full" id="staffPermissionsField">
+            <label>Sections autorisées (ignoré si rôle = Manager)</label>
+            <div class="admin-checkbox-grid" id="staffPermissionsGrid"></div>
+          </div>
+          <div class="admin-form-actions">
+            <button type="submit" class="admin-btn admin-btn-primary">Créer le compte</button>
+          </div>
+          <p class="admin-form-status" id="staffFormStatus"></p>
+        </form>
+      </div>
+
+      <div class="admin-card" data-manager-only>
+        <div class="admin-card-head"><div><h3>Comptes du dashboard</h3><p id="staffCount">0 compte</p></div></div>
+        <div class="admin-table-wrap">
+          <table class="admin-table">
+            <thead><tr><th>Nom</th><th>Email</th><th>Rôle</th><th>Sections</th><th>Statut</th><th>Actions</th></tr></thead>
+            <tbody id="staffTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+
       <div class="admin-card">
         <div class="admin-card-head"><div><h3>Classement des ventes</h3><p>Basé sur les commandes réellement attribuées à chaque employé dans l'onglet Commandes — jamais estimé.</p></div></div>
         <div class="admin-table-wrap">
@@ -1292,6 +1417,8 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-<script src="admin.js?v=24"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+<script src="admin.js?v=25"></script>
 </body>
 </html>

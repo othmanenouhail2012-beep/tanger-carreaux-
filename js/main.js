@@ -1200,9 +1200,13 @@ document.addEventListener("DOMContentLoaded", function () {
           '</span><span class="oi-qty">' + i.qty + " " + escapeHtml(i.unit) + '</span><span class="oi-total">' + formatMAD(i.total) + "</span></div>"
         );
       }).join("");
+      var discountHtml = order.discount
+        ? '<div class="order-recap-discount"><span>Code promo ' + escapeHtml(order.promoCode || "") + '</span><span>-' + formatMAD(order.discount) + "</span></div>"
+        : "";
       orderRecapEl.innerHTML =
         '<div class="order-recap-ref">Commande N° ' + order.ref + " — " + formatDate(order.date) + "</div>" +
         '<div class="order-recap-items">' + itemsHtml + "</div>" +
+        discountHtml +
         '<div class="order-recap-total"><span>Total estimé</span><strong>' + formatMAD(order.subtotal) + "</strong></div>" +
         '<div class="order-recap-client">' +
           "<div><strong>Client</strong><span>" + escapeHtml(order.customer.name) + "</span></div>" +
@@ -1257,19 +1261,32 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // Envoie la commande au vrai backend (POST /api/checkout, prix revalidé serveur --
     // voir api/checkout.js). Retourne les données confirmées par le serveur.
-    function submitCheckoutToBackend(cart, customerFields, paymentMethod) {
+    function submitCheckoutToBackend(cart, customerFields, paymentMethod, promoCode) {
       var payload = {
         items: cart.map(function (i) { return { id: i.id, qty: i.qty }; }),
         customer: { name: customerFields.name, phone: customerFields.phone, city: customerFields.city, address: customerFields.address },
         paymentMethod: paymentMethod
       };
+      if (promoCode) payload.promoCode = promoCode;
       return fetch("/api/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload)
       }).then(function (res) {
         return res.json().catch(function () { return {}; }).then(function (data) {
-          if (!res.ok) throw new Error(data.error || "Erreur serveur.");
+          if (!res.ok) {
+            var err = new Error(data.error || "Erreur serveur.");
+            // 400 = requête refusée par un serveur bien atteint (code promo invalide,
+            // produit inconnu, champ manquant...) -- distingué d'une vraie panne (5xx,
+            // timeout réseau...) via isValidationError, pour ne créer une commande locale
+            // de secours QUE dans ce dernier cas (voir le .catch du submit plus bas) :
+            // une commande de secours sur un 400 ignorerait silencieusement l'erreur
+            // (ex. un code promo refusé serait simplement perdu et le client facturé
+            // plein tarif sans le savoir). Un vrai 5xx garde le comportement d'origine
+            // ("on ne bloque jamais une commande pour une panne serveur").
+            if (res.status === 400) err.isValidationError = true;
+            throw err;
+          }
           return data;
         });
       });
@@ -1388,8 +1405,10 @@ document.addEventListener("DOMContentLoaded", function () {
         var paymentMethod = isOnlineCard ? "online_card" : (isDelivery ? "cod" : "showroom");
         var submitBtn = checkoutForm.querySelector(".btn-confirm-order");
         if (submitBtn) submitBtn.disabled = true;
+        var promoInput = checkoutForm.querySelector("#ckPromoCode");
+        var promoCode = promoInput ? promoInput.value.trim() : "";
 
-        submitCheckoutToBackend(cart, customerFields, paymentMethod)
+        submitCheckoutToBackend(cart, customerFields, paymentMethod, promoCode)
           .then(function (serverOrder) {
             // Commande réellement enregistrée en base -- on affiche les données
             // confirmées par le serveur (ref/prix revalidés), pas celles du client.
@@ -1400,6 +1419,8 @@ document.addEventListener("DOMContentLoaded", function () {
                 return { name: i.name, tag: i.tag, qty: i.qty, unit: i.unit, price: i.price, total: i.total };
               }),
               subtotal: serverOrder.subtotal,
+              discount: serverOrder.discount || 0,
+              promoCode: serverOrder.promoCode || "",
               customer: { name: name, phone: phone, city: city, address: isDelivery ? address : "", payment: payment }
             };
 
@@ -1416,6 +1437,14 @@ document.addEventListener("DOMContentLoaded", function () {
             if (submitBtn) submitBtn.disabled = false;
           })
           .catch(function (err) {
+            // Requête refusée par un serveur bien atteint (code promo invalide, produit
+            // inconnu...) : affiche l'erreur et laisse le client corriger, jamais de
+            // commande de secours ici (voir isValidationError plus haut).
+            if (err.isValidationError) {
+              if (checkoutFormError) { checkoutFormError.textContent = err.message; checkoutFormError.classList.add("show"); }
+              if (submitBtn) submitBtn.disabled = false;
+              return;
+            }
             // Backend pas encore déployé (pas de compte Vercel/DB actif) ou souci réseau --
             // on ne bloque jamais une commande pour cette raison : secours identique au
             // comportement client-only d'avant ce changement, avec prix du panier local.

@@ -2387,6 +2387,14 @@ body.page-leaving .page-transition {
 .order-recap-item .oi-name small { display: block; color: var(--muted); font-size: 0.74rem; }
 .order-recap-item .oi-qty { color: var(--muted); white-space: nowrap; }
 .order-recap-item .oi-total { font-weight: 700; white-space: nowrap; }
+.order-recap-discount {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.86rem;
+  font-weight: 600;
+  color: var(--emerald);
+  padding-top: 10px;
+}
 .order-recap-total {
   display: flex;
   justify-content: space-between;
@@ -2397,6 +2405,23 @@ body.page-leaving .page-transition {
   margin-bottom: 16px;
   color: var(--ink);
 }
+
+/* Code promo (checkout) */
+.checkout-promo {
+  display: flex;
+  gap: 8px;
+  margin-top: 14px;
+}
+.checkout-promo input {
+  flex: 1;
+  padding: 10px 12px;
+  border: 1px solid var(--stone-200);
+  border-radius: var(--radius);
+  font-family: var(--ff-sans);
+  font-size: 0.86rem;
+  text-transform: uppercase;
+}
+.checkout-promo input::placeholder { text-transform: none; }
 .order-recap-client { display: flex; flex-direction: column; gap: 6px; border-top: 1px dashed var(--stone-200); padding-top: 14px; }
 .order-recap-client div { display: flex; justify-content: space-between; gap: 10px; font-size: 0.84rem; }
 .order-recap-client strong { color: var(--muted); font-weight: 600; }

@@ -1309,6 +1309,55 @@ document.addEventListener("DOMContentLoaded", function () {
   // connecté" (doit afficher l'écran de connexion) d'une simple panne réseau/DB (ne
   // doit jamais bloquer l'accès, voir bootstrapAdmin plus bas).
   var authRequired = false;
+  // Comptes employés limités (demande explicite) : currentStaff est rempli par
+  // ?action=whoami au chargement (voir bootstrapAdmin) -- null tant qu'on ne sait pas
+  // encore qui est connecté, ce qui NE bloque rien (canAccessPanel le traite comme un
+  // manager tant que l'identité n'est pas confirmée, pour ne jamais faire clignoter
+  // l'interface avant que whoami réponde).
+  var currentStaff = null;
+  var PANEL_PERMISSION_LIST = [
+    { id: "dashboard", label: "Tableau de bord" },
+    { id: "notifications", label: "Notifications" },
+    { id: "ventes", label: "Ventes" },
+    { id: "orders", label: "Commandes" },
+    { id: "livraisons", label: "Livraisons" },
+    { id: "paiements", label: "Paiements" },
+    { id: "promo-codes", label: "Codes promo" },
+    { id: "catalog", label: "Produits" },
+    { id: "add-product", label: "Ajouter un produit" },
+    { id: "stock", label: "Stock" },
+    { id: "fournisseurs", label: "Fournisseurs" },
+    { id: "clients", label: "Clients" },
+    { id: "employes", label: "Employés" },
+    { id: "showrooms", label: "Showrooms" },
+    { id: "editeur", label: "Éditeur visuel" },
+    { id: "mediatheque", label: "Médiathèque" },
+    { id: "ia", label: "IA & Recommandations" },
+    { id: "import-export", label: "Import / Export" },
+    { id: "qrcode", label: "QR Codes" },
+    { id: "settings", label: "Paramètres" }
+  ];
+  function canAccessPanel(name) {
+    if (!currentStaff || currentStaff.staffRole === "manager") return true;
+    return (currentStaff.permissions || []).indexOf(name) !== -1;
+  }
+  // Masque la nav + les sections "réservé au gérant" pour un compte employé -- purement
+  // pour l'ergonomie (ne pas montrer un lien/formulaire qui échouera). La vraie barrière
+  // est côté serveur (requireManager/requirePermission, voir lib/auth.js) : cacher un
+  // bouton ici n'accorde ni ne retire jamais un droit réel.
+  function applyStaffPermissions() {
+    var badge = document.querySelector("#adminRoleBadge");
+    if (badge) badge.textContent = currentStaff && currentStaff.staffRole === "employee" ? "Employé" : "Manager";
+    if (!currentStaff || currentStaff.staffRole === "manager") return;
+    var perms = currentStaff.permissions || [];
+    document.querySelectorAll(".admin-nav-link[data-panel]").forEach(function (link) {
+      if (perms.indexOf(link.dataset.panel) === -1) { link.hidden = true; link.style.display = "none"; }
+    });
+    document.querySelectorAll(".admin-nav-group").forEach(function (group) {
+      if (!group.querySelectorAll(".admin-nav-link:not([hidden])").length) { group.hidden = true; group.style.display = "none"; }
+    });
+    document.querySelectorAll("[data-manager-only]").forEach(function (el) { el.hidden = true; el.style.display = "none"; });
+  }
   var PAYMENT_METHOD_LABELS = {
     cod: "Paiement à la livraison",
     showroom: "Paiement au showroom",
@@ -1424,6 +1473,10 @@ document.addEventListener("DOMContentLoaded", function () {
   var panels = document.querySelectorAll(".admin-panel");
   var panelRenderers = {};
   function showPanel(name) {
+    // Défense en profondeur : même si le lien est déjà masqué pour un compte employé
+    // (voir applyStaffPermissions), on bloque aussi un accès direct (ex. data-panel-link
+    // ailleurs dans la page) vers un panneau non autorisé.
+    if (!canAccessPanel(name)) name = canAccessPanel("dashboard") ? "dashboard" : ((currentStaff.permissions || [])[0] || "dashboard");
     panels.forEach(function (p) { p.classList.toggle("active", p.id === "panel-" + name); });
     navLinks.forEach(function (l) { l.classList.toggle("active", l.dataset.panel === name); });
     var group = document.querySelector('.admin-nav-group:has([data-panel="' + name + '"])');
@@ -2547,6 +2600,32 @@ document.addEventListener("DOMContentLoaded", function () {
         });
       }
     }
+
+    // Produits les plus vendus (demande explicite) : même filtre période/ville que
+    // ci-dessus, à partir des vraies lignes de commande déjà chargées -- exclut les
+    // commandes annulées (jamais réellement vendues), même logique que sumRevenue().
+    var topBody = document.querySelector("#topProductsBody");
+    if (topBody) {
+      var salesByProduct = {};
+      orders.filter(function (o) { return o.status !== "cancelled"; }).forEach(function (o) {
+        o.items.forEach(function (i) {
+          var key = i.tag + "::" + i.name;
+          if (!salesByProduct[key]) salesByProduct[key] = { name: i.name, tag: i.tag, qty: 0, revenue: 0 };
+          salesByProduct[key].qty += i.qty;
+          salesByProduct[key].revenue += i.total;
+        });
+      });
+      var topList = Object.keys(salesByProduct).map(function (k) { return salesByProduct[k]; })
+        .sort(function (a, b) { return b.qty - a.qty; }).slice(0, 10);
+      if (!topList.length) {
+        topBody.innerHTML = '<tr class="admin-empty-row"><td colspan="5">Aucune vente sur cette période.</td></tr>';
+      } else {
+        topBody.innerHTML = topList.map(function (p, i) {
+          return "<tr><td>" + (i + 1) + "</td><td><strong>" + escapeHtml(p.name) + "</strong></td><td>" + escapeHtml(p.tag) +
+            "</td><td>" + p.qty + "</td><td>" + formatMAD(p.revenue) + "</td></tr>";
+        }).join("");
+      }
+    }
   }
   ["ventesRangeFilter", "ventesVilleFilter"].forEach(function (id) {
     var el = document.querySelector("#" + id);
@@ -2966,7 +3045,245 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   panelRenderers.fournisseurs = renderSuppliers;
-  panelRenderers.employes = renderEmployees;
+
+  // ---------- Comptes employés limités (demande explicite) ----------
+  // Table réelle admin_users (voir api/auth/admin.js), pas localStorage -- distinct des
+  // "Fiches employés" ci-dessus qui restent un simple annuaire RH. staffCache=null tant
+  // que list-staff n'a pas répondu ; jamais appelé pour un compte employé (403 garanti,
+  // et de toute façon la carte est masquée par applyStaffPermissions).
+  var staffCache = null;
+  var staffEditingId = null;
+  function buildStaffPermissionsGrid() {
+    var grid = document.querySelector("#staffPermissionsGrid");
+    if (!grid || grid.children.length) return;
+    grid.innerHTML = PANEL_PERMISSION_LIST.map(function (p) {
+      return '<label class="admin-checkbox-item"><input type="checkbox" value="' + p.id + '"> ' + escapeHtml(p.label) + "</label>";
+    }).join("");
+  }
+  function getCheckedPermissions() {
+    return Array.prototype.slice.call(document.querySelectorAll("#staffPermissionsGrid input:checked")).map(function (el) { return el.value; });
+  }
+  function setCheckedPermissions(list) {
+    var set = list || [];
+    document.querySelectorAll("#staffPermissionsGrid input").forEach(function (el) { el.checked = set.indexOf(el.value) !== -1; });
+  }
+  function refreshStaffFromApi() {
+    if (!currentStaff || currentStaff.staffRole !== "manager") return Promise.resolve(null);
+    return fetch("/api/auth/admin?action=list-staff", { method: "POST", credentials: "same-origin" })
+      .then(function (res) { return res.ok ? res.json() : null; })
+      .then(function (data) { staffCache = data ? data.staff : []; return staffCache; })
+      .catch(function () { return null; });
+  }
+  function renderStaffAccounts() {
+    var body = document.querySelector("#staffTableBody");
+    var countEl = document.querySelector("#staffCount");
+    if (!body || !currentStaff || currentStaff.staffRole !== "manager") return;
+    var list = staffCache || [];
+    if (countEl) countEl.textContent = list.length + " compte" + (list.length === 1 ? "" : "s");
+    if (!list.length) {
+      body.innerHTML = '<tr class="admin-empty-row"><td colspan="6">Aucun compte pour l\'instant -- seul votre compte gérant existe.</td></tr>';
+      return;
+    }
+    body.innerHTML = list.map(function (s) {
+      var permsLabel = s.staffRole === "manager" ? "Toutes (Manager)" : (s.permissions.length ? s.permissions.length + " section(s)" : "Aucune");
+      var statusLabel = s.active ? '<span class="admin-data-badge live">Actif</span>' : '<span class="admin-data-badge pending">Désactivé</span>';
+      var isSelf = currentStaff && currentStaff.email === s.email;
+      return (
+        "<tr><td><strong>" + escapeHtml(s.fullName || "—") + "</strong>" + (isSelf ? " <em style=\"color:var(--a-muted); font-size:0.8em;\">(vous)</em>" : "") +
+        "</td><td>" + escapeHtml(s.email) + "</td><td>" + (s.staffRole === "manager" ? "Manager" : "Employé") +
+        "</td><td>" + permsLabel + "</td><td>" + statusLabel + '</td><td><div class="admin-row-actions">' +
+        '<button type="button" class="admin-icon-btn" data-action="edit-staff" data-id="' + escapeHtml(s.id) + '">Modifier</button>' +
+        (isSelf ? "" :
+          '<button type="button" class="admin-icon-btn" data-action="toggle-staff" data-id="' + escapeHtml(s.id) + '" data-active="' + s.active + '">' + (s.active ? "Désactiver" : "Activer") + "</button>" +
+          '<button type="button" class="admin-icon-btn danger" data-action="delete-staff" data-id="' + escapeHtml(s.id) + '">Supprimer</button>'
+        ) + "</div></td></tr>"
+      );
+    }).join("");
+
+    body.querySelectorAll('[data-action="edit-staff"]').forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        var s = list.filter(function (x) { return x.id === btn.getAttribute("data-id"); })[0];
+        if (!s) return;
+        staffEditingId = s.id;
+        document.querySelector("#staffFullName").value = s.fullName || "";
+        document.querySelector("#staffEmail").value = s.email;
+        document.querySelector("#staffPassword").value = "";
+        document.querySelector("#staffPassword").placeholder = "Laisser vide pour ne pas changer";
+        document.querySelector("#staffRoleSelect").value = s.staffRole;
+        setCheckedPermissions(s.permissions);
+        var submitBtn = document.querySelector("#staffForm button[type=submit]");
+        if (submitBtn) submitBtn.textContent = "Enregistrer les modifications";
+        document.querySelector("#staffForm").scrollIntoView({ behavior: "smooth", block: "center" });
+      });
+    });
+    body.querySelectorAll('[data-action="toggle-staff"]').forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        var nowActive = btn.getAttribute("data-active") !== "true";
+        fetch("/api/auth/admin?action=update-staff", {
+          method: "POST", credentials: "same-origin", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id: btn.getAttribute("data-id"), active: nowActive })
+        }).then(function (res) { return res.json().then(function (d) { return { ok: res.ok, d: d }; }); })
+          .then(function (r) {
+            if (!r.ok) { showToast(r.d.error || "Action impossible."); return; }
+            showToast(nowActive ? "Compte réactivé." : "Compte désactivé.");
+            refreshStaffFromApi().then(renderStaffAccounts);
+          }).catch(function () { showToast("Service momentanément indisponible."); });
+      });
+    });
+    body.querySelectorAll('[data-action="delete-staff"]').forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        if (!confirm("Supprimer définitivement ce compte ? Cette action est irréversible.")) return;
+        fetch("/api/auth/admin?action=delete-staff", {
+          method: "POST", credentials: "same-origin", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id: btn.getAttribute("data-id") })
+        }).then(function (res) { return res.json().then(function (d) { return { ok: res.ok, d: d }; }); })
+          .then(function (r) {
+            if (!r.ok) { showToast(r.d.error || "Suppression impossible."); return; }
+            showToast("Compte supprimé.");
+            refreshStaffFromApi().then(renderStaffAccounts);
+          }).catch(function () { showToast("Service momentanément indisponible."); });
+      });
+    });
+  }
+  var staffForm = document.querySelector("#staffForm");
+  if (staffForm) {
+    buildStaffPermissionsGrid();
+    staffForm.addEventListener("submit", function (e) {
+      e.preventDefault();
+      var status = document.querySelector("#staffFormStatus");
+      status.classList.remove("show", "is-error");
+      var fullName = document.querySelector("#staffFullName").value.trim();
+      var email = document.querySelector("#staffEmail").value.trim();
+      var password = document.querySelector("#staffPassword").value;
+      var staffRole = document.querySelector("#staffRoleSelect").value;
+      var permissions = getCheckedPermissions();
+
+      var isEditing = !!staffEditingId;
+      var action = isEditing ? "update-staff" : "create-staff";
+      var payload = isEditing
+        ? { id: staffEditingId, fullName: fullName, email: email, staffRole: staffRole, permissions: permissions, newPassword: password || undefined }
+        : { fullName: fullName, email: email, password: password, staffRole: staffRole, permissions: permissions };
+      if (!isEditing && !password) {
+        status.textContent = "Le mot de passe est requis pour un nouveau compte.";
+        status.classList.add("show", "is-error");
+        return;
+      }
+
+      fetch("/api/auth/admin?action=" + action, {
+        method: "POST", credentials: "same-origin", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      }).then(function (res) { return res.json().then(function (d) { return { ok: res.ok, d: d }; }); })
+        .then(function (r) {
+          if (!r.ok) { status.textContent = r.d.error || "Action impossible."; status.classList.add("show", "is-error"); return; }
+          staffForm.reset();
+          setCheckedPermissions([]);
+          staffEditingId = null;
+          document.querySelector("#staffPassword").placeholder = "8 caractères minimum";
+          var submitBtn = document.querySelector("#staffForm button[type=submit]");
+          if (submitBtn) submitBtn.textContent = "Créer le compte";
+          status.textContent = isEditing ? "Compte mis à jour." : "Compte créé.";
+          status.classList.add("show");
+          showToast(isEditing ? "Compte mis à jour." : "Compte employé créé.");
+          refreshStaffFromApi().then(renderStaffAccounts);
+        })
+        .catch(function () { status.textContent = "Service momentanément indisponible."; status.classList.add("show", "is-error"); });
+    });
+  }
+
+  panelRenderers.employes = function () {
+    renderEmployees();
+    if (currentStaff && currentStaff.staffRole === "manager") refreshStaffFromApi().then(renderStaffAccounts);
+  };
+
+  // ---------- Codes promo (demande explicite) ----------
+  // Table réelle promo_codes (voir api/admin/manage.js), appliqués en vrai au checkout
+  // (voir api/checkout.js) -- pas une simulation locale.
+  var promoCache = null;
+  function refreshPromoCodesFromApi() {
+    return fetch("/api/admin/manage?resource=promo-codes", { credentials: "same-origin" })
+      .then(function (res) { return res.ok ? res.json() : null; })
+      .then(function (data) { promoCache = data ? data.promoCodes : []; return promoCache; })
+      .catch(function () { return null; });
+  }
+  function formatPromoDiscount(p) {
+    return p.discountType === "percent" ? p.discountValue + " %" : formatMAD(p.discountValue);
+  }
+  function renderPromoCodes() {
+    var body = document.querySelector("#promoTableBody");
+    var countEl = document.querySelector("#promoCount");
+    if (!body) return;
+    var list = promoCache || [];
+    if (countEl) countEl.textContent = list.length + " code" + (list.length === 1 ? "" : "s");
+    if (!list.length) {
+      body.innerHTML = '<tr class="admin-empty-row"><td colspan="6">Aucun code promo -- créez-en un ci-dessus.</td></tr>';
+      return;
+    }
+    body.innerHTML = list.map(function (p) {
+      var usage = p.usedCount + (p.maxUses != null ? " / " + p.maxUses : " (illimité)");
+      var expires = p.expiresAt ? formatDate2(new Date(p.expiresAt)) : "—";
+      var expired = p.expiresAt && new Date(p.expiresAt).getTime() < Date.now();
+      var statusLabel = !p.active
+        ? '<span class="admin-data-badge pending">Désactivé</span>'
+        : expired
+          ? '<span class="admin-data-badge pending">Expiré</span>'
+          : '<span class="admin-data-badge live">Actif</span>';
+      return (
+        "<tr><td><strong>" + escapeHtml(p.code) + "</strong></td><td>" + formatPromoDiscount(p) + "</td><td>" + usage +
+        "</td><td>" + expires + "</td><td>" + statusLabel + '</td><td><div class="admin-row-actions">' +
+        '<button type="button" class="admin-icon-btn" data-action="toggle-promo" data-id="' + escapeHtml(p.id) + '" data-active="' + p.active + '">' + (p.active ? "Désactiver" : "Activer") + "</button>" +
+        '<button type="button" class="admin-icon-btn danger" data-action="delete-promo" data-id="' + escapeHtml(p.id) + '">Supprimer</button>' +
+        "</div></td></tr>"
+      );
+    }).join("");
+
+    body.querySelectorAll('[data-action="toggle-promo"]').forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        fetch("/api/admin/manage?resource=promo-codes", {
+          method: "PATCH", credentials: "same-origin", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id: btn.getAttribute("data-id"), active: btn.getAttribute("data-active") !== "true" })
+        }).then(function () { return refreshPromoCodesFromApi(); }).then(renderPromoCodes)
+          .catch(function () { showToast("Service momentanément indisponible."); });
+      });
+    });
+    body.querySelectorAll('[data-action="delete-promo"]').forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        if (!confirm("Supprimer ce code promo ?")) return;
+        fetch("/api/admin/manage?resource=promo-codes&id=" + encodeURIComponent(btn.getAttribute("data-id")), {
+          method: "DELETE", credentials: "same-origin"
+        }).then(function () { return refreshPromoCodesFromApi(); }).then(renderPromoCodes)
+          .catch(function () { showToast("Service momentanément indisponible."); });
+      });
+    });
+  }
+  var promoForm = document.querySelector("#promoForm");
+  if (promoForm) {
+    promoForm.addEventListener("submit", function (e) {
+      e.preventDefault();
+      var status = document.querySelector("#promoFormStatus");
+      status.classList.remove("show", "is-error");
+      var payload = {
+        code: document.querySelector("#promoCodeInput").value.trim(),
+        discountType: document.querySelector("#promoType").value,
+        discountValue: document.querySelector("#promoValue").value,
+        maxUses: document.querySelector("#promoMaxUses").value,
+        expiresAt: document.querySelector("#promoExpires").value || null
+      };
+      fetch("/api/admin/manage?resource=promo-codes", {
+        method: "POST", credentials: "same-origin", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      }).then(function (res) { return res.json().then(function (d) { return { ok: res.ok, d: d }; }); })
+        .then(function (r) {
+          if (!r.ok) { status.textContent = r.d.error || "Création impossible."; status.classList.add("show", "is-error"); return; }
+          promoForm.reset();
+          status.textContent = "Code promo créé.";
+          status.classList.add("show");
+          showToast("Code promo créé.");
+          refreshPromoCodesFromApi().then(renderPromoCodes);
+        })
+        .catch(function () { status.textContent = "Service momentanément indisponible."; status.classList.add("show", "is-error"); });
+    });
+  }
+  panelRenderers["promo-codes"] = function () { refreshPromoCodesFromApi().then(renderPromoCodes); };
 
   // ---------- IA & Recommandations (calculs réels, pas de prédiction inventée) ----------
   function renderIA() {
@@ -3757,6 +4074,72 @@ document.addEventListener("DOMContentLoaded", function () {
   panelRenderers.notifications = renderNotificationsFull;
   panelRenderers.catalog = function () { renderCatalog(); renderCatalogStats(); };
 
+  // ---------- Export du catalogue en PDF (demande explicite) ----------
+  // 100% côté client (jsPDF + autotable, voir index.html) -- pas de nouvel endpoint
+  // serveur. Regroupe par catégorie réelle (CATEGORY_LABELS), dans le même ordre que la
+  // nav du site public. N'inclut jamais un produit supprimé (p.deleted).
+  var exportCatalogPdfBtn = document.querySelector("#exportCatalogPdfBtn");
+  if (exportCatalogPdfBtn) {
+    exportCatalogPdfBtn.addEventListener("click", function () {
+      if (typeof window.jspdf === "undefined") { showToast("Module PDF non chargé -- vérifiez votre connexion."); return; }
+      var products = getProducts().filter(function (p) { return !p.deleted; });
+      if (!products.length) { showToast("Aucun produit à exporter."); return; }
+
+      var doc = new window.jspdf.jsPDF({ unit: "pt", format: "a4" });
+      var pageWidth = doc.internal.pageSize.getWidth();
+      var margin = 40;
+
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(20);
+      doc.setTextColor(0, 135, 90);
+      doc.text("Tanger Carreaux", margin, 50);
+      doc.setFontSize(12);
+      doc.setTextColor(90, 90, 90);
+      doc.setFont("helvetica", "normal");
+      doc.text("Catalogue produits -- " + formatDate2(new Date()), margin, 68);
+      doc.setFontSize(9);
+      doc.text("Tanger : Avenue Moulay Youssef -- Casablanca : Route de Mediouna, km 12", margin, 82);
+      doc.text("Prix indicatifs, hors pose -- confirmés en showroom.", margin, 94);
+
+      var cursorY = 118;
+      var pageKeys = Object.keys(CATEGORY_LABELS).filter(function (page) {
+        return products.some(function (p) { return p.page === page; });
+      });
+      pageKeys.forEach(function (page) {
+        var rows = products.filter(function (p) { return p.page === page; }).map(function (p) {
+          var priceLabel = p.price == null ? "Sur devis" : formatMAD(p.promoPrice != null ? p.promoPrice : p.price) + (p.unit ? " / " + p.unit : "");
+          return [p.tag || "", p.name, priceLabel];
+        });
+        if (cursorY > 700) { doc.addPage(); cursorY = 50; }
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(13);
+        doc.setTextColor(20, 20, 20);
+        doc.text(CATEGORY_LABELS[page], margin, cursorY);
+        doc.autoTable({
+          startY: cursorY + 8,
+          head: [["Gamme", "Produit", "Prix"]],
+          body: rows,
+          margin: { left: margin, right: margin },
+          styles: { font: "helvetica", fontSize: 9, cellPadding: 5 },
+          headStyles: { fillColor: [0, 135, 90], textColor: 255 },
+          alternateRowStyles: { fillColor: [245, 248, 246] }
+        });
+        cursorY = doc.lastAutoTable.finalY + 26;
+      });
+
+      var pageCount = doc.internal.getNumberOfPages();
+      for (var i = 1; i <= pageCount; i++) {
+        doc.setPage(i);
+        doc.setFontSize(8);
+        doc.setTextColor(150, 150, 150);
+        doc.text("Tanger Carreaux -- " + i + " / " + pageCount, pageWidth - margin, doc.internal.pageSize.getHeight() - 20, { align: "right" });
+      }
+
+      doc.save("tanger-carreaux-catalogue-" + new Date().toISOString().slice(0, 10) + ".pdf");
+      showToast("Catalogue exporté en PDF.");
+    });
+  }
+
   // ---------- Authentification admin + Initialisation ----------
   var adminLoginScreen = document.querySelector("#adminLoginScreen");
   var adminShell = document.querySelector("#adminShell");
@@ -3775,14 +4158,28 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   }
 
+  function refreshWhoamiFromApi() {
+    return fetch("/api/auth/admin?action=whoami", { method: "POST", credentials: "same-origin" })
+      .then(function (res) { return res.ok ? res.json() : null; })
+      .then(function (data) { currentStaff = data; return currentStaff; })
+      .catch(function () { return null; });
+  }
+
   function startAdminApp() {
     showAdminShell();
+    applyStaffPermissions();
     getProducts();
     fillSettingsForm();
     renderDashboard();
     renderOrders();
     renderCatalog();
     renderCatalogStats();
+    // Compte employé sans accès au Tableau de bord : on l'amène directement sur la
+    // première section qu'il a le droit de voir plutôt que sur un panneau vide/masqué.
+    if (!canAccessPanel("dashboard")) {
+      var firstAllowed = (currentStaff && currentStaff.permissions && currentStaff.permissions[0]) || "dashboard";
+      showPanel(firstAllowed);
+    }
   }
 
   // Ouvert directement en local (double-clic sur le fichier, file://) : aucune API
@@ -3793,7 +4190,7 @@ document.addEventListener("DOMContentLoaded", function () {
   // redonne jamais cet écran (authRequired ne passe à true que sur un vrai 401).
   function bootstrapAdmin() {
     if (location.protocol === "file:") { startAdminApp(); return; }
-    Promise.all([refreshOrdersFromApi(), refreshPageEditsFromApi()]).then(function () {
+    Promise.all([refreshOrdersFromApi(), refreshPageEditsFromApi(), refreshWhoamiFromApi()]).then(function () {
       if (authRequired) { showAdminLoginScreen(); return; }
       startAdminApp();
     });
