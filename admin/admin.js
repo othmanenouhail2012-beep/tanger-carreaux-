@@ -1309,55 +1309,6 @@ document.addEventListener("DOMContentLoaded", function () {
   // connecté" (doit afficher l'écran de connexion) d'une simple panne réseau/DB (ne
   // doit jamais bloquer l'accès, voir bootstrapAdmin plus bas).
   var authRequired = false;
-  // Comptes employés limités (demande explicite) : currentStaff est rempli par
-  // ?action=whoami au chargement (voir bootstrapAdmin) -- null tant qu'on ne sait pas
-  // encore qui est connecté, ce qui NE bloque rien (canAccessPanel le traite comme un
-  // manager tant que l'identité n'est pas confirmée, pour ne jamais faire clignoter
-  // l'interface avant que whoami réponde).
-  var currentStaff = null;
-  var PANEL_PERMISSION_LIST = [
-    { id: "dashboard", label: "Tableau de bord" },
-    { id: "notifications", label: "Notifications" },
-    { id: "ventes", label: "Ventes" },
-    { id: "orders", label: "Commandes" },
-    { id: "livraisons", label: "Livraisons" },
-    { id: "paiements", label: "Paiements" },
-    { id: "promo-codes", label: "Codes promo" },
-    { id: "catalog", label: "Produits" },
-    { id: "add-product", label: "Ajouter un produit" },
-    { id: "stock", label: "Stock" },
-    { id: "fournisseurs", label: "Fournisseurs" },
-    { id: "clients", label: "Clients" },
-    { id: "employes", label: "Employés" },
-    { id: "showrooms", label: "Showrooms" },
-    { id: "editeur", label: "Éditeur visuel" },
-    { id: "mediatheque", label: "Médiathèque" },
-    { id: "ia", label: "IA & Recommandations" },
-    { id: "import-export", label: "Import / Export" },
-    { id: "qrcode", label: "QR Codes" },
-    { id: "settings", label: "Paramètres" }
-  ];
-  function canAccessPanel(name) {
-    if (!currentStaff || currentStaff.staffRole === "manager") return true;
-    return (currentStaff.permissions || []).indexOf(name) !== -1;
-  }
-  // Masque la nav + les sections "réservé au gérant" pour un compte employé -- purement
-  // pour l'ergonomie (ne pas montrer un lien/formulaire qui échouera). La vraie barrière
-  // est côté serveur (requireManager/requirePermission, voir lib/auth.js) : cacher un
-  // bouton ici n'accorde ni ne retire jamais un droit réel.
-  function applyStaffPermissions() {
-    var badge = document.querySelector("#adminRoleBadge");
-    if (badge) badge.textContent = currentStaff && currentStaff.staffRole === "employee" ? "Employé" : "Manager";
-    if (!currentStaff || currentStaff.staffRole === "manager") return;
-    var perms = currentStaff.permissions || [];
-    document.querySelectorAll(".admin-nav-link[data-panel]").forEach(function (link) {
-      if (perms.indexOf(link.dataset.panel) === -1) { link.hidden = true; link.style.display = "none"; }
-    });
-    document.querySelectorAll(".admin-nav-group").forEach(function (group) {
-      if (!group.querySelectorAll(".admin-nav-link:not([hidden])").length) { group.hidden = true; group.style.display = "none"; }
-    });
-    document.querySelectorAll("[data-manager-only]").forEach(function (el) { el.hidden = true; el.style.display = "none"; });
-  }
   var PAYMENT_METHOD_LABELS = {
     cod: "Paiement à la livraison",
     showroom: "Paiement au showroom",
@@ -1392,14 +1343,7 @@ document.addEventListener("DOMContentLoaded", function () {
       })
       .then(function (data) {
         if (!data) return null;
-        // Conserve les attributions vendeur déjà faites localement (aucun retour API pour cet axe)
-        var prevEmployeeById = {};
-        (ordersCache || []).forEach(function (o) { if (o.employeeId) prevEmployeeById[o.id] = o.employeeId; });
-        ordersCache = data.orders.map(function (o) {
-          var mapped = mapApiOrder(o);
-          if (prevEmployeeById[mapped.id]) mapped.employeeId = prevEmployeeById[mapped.id];
-          return mapped;
-        });
+        ordersCache = data.orders.map(mapApiOrder);
         return ordersCache;
       })
       .catch(function (err) {
@@ -1473,10 +1417,6 @@ document.addEventListener("DOMContentLoaded", function () {
   var panels = document.querySelectorAll(".admin-panel");
   var panelRenderers = {};
   function showPanel(name) {
-    // Défense en profondeur : même si le lien est déjà masqué pour un compte employé
-    // (voir applyStaffPermissions), on bloque aussi un accès direct (ex. data-panel-link
-    // ailleurs dans la page) vers un panneau non autorisé.
-    if (!canAccessPanel(name)) name = canAccessPanel("dashboard") ? "dashboard" : ((currentStaff.permissions || [])[0] || "dashboard");
     panels.forEach(function (p) { p.classList.toggle("active", p.id === "panel-" + name); });
     navLinks.forEach(function (l) { l.classList.toggle("active", l.dataset.panel === name); });
     var group = document.querySelector('.admin-nav-group:has([data-panel="' + name + '"])');
@@ -1964,7 +1904,6 @@ document.addEventListener("DOMContentLoaded", function () {
           "<td>" + escapeHtml(o.customer.city) + (o.customer.address ? '<br><span style="color:var(--a-muted); font-size:0.74rem;">' + escapeHtml(o.customer.address) + "</span>" : "") + "</td>" +
           "<td>" + escapeHtml(o.customer.payment) + "</td>" +
           "<td><strong>" + formatMAD(o.subtotal) + "</strong></td>" +
-          "<td>" + employeeSelectHtml(o) + "</td>" +
           '<td><select class="admin-status-select status-' + o.status + '" data-order-id="' + escapeHtml(o.id) + '">' + options + "</select></td>" +
           '<td><button type="button" class="admin-icon-btn danger" data-action="delete-order" data-id="' + escapeHtml(o.id) + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6"/></svg>Supprimer</button></td>' +
         "</tr>"
@@ -1987,14 +1926,6 @@ document.addEventListener("DOMContentLoaded", function () {
     });
     body.querySelectorAll('[data-action="delete-order"]').forEach(function (btn) {
       btn.addEventListener("click", function () { openDeleteModal(btn.getAttribute("data-id"), "order"); });
-    });
-    body.querySelectorAll("select[data-assign-employee]").forEach(function (sel) {
-      sel.addEventListener("change", function () {
-        var list = getOrders();
-        var order = findById(list, sel.getAttribute("data-assign-employee"));
-        if (order) { order.employeeId = sel.value || null; saveOrders(list); }
-        showToast(sel.value ? "Vendeur attribué à la commande." : "Attribution retirée.");
-      });
     });
   }
   document.querySelector("#ordersSearch").addEventListener("input", renderOrders);
@@ -2950,250 +2881,7 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
-  // ---------- Employés ----------
-  var EMPLOYEES_KEY = "tc-admin-employees-v1";
-  function getEmployees() {
-    try { return JSON.parse(localStorage.getItem(EMPLOYEES_KEY)) || []; } catch (e) { return []; }
-  }
-  function saveEmployees(list) { try { localStorage.setItem(EMPLOYEES_KEY, JSON.stringify(list)); } catch (e) {} }
-
-  function employeeSelectHtml(o) {
-    var employees = getEmployees();
-    if (!employees.length) return '<span style="color:var(--a-muted); font-size:0.78rem;">Aucun employé</span>';
-    var opts = '<option value="">—</option>' + employees.map(function (emp) {
-      return '<option value="' + escapeHtml(emp.id) + '"' + (o.employeeId === emp.id ? " selected" : "") + ">" + escapeHtml(emp.name) + "</option>";
-    }).join("");
-    return '<select class="admin-status-select" data-assign-employee="' + escapeHtml(o.id) + '">' + opts + "</select>";
-  }
-
-  function renderEmployeeRanking() {
-    var employees = getEmployees();
-    var orders = getOrders();
-    var body = document.querySelector("#employeeRankingBody");
-    if (!body) return;
-    var stats = employees.map(function (emp) {
-      var attributed = orders.filter(function (o) { return o.employeeId === emp.id && o.status !== "cancelled"; });
-      var revenue = 0;
-      attributed.forEach(function (o) { revenue += o.subtotal || 0; });
-      return { emp: emp, count: attributed.length, revenue: revenue };
-    });
-    stats.sort(function (a, b) { return b.revenue - a.revenue; });
-    if (!stats.length) {
-      body.innerHTML = '<tr class="admin-empty-row"><td colspan="5">Ajoutez des employés, puis attribuez-leur des commandes réelles depuis l\'onglet Commandes pour voir apparaître un classement.</td></tr>';
-      return;
-    }
-    body.innerHTML = stats.map(function (s, i) {
-      return (
-        "<tr><td>" + (i + 1) + "</td><td><strong>" + escapeHtml(s.emp.name) + "</strong></td><td>" + escapeHtml(s.emp.role || "—") +
-        "</td><td>" + s.count + "</td><td>" + formatMAD(s.revenue) + "</td></tr>"
-      );
-    }).join("");
-  }
-
-  function renderEmployees() {
-    var list = getEmployees();
-    var body = document.querySelector("#employeeTableBody");
-    var countEl = document.querySelector("#employeeCount");
-    if (countEl) countEl.textContent = list.length + " employé" + (list.length === 1 ? "" : "s");
-    if (body) {
-      if (!list.length) {
-        body.innerHTML = '<tr class="admin-empty-row"><td colspan="5">Aucun employé enregistré — ajoutez-en un ci-dessus.</td></tr>';
-      } else {
-        body.innerHTML = list.slice().reverse().map(function (emp) {
-          return (
-            "<tr><td><strong>" + escapeHtml(emp.name) + "</strong></td><td>" + escapeHtml(emp.role || "—") + "</td><td>" + escapeHtml(emp.showroom || "—") +
-            "</td><td>" + escapeHtml(emp.phone || "—") + '</td><td><button type="button" class="admin-icon-btn danger" data-action="delete-employee" data-id="' + escapeHtml(emp.id) + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6"/></svg>Supprimer</button></td></tr>'
-          );
-        }).join("");
-        body.querySelectorAll('[data-action="delete-employee"]').forEach(function (btn) {
-          btn.addEventListener("click", function () {
-            if (!confirm("Supprimer cette fiche employé ?")) return;
-            var updated = getEmployees().filter(function (emp) { return emp.id !== btn.getAttribute("data-id"); });
-            saveEmployees(updated);
-            renderEmployees();
-            renderEmployeeRanking();
-            showToast("Employé supprimé.");
-          });
-        });
-      }
-    }
-    renderEmployeeRanking();
-  }
-  var employeeForm = document.querySelector("#employeeForm");
-  if (employeeForm) {
-    employeeForm.addEventListener("submit", function (e) {
-      e.preventDefault();
-      var name = document.querySelector("#empName").value.trim();
-      var status = document.querySelector("#employeeFormStatus");
-      if (!name) { status.textContent = "Le nom est requis."; status.classList.add("show"); return; }
-      var list = getEmployees();
-      list.push({
-        id: "emp-" + Date.now().toString(36),
-        name: name,
-        role: document.querySelector("#empRole").value,
-        showroom: document.querySelector("#empShowroom").value,
-        phone: document.querySelector("#empPhone").value.trim(),
-        createdAt: Date.now()
-      });
-      saveEmployees(list);
-      employeeForm.reset();
-      status.textContent = "Employé ajouté.";
-      status.classList.add("show");
-      renderEmployees();
-      showToast("Employé ajouté.");
-    });
-  }
-
   panelRenderers.fournisseurs = renderSuppliers;
-
-  // ---------- Comptes employés limités (demande explicite) ----------
-  // Table réelle admin_users (voir api/auth/admin.js), pas localStorage -- distinct des
-  // "Fiches employés" ci-dessus qui restent un simple annuaire RH. staffCache=null tant
-  // que list-staff n'a pas répondu ; jamais appelé pour un compte employé (403 garanti,
-  // et de toute façon la carte est masquée par applyStaffPermissions).
-  var staffCache = null;
-  var staffEditingId = null;
-  function buildStaffPermissionsGrid() {
-    var grid = document.querySelector("#staffPermissionsGrid");
-    if (!grid || grid.children.length) return;
-    grid.innerHTML = PANEL_PERMISSION_LIST.map(function (p) {
-      return '<label class="admin-checkbox-item"><input type="checkbox" value="' + p.id + '"> ' + escapeHtml(p.label) + "</label>";
-    }).join("");
-  }
-  function getCheckedPermissions() {
-    return Array.prototype.slice.call(document.querySelectorAll("#staffPermissionsGrid input:checked")).map(function (el) { return el.value; });
-  }
-  function setCheckedPermissions(list) {
-    var set = list || [];
-    document.querySelectorAll("#staffPermissionsGrid input").forEach(function (el) { el.checked = set.indexOf(el.value) !== -1; });
-  }
-  function refreshStaffFromApi() {
-    if (!currentStaff || currentStaff.staffRole !== "manager") return Promise.resolve(null);
-    return fetch("/api/auth/admin?action=list-staff", { method: "POST", credentials: "same-origin" })
-      .then(function (res) { return res.ok ? res.json() : null; })
-      .then(function (data) { staffCache = data ? data.staff : []; return staffCache; })
-      .catch(function () { return null; });
-  }
-  function renderStaffAccounts() {
-    var body = document.querySelector("#staffTableBody");
-    var countEl = document.querySelector("#staffCount");
-    if (!body || !currentStaff || currentStaff.staffRole !== "manager") return;
-    var list = staffCache || [];
-    if (countEl) countEl.textContent = list.length + " compte" + (list.length === 1 ? "" : "s");
-    if (!list.length) {
-      body.innerHTML = '<tr class="admin-empty-row"><td colspan="6">Aucun compte pour l\'instant -- seul votre compte gérant existe.</td></tr>';
-      return;
-    }
-    body.innerHTML = list.map(function (s) {
-      var permsLabel = s.staffRole === "manager" ? "Toutes (Manager)" : (s.permissions.length ? s.permissions.length + " section(s)" : "Aucune");
-      var statusLabel = s.active ? '<span class="admin-data-badge live">Actif</span>' : '<span class="admin-data-badge pending">Désactivé</span>';
-      var isSelf = currentStaff && currentStaff.email === s.email;
-      return (
-        "<tr><td><strong>" + escapeHtml(s.fullName || "—") + "</strong>" + (isSelf ? " <em style=\"color:var(--a-muted); font-size:0.8em;\">(vous)</em>" : "") +
-        "</td><td>" + escapeHtml(s.email) + "</td><td>" + (s.staffRole === "manager" ? "Manager" : "Employé") +
-        "</td><td>" + permsLabel + "</td><td>" + statusLabel + '</td><td><div class="admin-row-actions">' +
-        '<button type="button" class="admin-icon-btn" data-action="edit-staff" data-id="' + escapeHtml(s.id) + '">Modifier</button>' +
-        (isSelf ? "" :
-          '<button type="button" class="admin-icon-btn" data-action="toggle-staff" data-id="' + escapeHtml(s.id) + '" data-active="' + s.active + '">' + (s.active ? "Désactiver" : "Activer") + "</button>" +
-          '<button type="button" class="admin-icon-btn danger" data-action="delete-staff" data-id="' + escapeHtml(s.id) + '">Supprimer</button>'
-        ) + "</div></td></tr>"
-      );
-    }).join("");
-
-    body.querySelectorAll('[data-action="edit-staff"]').forEach(function (btn) {
-      btn.addEventListener("click", function () {
-        var s = list.filter(function (x) { return x.id === btn.getAttribute("data-id"); })[0];
-        if (!s) return;
-        staffEditingId = s.id;
-        document.querySelector("#staffFullName").value = s.fullName || "";
-        document.querySelector("#staffEmail").value = s.email;
-        document.querySelector("#staffPassword").value = "";
-        document.querySelector("#staffPassword").placeholder = "Laisser vide pour ne pas changer";
-        document.querySelector("#staffRoleSelect").value = s.staffRole;
-        setCheckedPermissions(s.permissions);
-        var submitBtn = document.querySelector("#staffForm button[type=submit]");
-        if (submitBtn) submitBtn.textContent = "Enregistrer les modifications";
-        document.querySelector("#staffForm").scrollIntoView({ behavior: "smooth", block: "center" });
-      });
-    });
-    body.querySelectorAll('[data-action="toggle-staff"]').forEach(function (btn) {
-      btn.addEventListener("click", function () {
-        var nowActive = btn.getAttribute("data-active") !== "true";
-        fetch("/api/auth/admin?action=update-staff", {
-          method: "POST", credentials: "same-origin", headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ id: btn.getAttribute("data-id"), active: nowActive })
-        }).then(function (res) { return res.json().then(function (d) { return { ok: res.ok, d: d }; }); })
-          .then(function (r) {
-            if (!r.ok) { showToast(r.d.error || "Action impossible."); return; }
-            showToast(nowActive ? "Compte réactivé." : "Compte désactivé.");
-            refreshStaffFromApi().then(renderStaffAccounts);
-          }).catch(function () { showToast("Service momentanément indisponible."); });
-      });
-    });
-    body.querySelectorAll('[data-action="delete-staff"]').forEach(function (btn) {
-      btn.addEventListener("click", function () {
-        if (!confirm("Supprimer définitivement ce compte ? Cette action est irréversible.")) return;
-        fetch("/api/auth/admin?action=delete-staff", {
-          method: "POST", credentials: "same-origin", headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ id: btn.getAttribute("data-id") })
-        }).then(function (res) { return res.json().then(function (d) { return { ok: res.ok, d: d }; }); })
-          .then(function (r) {
-            if (!r.ok) { showToast(r.d.error || "Suppression impossible."); return; }
-            showToast("Compte supprimé.");
-            refreshStaffFromApi().then(renderStaffAccounts);
-          }).catch(function () { showToast("Service momentanément indisponible."); });
-      });
-    });
-  }
-  var staffForm = document.querySelector("#staffForm");
-  if (staffForm) {
-    buildStaffPermissionsGrid();
-    staffForm.addEventListener("submit", function (e) {
-      e.preventDefault();
-      var status = document.querySelector("#staffFormStatus");
-      status.classList.remove("show", "is-error");
-      var fullName = document.querySelector("#staffFullName").value.trim();
-      var email = document.querySelector("#staffEmail").value.trim();
-      var password = document.querySelector("#staffPassword").value;
-      var staffRole = document.querySelector("#staffRoleSelect").value;
-      var permissions = getCheckedPermissions();
-
-      var isEditing = !!staffEditingId;
-      var action = isEditing ? "update-staff" : "create-staff";
-      var payload = isEditing
-        ? { id: staffEditingId, fullName: fullName, email: email, staffRole: staffRole, permissions: permissions, newPassword: password || undefined }
-        : { fullName: fullName, email: email, password: password, staffRole: staffRole, permissions: permissions };
-      if (!isEditing && !password) {
-        status.textContent = "Le mot de passe est requis pour un nouveau compte.";
-        status.classList.add("show", "is-error");
-        return;
-      }
-
-      fetch("/api/auth/admin?action=" + action, {
-        method: "POST", credentials: "same-origin", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
-      }).then(function (res) { return res.json().then(function (d) { return { ok: res.ok, d: d }; }); })
-        .then(function (r) {
-          if (!r.ok) { status.textContent = r.d.error || "Action impossible."; status.classList.add("show", "is-error"); return; }
-          staffForm.reset();
-          setCheckedPermissions([]);
-          staffEditingId = null;
-          document.querySelector("#staffPassword").placeholder = "8 caractères minimum";
-          var submitBtn = document.querySelector("#staffForm button[type=submit]");
-          if (submitBtn) submitBtn.textContent = "Créer le compte";
-          status.textContent = isEditing ? "Compte mis à jour." : "Compte créé.";
-          status.classList.add("show");
-          showToast(isEditing ? "Compte mis à jour." : "Compte employé créé.");
-          refreshStaffFromApi().then(renderStaffAccounts);
-        })
-        .catch(function () { status.textContent = "Service momentanément indisponible."; status.classList.add("show", "is-error"); });
-    });
-  }
-
-  panelRenderers.employes = function () {
-    renderEmployees();
-    if (currentStaff && currentStaff.staffRole === "manager") refreshStaffFromApi().then(renderStaffAccounts);
-  };
 
   // ---------- Codes promo (demande explicite) ----------
   // Table réelle promo_codes (voir api/admin/manage.js), appliqués en vrai au checkout
@@ -4158,28 +3846,14 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   }
 
-  function refreshWhoamiFromApi() {
-    return fetch("/api/auth/admin?action=whoami", { method: "POST", credentials: "same-origin" })
-      .then(function (res) { return res.ok ? res.json() : null; })
-      .then(function (data) { currentStaff = data; return currentStaff; })
-      .catch(function () { return null; });
-  }
-
   function startAdminApp() {
     showAdminShell();
-    applyStaffPermissions();
     getProducts();
     fillSettingsForm();
     renderDashboard();
     renderOrders();
     renderCatalog();
     renderCatalogStats();
-    // Compte employé sans accès au Tableau de bord : on l'amène directement sur la
-    // première section qu'il a le droit de voir plutôt que sur un panneau vide/masqué.
-    if (!canAccessPanel("dashboard")) {
-      var firstAllowed = (currentStaff && currentStaff.permissions && currentStaff.permissions[0]) || "dashboard";
-      showPanel(firstAllowed);
-    }
   }
 
   // Ouvert directement en local (double-clic sur le fichier, file://) : aucune API
@@ -4190,7 +3864,7 @@ document.addEventListener("DOMContentLoaded", function () {
   // redonne jamais cet écran (authRequired ne passe à true que sur un vrai 401).
   function bootstrapAdmin() {
     if (location.protocol === "file:") { startAdminApp(); return; }
-    Promise.all([refreshOrdersFromApi(), refreshPageEditsFromApi(), refreshWhoamiFromApi()]).then(function () {
+    Promise.all([refreshOrdersFromApi(), refreshPageEditsFromApi()]).then(function () {
       if (authRequired) { showAdminLoginScreen(); return; }
       startAdminApp();
     });

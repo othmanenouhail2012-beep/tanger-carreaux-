@@ -9,7 +9,7 @@
 // appliqué aux comptes). Une seule ressource pour l'instant (promo-codes), pensé pour en
 // accueillir d'autres sans nouveau fichier.
 const { sql } = require("../../lib/db");
-const { requirePermission } = require("../../lib/auth");
+const { requireAdmin } = require("../../lib/auth");
 
 var promoTableReady = false;
 async function ensurePromoTable() {
@@ -46,7 +46,7 @@ function publicPromo(row) {
 
 async function handlePromoCodes(req, res) {
   await ensurePromoTable();
-  var session = requirePermission(req, res, "promo-codes");
+  var session = requireAdmin(req, res);
   if (!session) return;
 
   if (req.method === "GET") {

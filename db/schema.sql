@@ -19,17 +19,7 @@ CREATE TABLE IF NOT EXISTS admin_users (
   id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   email         TEXT NOT NULL UNIQUE,
   password_hash TEXT NOT NULL,
-  created_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
-  -- Comptes employés limités (demande explicite) : staff_role distingue 'manager' (accès
-  -- total, peut créer/supprimer d'autres comptes) de 'employee' (accès limité aux panneaux
-  -- listés dans permissions). DEFAULT 'manager' pour que le compte déjà en prod avant cette
-  -- migration reste automatiquement gérant sans script de rattrapage. Ces 4 colonnes sont
-  -- aussi ajoutées défensivement (ADD COLUMN IF NOT EXISTS) au tout début de
-  -- api/auth/admin.js -- pas besoin de rejouer ce fichier à la main sur la base déjà en prod.
-  full_name     TEXT NOT NULL DEFAULT '',
-  staff_role    TEXT NOT NULL DEFAULT 'manager', -- 'manager' | 'employee'
-  permissions   JSONB NOT NULL DEFAULT '[]',     -- ids de panneaux admin, ex. ["orders","stock"] -- ignoré si staff_role='manager'
-  active        BOOLEAN NOT NULL DEFAULT true
+  created_at    TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
 CREATE TABLE IF NOT EXISTS customers (

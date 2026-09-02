@@ -520,23 +520,6 @@ h1, h2, h3, h4 { font-family: var(--a-ff-serif); font-weight: 600; margin: 0; co
 .admin-form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
 .admin-field { margin-bottom: 20px; }
 .admin-field.full { grid-column: 1 / -1; }
-
-/* Grille de cases à cocher (comptes employés limités : sections autorisées) */
-.admin-checkbox-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
-  gap: 8px 16px;
-  margin-top: 6px;
-}
-.admin-checkbox-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 0.82rem;
-  color: var(--a-ink);
-  cursor: pointer;
-}
-.admin-checkbox-item input { accent-color: var(--a-green); width: 15px; height: 15px; flex-shrink: 0; }
 .admin-field label {
   display: block;
   font-size: 0.76rem;

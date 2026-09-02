@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="admin.css?v=14">
+<link rel="stylesheet" href="admin.css?v=15">
 </head>
 <body>
 
@@ -139,10 +139,6 @@
       <div class="admin-nav-group" data-group="ressources">
         <button type="button" class="admin-nav-group-toggle" data-group-toggle>Ressources<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><polyline points="6 9 12 15 18 9"/></svg></button>
         <div class="admin-nav-group-links">
-          <button type="button" class="admin-nav-link" data-panel="employes">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a7 7 0 0 1 14 0v1"/></svg>
-            Employés
-          </button>
           <button type="button" class="admin-nav-link" data-panel="showrooms">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 9l1.5-5h15L21 9"/><path d="M3 9v11h18V9"/><path d="M9 21v-6h6v6"/></svg>
             Showrooms
@@ -403,7 +399,6 @@
                 <th>Ville</th>
                 <th>Paiement</th>
                 <th>Total</th>
-                <th>Vendeur</th>
                 <th>Statut</th>
                 <th>Actions</th>
               </tr>
@@ -1131,116 +1126,6 @@
       </div>
     </section>
 
-    <section class="admin-panel" id="panel-employes">
-      <div class="admin-topbar"><div><h1>Employés</h1><p>Fiches employés et classement des ventes réellement attribuées.</p></div><span class="admin-data-badge live">Données réelles</span></div>
-
-      <div class="admin-card">
-        <div class="admin-card-head"><div><h3>Ajouter un employé</h3></div></div>
-        <form id="employeeForm">
-          <div class="admin-form-grid">
-            <div class="admin-field">
-              <label for="empName">Nom complet</label>
-              <input type="text" id="empName" required placeholder="Ex : Fatima Zahra Bennani">
-            </div>
-            <div class="admin-field">
-              <label for="empRole">Rôle</label>
-              <select id="empRole">
-                <option value="Vendeur">Vendeur / Vendeuse</option>
-                <option value="Manager">Manager</option>
-                <option value="Magasinier">Magasinier</option>
-                <option value="Livreur">Livreur</option>
-                <option value="Autre">Autre</option>
-              </select>
-            </div>
-            <div class="admin-field">
-              <label for="empShowroom">Showroom</label>
-              <select id="empShowroom">
-                <option value="Tanger">Tanger</option>
-                <option value="Casablanca">Casablanca</option>
-              </select>
-            </div>
-            <div class="admin-field">
-              <label for="empPhone">Téléphone</label>
-              <input type="tel" id="empPhone" placeholder="Optionnel">
-            </div>
-          </div>
-          <div class="admin-form-actions">
-            <button type="submit" class="admin-btn admin-btn-primary">Ajouter l'employé</button>
-          </div>
-          <p class="admin-form-status" id="employeeFormStatus"></p>
-        </form>
-      </div>
-
-      <!-- Comptes du dashboard = identifiants de connexion (email + mot de passe), séparé
-           des "Fiches employés" ci-dessus qui ne sont qu'un annuaire RH sans accès au
-           back-office. Réservé au gérant (data-manager-only, masqué en JS pour un compte
-           employé -- et de toute façon refusé côté serveur, voir requireManager). -->
-      <div class="admin-card" data-manager-only>
-        <div class="admin-card-head"><div><h3>Créer un compte employé limité</h3><p>Un identifiant de connexion au dashboard, avec accès restreint aux sections cochées ci-dessous.</p></div></div>
-        <form id="staffForm">
-          <div class="admin-form-grid">
-            <div class="admin-field">
-              <label for="staffFullName">Nom complet</label>
-              <input type="text" id="staffFullName" required placeholder="Ex : Yassine El Amrani">
-            </div>
-            <div class="admin-field">
-              <label for="staffEmail">Email de connexion</label>
-              <input type="email" id="staffEmail" required autocomplete="off">
-            </div>
-            <div class="admin-field">
-              <label for="staffPassword">Mot de passe</label>
-              <input type="password" id="staffPassword" required autocomplete="new-password" placeholder="8 caractères minimum">
-            </div>
-            <div class="admin-field">
-              <label for="staffRoleSelect">Rôle</label>
-              <select id="staffRoleSelect">
-                <option value="employee">Employé (accès limité)</option>
-                <option value="manager">Manager (accès total)</option>
-              </select>
-            </div>
-          </div>
-          <div class="admin-field full" id="staffPermissionsField">
-            <label>Sections autorisées (ignoré si rôle = Manager)</label>
-            <div class="admin-checkbox-grid" id="staffPermissionsGrid"></div>
-          </div>
-          <div class="admin-form-actions">
-            <button type="submit" class="admin-btn admin-btn-primary">Créer le compte</button>
-          </div>
-          <p class="admin-form-status" id="staffFormStatus"></p>
-        </form>
-      </div>
-
-      <div class="admin-card" data-manager-only>
-        <div class="admin-card-head"><div><h3>Comptes du dashboard</h3><p id="staffCount">0 compte</p></div></div>
-        <div class="admin-table-wrap">
-          <table class="admin-table">
-            <thead><tr><th>Nom</th><th>Email</th><th>Rôle</th><th>Sections</th><th>Statut</th><th>Actions</th></tr></thead>
-            <tbody id="staffTableBody"></tbody>
-          </table>
-        </div>
-      </div>
-
-      <div class="admin-card">
-        <div class="admin-card-head"><div><h3>Classement des ventes</h3><p>Basé sur les commandes réellement attribuées à chaque employé dans l'onglet Commandes — jamais estimé.</p></div></div>
-        <div class="admin-table-wrap">
-          <table class="admin-table">
-            <thead><tr><th>#</th><th>Employé</th><th>Rôle</th><th>Commandes attribuées</th><th>CA généré</th></tr></thead>
-            <tbody id="employeeRankingBody"></tbody>
-          </table>
-        </div>
-      </div>
-
-      <div class="admin-card">
-        <div class="admin-card-head"><div><h3>Fiches employés</h3><p id="employeeCount">0 employé</p></div></div>
-        <div class="admin-table-wrap">
-          <table class="admin-table">
-            <thead><tr><th>Nom</th><th>Rôle</th><th>Showroom</th><th>Téléphone</th><th>Actions</th></tr></thead>
-            <tbody id="employeeTableBody"></tbody>
-          </table>
-        </div>
-      </div>
-    </section>
-
     <section class="admin-panel" id="panel-fournisseurs">
       <div class="admin-topbar"><div><h1>Fournisseurs</h1><p>Annuaire fournisseurs, délais et contacts.</p></div><span class="admin-data-badge live">Données réelles</span></div>
 
@@ -1419,6 +1304,6 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
-<script src="admin.js?v=25"></script>
+<script src="admin.js?v=26"></script>
 </body>
 </html>
