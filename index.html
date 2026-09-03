@@ -19,7 +19,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Archivo:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
-<link rel="stylesheet" href="css/style.css?v=26">
+<link rel="stylesheet" href="css/style.css?v=27">
 </head>
 <body class="has-grain">
 
@@ -74,18 +74,13 @@
 
 <main>
 
-  <!-- HERO -->
-  <section class="hero-luxe">
-    <div class="container hero-luxe-grid">
-      <div class="hero-luxe-copy reveal">
-        <p class="eyebrow">Nouvelle collection</p>
-        <h1>L'élégance s'invite chez vous</h1>
-        <p class="lead">Carrelage, sanitaire et robinetterie haut de gamme, réunis en un seul endroit.</p>
-        <a href="carrelage.html" class="btn-luxe">Découvrir la collection</a>
-      </div>
-      <div class="hero-luxe-scene reveal">
-        <img src="https://images.unsplash.com/photo-1760546120487-ccb54df9838c?auto=format&amp;fit=crop&amp;w=1400&amp;q=80" alt="Salle de bain haut de gamme avec baignoire îlot et douche à l'italienne" loading="eager">
-      </div>
+  <!-- HERO (thème plein cadre, demande explicite du 04/09/2026 -- même texte, nouvelle mise en forme) -->
+  <section class="hero-editorial" style="background-image:url('assets/images/hero-bathroom.jpg');">
+    <div class="container hero-editorial-inner reveal">
+      <p class="eyebrow">Nouvelle collection</p>
+      <h1>L'élégance s'invite chez vous</h1>
+      <p class="lead">Carrelage, sanitaire et robinetterie haut de gamme, réunis en un seul endroit.</p>
+      <a href="carrelage.html" class="btn-editorial">Découvrir la collection</a>
     </div>
   </section>
 
@@ -112,54 +107,24 @@
         <h2>Un seul fournisseur, tout votre projet</h2>
         <p>Du sol au robinet, en passant par la mosaïque, les meubles et les miroirs LED : explorez nos six grandes familles de produits.</p>
       </div>
-      <div class="grid grid-3">
-        <a href="carrelage.html" class="card reveal">
-          <div class="card-photo"><img src="assets/images/carrelage-interieur.jpg" alt="Carrelage intérieur Tanger Carreaux" loading="lazy"></div>
-          <div class="category-card">
-            <h3>Carrelage</h3>
-            <p>Sol, mur, extérieur, céramique, grès cérame et pâte de verre.</p>
-            <span class="link-arrow">Découvrir <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></span>
-          </div>
+      <div class="univers-grid">
+        <a href="carrelage.html" class="univers-card reveal" style="background-image:url('assets/images/carrelage-interieur.jpg');">
+          <span class="univers-card-label">Carrelage</span>
         </a>
-        <a href="sanitaire.html" class="card reveal">
-          <div class="card-photo"><img src="assets/images/sanitaire.jpg" alt="Sanitaire Tanger Carreaux" loading="lazy"></div>
-          <div class="category-card">
-            <h3>Sanitaire</h3>
-            <p>Vasques, WC, baignoires, receveurs de douche, meubles de salle de bain.</p>
-            <span class="link-arrow">Découvrir <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></span>
-          </div>
+        <a href="sanitaire.html" class="univers-card reveal" style="background-image:url('assets/images/sanitaire.jpg');">
+          <span class="univers-card-label">Sanitaire</span>
         </a>
-        <a href="robinetterie.html" class="card reveal">
-          <div class="card-photo"><img src="assets/images/robinetterie.jpg" alt="Robinetterie Tanger Carreaux" loading="lazy"></div>
-          <div class="category-card">
-            <h3>Robinetterie</h3>
-            <p>Robinetterie sanitaire et de bâtiment, douches et accessoires.</p>
-            <span class="link-arrow">Découvrir <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></span>
-          </div>
+        <a href="robinetterie.html" class="univers-card reveal" style="background-image:url('assets/images/robinetterie.jpg');">
+          <span class="univers-card-label">Robinetterie</span>
         </a>
-        <a href="mosaique-pierre.html" class="card reveal">
-          <div class="card-photo"><img src="assets/images/mosaique-pierre.jpg" alt="Mosaïque et pierre naturelle Tanger Carreaux" loading="lazy"></div>
-          <div class="category-card">
-            <h3>Mosaïque &amp; Pierre</h3>
-            <p>Mosaïque décorative, pierre naturelle, marbre et pâte de verre.</p>
-            <span class="link-arrow">Découvrir <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></span>
-          </div>
+        <a href="mosaique-pierre.html" class="univers-card reveal" style="background-image:url('assets/images/mosaique-pierre.jpg');">
+          <span class="univers-card-label">Mosaïque &amp; Pierre</span>
         </a>
-        <a href="meubles-salle-de-bain.html" class="card reveal">
-          <div class="card-photo"><img src="assets/images/hero-bathroom.jpg" alt="Meubles de salle de bain Tanger Carreaux" loading="lazy"></div>
-          <div class="category-card">
-            <h3>Meubles de salle de bain</h3>
-            <p>Meubles vasques cannelés livrés montés d'usine, plans, colonnes et accessoires.</p>
-            <span class="link-arrow">Découvrir <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></span>
-          </div>
+        <a href="meubles-salle-de-bain.html" class="univers-card reveal" style="background-image:url('assets/images/hero-bathroom.jpg');">
+          <span class="univers-card-label">Meubles de salle de bain</span>
         </a>
-        <a href="miroirs-led.html" class="card reveal">
-          <div class="card-photo"><img src="assets/images/hero-bathroom.jpg" alt="Miroirs LED Tanger Carreaux" loading="lazy"></div>
-          <div class="category-card">
-            <h3>Miroirs LED</h3>
-            <p>Miroirs rétro-éclairés Ledimex, antibuée et à capteur tactile.</p>
-            <span class="link-arrow">Découvrir <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></span>
-          </div>
+        <a href="miroirs-led.html" class="univers-card reveal" style="background-image:url('assets/images/hero-bathroom.jpg');">
+          <span class="univers-card-label">Miroirs LED</span>
         </a>
       </div>
     </div>

@@ -539,6 +539,100 @@ h1 { font-size: clamp(2.125rem, 5vw, 3.625rem); line-height: 0.95; }
   .hero-luxe-tag { display: none; }
 }
 
+/* ---------- Hero plein cadre + "Nos univers" en cartes photo (thème demandé le
+   04/09/2026, d'après une référence fournie) -- même texte et mêmes liens que
+   l'ancien hero/grille, mise en forme seulement. */
+.hero-editorial {
+  position: relative;
+  min-height: 620px;
+  display: flex;
+  align-items: center;
+  background-size: cover;
+  background-position: center;
+  color: #fff;
+  overflow: hidden;
+}
+.hero-editorial::before {
+  content: "";
+  position: absolute; inset: 0;
+  background: linear-gradient(180deg, rgba(10, 12, 10, 0.32) 0%, rgba(10, 12, 10, 0.5) 55%, rgba(10, 12, 10, 0.74) 100%);
+}
+.hero-editorial-inner {
+  position: relative;
+  z-index: 1;
+  max-width: 640px;
+  margin: 0 auto;
+  text-align: center;
+}
+.hero-editorial-inner .eyebrow { justify-content: center; color: var(--emerald-light); }
+.hero-editorial-inner h1 {
+  font-family: var(--ff-sans);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.01em;
+  font-size: clamp(2rem, 5vw, 3.3rem);
+  line-height: 1.1;
+  color: #fff;
+  margin: 16px 0 20px;
+  text-shadow: 0 4px 24px rgba(0, 0, 0, 0.35);
+}
+.hero-editorial-inner .lead {
+  color: rgba(255, 255, 255, 0.88);
+  font-size: 1.05rem;
+  max-width: 480px;
+  margin: 0 auto 32px;
+}
+.btn-editorial {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 15px 34px;
+  background: #f6f1e8;
+  color: var(--terracotta-dark);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  border-radius: 2px;
+  transition: background 0.25s ease, transform 0.25s ease;
+}
+.btn-editorial:hover { background: #fff; transform: translateY(-2px); }
+@media (max-width: 640px) { .hero-editorial { min-height: 520px; } }
+
+.univers-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+.univers-card {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  min-height: 280px;
+  background-size: cover;
+  background-position: center;
+  border-radius: 2px;
+  overflow: hidden;
+  text-decoration: none;
+}
+.univers-card::before {
+  content: "";
+  position: absolute; inset: 0;
+  background: linear-gradient(180deg, rgba(10, 12, 10, 0) 42%, rgba(10, 12, 10, 0.8) 100%);
+  transition: background 0.3s ease;
+}
+.univers-card:hover::before { background: linear-gradient(180deg, rgba(10, 12, 10, 0.08) 25%, rgba(10, 12, 10, 0.88) 100%); }
+.univers-card-label {
+  position: relative;
+  z-index: 1;
+  padding: 22px;
+  color: #fff;
+  font-family: var(--ff-sans);
+  font-weight: 700;
+  font-size: 1.05rem;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.4);
+}
+@media (max-width: 900px) { .univers-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 560px) { .univers-grid { grid-template-columns: 1fr; } .univers-card { min-height: 220px; } }
+
 /* Page header (sous-pages) */
 .page-hero {
   background: var(--charcoal) center/cover no-repeat;
