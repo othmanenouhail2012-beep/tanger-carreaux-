@@ -1,0 +1,897 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tanger Carreaux — Édition Collage</title>
+<meta name="description" content="Tanger Carreaux : négoce de carrelage, sanitaire, robinetterie, mosaïque et pierre naturelle. Showrooms à Tanger (Avenue Moulay Youssef) et Casablanca (Route de Mediouna). Fichier autonome, sans dépendance de build.">
+<meta name="theme-color" content="#06070a">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Tanger Carreaux">
+<meta property="og:title" content="Tanger Carreaux — Édition Collage">
+<meta property="og:description" content="Négoce de carrelage, sanitaire, robinetterie, mosaïque et pierre naturelle. Showrooms à Tanger et Casablanca.">
+<meta property="og:image" content="assets/images/hero-bathroom.jpg">
+<meta property="og:locale" content="fr_MA">
+<link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Archivo:wght@400;500;600;700;800;900&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ==========================================================================
+   TANGER CARREAUX — Édition Collage
+   Fichier unique autonome : CSS + JS inline, sans framework, sans build.
+   ========================================================================== */
+:root{
+  --black:#07080a;
+  --black-2:#0c0f0c;
+  --panel:#101410;
+  --emerald-deep:#0d3d2b;
+  --emerald:#1f7a52;
+  --emerald-2:#34a374;
+  --emerald-glow:#5be8a8;
+  --gold:#c9a24b;
+  --gold-light:#e8cf8a;
+  --paper:#f2ecdd;
+  --white:#f6f7f4;
+  --muted:#9aa39c;
+  --muted-2:#5c6660;
+  --line:rgba(246,247,244,0.14);
+  --line-strong:rgba(246,247,244,0.28);
+  --ff-display:"Instrument Serif", Georgia, serif;
+  --ff-sans:"Archivo", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --ff-mono:"IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --container:1280px;
+}
+*{box-sizing:border-box;}
+html{background:var(--black); overflow-x:hidden;}
+html.lenis{scroll-behavior:auto; height:auto;}
+html.lenis body{height:auto;}
+.lenis.lenis-stopped{overflow:clip;}
+body{
+  margin:0;
+  background:var(--black);
+  color:var(--white);
+  font-family:var(--ff-sans);
+  line-height:1.6;
+  overflow-x:clip;
+  -webkit-font-smoothing:antialiased;
+}
+img{max-width:100%; display:block;}
+a{color:inherit; text-decoration:none;}
+ul{list-style:none; margin:0; padding:0;}
+button{font:inherit; color:inherit; background:none; border:0; cursor:pointer;}
+::selection{background:var(--emerald-2); color:var(--black);}
+.container{max-width:var(--container); margin:0 auto; padding:0 28px;}
+.sr-only{position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap;}
+
+/* reduced motion baseline */
+@media (prefers-reduced-motion: reduce){
+  *{animation-duration:0.001ms !important; animation-iteration-count:1 !important; transition-duration:0.001ms !important; scroll-behavior:auto !important;}
+}
+
+/* ---------- grain overlay ---------- */
+.grain{
+  position:fixed; inset:-60% ; width:220%; height:220%; z-index:9000; pointer-events:none;
+  opacity:0.05; mix-blend-mode:overlay;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+  animation:grainShift 0.9s steps(6) infinite;
+}
+@keyframes grainShift{
+  0%,100%{transform:translate(0,0);}
+  10%{transform:translate(-2%,-3%);}
+  20%{transform:translate(-5%,2%);}
+  30%{transform:translate(3%,-4%);}
+  40%{transform:translate(-3%,4%);}
+  50%{transform:translate(4%,2%);}
+  60%{transform:translate(5%,-2%);}
+  70%{transform:translate(-4%,-3%);}
+  80%{transform:translate(2%,3%);}
+  90%{transform:translate(-2%,1%);}
+}
+@media (prefers-reduced-motion: reduce){ .grain{animation:none;} }
+
+/* ---------- custom magnetic cursor ---------- */
+.cursor-dot,.cursor-ring{
+  position:fixed; top:0; left:0; z-index:9500; pointer-events:none;
+  transform:translate(-50%,-50%); will-change:transform;
+}
+.cursor-dot{width:6px; height:6px; border-radius:50%; background:var(--gold-light); mix-blend-mode:difference;}
+.cursor-ring{
+  width:38px; height:38px; border-radius:50%; border:1px solid var(--line-strong);
+  transition:width .25s,height .25s,border-color .25s,background-color .25s;
+}
+.cursor-ring.is-active{width:64px; height:64px; border-color:var(--gold); background:rgba(201,162,75,0.1);}
+body.has-fine-cursor{cursor:none;}
+body.has-fine-cursor a,body.has-fine-cursor button{cursor:none;}
+@media (pointer:coarse){ .cursor-dot,.cursor-ring{display:none;} }
+
+/* ---------- scroll progress ---------- */
+.scroll-progress{position:fixed; top:0; left:0; height:2px; width:0%; background:linear-gradient(90deg,var(--emerald-2),var(--gold)); z-index:9400;}
+
+/* ---------- preloader ---------- */
+.preloader{
+  position:fixed; inset:0; z-index:9999; background:var(--black);
+  display:flex; align-items:center; justify-content:center; flex-direction:column; gap:22px;
+}
+.preloader-word{
+  font-family:var(--ff-display); font-style:italic; font-size:clamp(28px,5vw,54px);
+  letter-spacing:0.02em; color:var(--white); margin:0;
+}
+.preloader-word .char{display:inline-block;}
+.preloader-bar{width:220px; height:1px; background:var(--line);}
+.preloader-bar span{display:block; height:100%; width:0%; background:var(--gold);}
+.preloader-tag{font-family:var(--ff-mono); font-size:11px; letter-spacing:0.2em; text-transform:uppercase; color:var(--muted);}
+
+/* ---------- page transition wipe ---------- */
+.page-transition{position:fixed; inset:0; z-index:9800; pointer-events:none;}
+.pt-panel{position:absolute; inset:0; transform:scaleY(0); transform-origin:bottom;}
+.pt-panel--emerald{background:var(--emerald-deep);}
+.pt-panel--gold{background:var(--gold);}
+.pt-panel--black{background:var(--black);}
+
+/* ---------- header ---------- */
+.site-header{
+  position:fixed; top:0; left:0; right:0; z-index:900;
+  display:flex; align-items:center; justify-content:space-between;
+  padding:18px 28px; gap:20px;
+  background:linear-gradient(180deg, rgba(7,8,10,0.85), rgba(7,8,10,0));
+  backdrop-filter:blur(2px);
+}
+.brand-lockup{display:flex; align-items:center; gap:10px; transform:rotate(-2deg);}
+.brand-lockup svg{width:150px; height:auto;}
+.header-nav{display:flex; align-items:center; gap:28px;}
+.header-nav a{font-family:var(--ff-mono); font-size:12px; letter-spacing:0.14em; text-transform:uppercase; color:var(--muted); position:relative; padding:4px 0;}
+.header-nav a::after{content:''; position:absolute; left:0; bottom:-2px; width:0; height:1px; background:var(--gold); transition:width .3s;}
+.header-nav a:hover{color:var(--white);}
+.header-nav a:hover::after{width:100%;}
+.header-actions{display:flex; align-items:center; gap:14px;}
+.btn-catalogue{
+  font-family:var(--ff-mono); font-size:11px; letter-spacing:0.14em; text-transform:uppercase;
+  padding:10px 18px; border:1px solid var(--line-strong); border-radius:2px; color:var(--white);
+  transform:rotate(-1deg);
+}
+.btn-catalogue:hover{border-color:var(--gold); color:var(--gold-light);}
+.header-phone{font-family:var(--ff-mono); font-size:12px; letter-spacing:0.14em; text-transform:uppercase; color:var(--muted); white-space:nowrap;}
+.header-phone:hover{color:var(--white);}
+.nav-toggle{display:none;}
+@media (max-width:860px){
+  .header-nav{display:none;}
+  .header-phone{display:none;}
+  .brand-lockup svg{width:118px;}
+}
+
+/* ---------- collage helpers ---------- */
+.eyebrow{
+  font-family:var(--ff-mono); font-size:11px; letter-spacing:0.22em; text-transform:uppercase;
+  color:var(--gold-light); display:flex; align-items:center; gap:10px; margin:0 0 16px;
+}
+.eyebrow::before{content:''; width:26px; height:1px; background:var(--gold);}
+.torn{
+  clip-path:polygon(0% 2%,4% 0%,9% 1.4%,15% 0%,22% 1.8%,30% 0%,38% 1.2%,46% 0%,55% 2%,63% 0%,71% 1.4%,79% 0%,87% 2%,94% 0%,100% 1%,100% 98%,95% 100%,88% 98.6%,80% 100%,72% 98.2%,64% 100%,56% 98.8%,47% 100%,39% 98.4%,31% 100%,23% 98.6%,16% 100%,8% 98.4%,1% 100%);
+}
+.washi{position:absolute; width:70px; height:22px; background:rgba(232,207,138,0.28); border:1px solid rgba(232,207,138,0.4); pointer-events:none;}
+
+/* ---------- section base ---------- */
+main{position:relative; z-index:1;}
+.section{padding:120px 0; position:relative;}
+.section-tight{padding:70px 0;}
+.section-head{max-width:640px; margin-bottom:56px;}
+.section-head h2{font-family:var(--ff-display); font-weight:400; font-size:clamp(34px,4.6vw,58px); margin:0; line-height:1.05;}
+.section-head p{color:var(--muted); font-size:1rem; max-width:520px; margin:18px 0 0;}
+.char{display:inline-block; will-change:transform,opacity;}
+
+/* ---------- HERO ---------- */
+.hero{
+  position:relative; min-height:100vh; display:flex; flex-direction:column; justify-content:flex-end;
+  overflow:hidden; border-bottom:1px solid var(--line);
+}
+.hero-layer{position:absolute; inset:0; overflow:hidden;}
+.hero-layer img{width:100%; height:130%; object-fit:cover; object-position:center 30%; filter:brightness(0.5) saturate(1.05);}
+.hero-vignette{position:absolute; inset:0; background:
+    radial-gradient(120% 90% at 50% 12%, rgba(7,8,10,0) 0%, rgba(7,8,10,0.55) 55%, rgba(7,8,10,0.92) 100%),
+    linear-gradient(0deg, rgba(7,8,10,0.96), rgba(7,8,10,0.2) 45%);
+}
+.hero-sticker{
+  position:absolute; top:22%; right:8%; width:min(220px,22vw); transform:rotate(7deg);
+  box-shadow:0 30px 60px -20px rgba(0,0,0,0.7); border:6px solid var(--paper); z-index:3;
+  display:none;
+}
+.hero-sticker img{width:100%; height:150px; object-fit:cover; filter:saturate(1.1) contrast(1.05);}
+.hero-sticker figcaption{font-family:var(--ff-mono); font-size:10px; letter-spacing:0.1em; color:#1c1c1a; background:var(--paper); padding:6px 8px 8px; text-transform:uppercase;}
+@media (min-width:900px){ .hero-sticker{display:block;} }
+
+.hero-content{position:relative; z-index:4; padding:180px 28px 64px; max-width:var(--container); margin:0 auto; width:100%;}
+.hero-eyebrow{font-family:var(--ff-mono); font-size:12px; letter-spacing:0.24em; text-transform:uppercase; color:var(--gold-light); margin:0 0 18px; transform:rotate(-1deg);}
+.hero-title{
+  font-family:var(--ff-display); font-weight:400; margin:0; color:var(--white);
+  font-size:clamp(58px,12vw,168px); line-height:0.86; letter-spacing:-0.01em;
+}
+.hero-title .line{display:block;}
+.hero-title .line--tilt{transform:rotate(-2deg); transform-origin:left center; margin-left:2vw;}
+.hero-title .line--stamp{
+  display:inline-block; background:linear-gradient(120deg,var(--emerald),var(--emerald-2));
+  padding:0 0.22em 0.05em; color:var(--black); font-style:italic;
+}
+.hero-sub{max-width:520px; margin:30px 0 0; font-size:1.05rem; color:var(--white); opacity:0.86;}
+.hero-note{max-width:460px; margin:14px 0 0; font-size:0.92rem; color:var(--muted);}
+.hero-ctas{display:flex; flex-wrap:wrap; gap:14px; margin-top:38px;}
+.btn{
+  font-family:var(--ff-mono); font-size:12px; letter-spacing:0.12em; text-transform:uppercase;
+  padding:15px 26px; border-radius:2px; display:inline-flex; align-items:center; gap:10px;
+}
+.btn-primary{background:var(--gold); color:var(--black); transform:rotate(-1deg);}
+.btn-primary:hover{background:var(--gold-light);}
+.btn-outline{border:1px solid var(--line-strong); color:var(--white); transform:rotate(1deg);}
+.btn-outline:hover{border-color:var(--emerald-2); color:var(--emerald-glow);}
+.hero-scroll-cue{
+  position:absolute; right:32px; bottom:28px; z-index:4; font-family:var(--ff-mono); font-size:10px;
+  letter-spacing:0.18em; text-transform:uppercase; color:var(--muted); display:flex; align-items:center; gap:10px;
+  writing-mode:vertical-rl;
+}
+.hero-scroll-cue::after{content:''; width:1px; height:46px; background:var(--line-strong);}
+
+/* ---------- marquee ---------- */
+.marquee-band{border-top:1px solid var(--line); border-bottom:1px solid var(--line); background:var(--black-2); overflow:hidden;}
+.marquee{white-space:nowrap; overflow:hidden;}
+.marquee-track{display:inline-flex; animation:marqueeScroll 32s linear infinite; padding:16px 0;}
+.marquee:hover .marquee-track{animation-play-state:paused;}
+.marquee-track span{
+  font-family:var(--ff-mono); font-size:13px; letter-spacing:0.1em; text-transform:uppercase; color:var(--muted);
+  padding:0 22px; display:inline-flex; align-items:center; gap:22px;
+}
+.marquee-track span.accent{color:var(--gold-light);}
+@keyframes marqueeScroll{from{transform:translateX(0);} to{transform:translateX(-50%);}}
+
+/* ---------- UNIVERS grid ---------- */
+.univers-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:34px 30px;}
+@media (max-width:980px){ .univers-grid{grid-template-columns:repeat(2,1fr);} }
+@media (max-width:620px){ .univers-grid{grid-template-columns:1fr;} }
+.univers-card{
+  position:relative; display:block; background:var(--panel); border:1px solid var(--line);
+  padding:16px 16px 22px; transform:rotate(var(--tilt,-1.4deg));
+}
+.univers-card:nth-child(2n){ --tilt:1.6deg; }
+.univers-card:nth-child(3n){ --tilt:-0.8deg; }
+.univers-card .media{position:relative; aspect-ratio:4/5; overflow:hidden;}
+.univers-card .media img{width:100%; height:100%; object-fit:cover; transition:transform .7s cubic-bezier(.2,.8,.2,1); filter:saturate(1.05) contrast(1.02);}
+.univers-card:hover .media img{transform:scale(1.08);}
+.univers-card .media::before,.univers-card .media::after{
+  content:''; position:absolute; inset:0; background-image:var(--img); background-size:cover; background-position:center;
+  opacity:0; pointer-events:none;
+}
+.univers-card .media::before{background-color:rgba(255,30,90,0.55); background-blend-mode:multiply; mix-blend-mode:screen;}
+.univers-card .media::after{background-color:rgba(0,230,210,0.5); background-blend-mode:multiply; mix-blend-mode:screen;}
+.univers-card:hover .media::before{opacity:0.65; transform:translate(-7px,2px); transition:opacity .1s steps(2), transform .1s steps(2);}
+.univers-card:hover .media::after{opacity:0.65; transform:translate(7px,-2px); transition:opacity .1s steps(2), transform .1s steps(2);}
+.univers-card .meta{display:flex; align-items:baseline; justify-content:space-between; gap:10px; margin-top:16px;}
+.univers-card .num{font-family:var(--ff-mono); font-size:12px; color:var(--muted-2);}
+.univers-card h3{font-family:var(--ff-display); font-weight:400; font-size:1.6rem; margin:6px 0 4px; color:var(--white);}
+.univers-card .arrow{font-family:var(--ff-mono); font-size:12px; color:var(--gold-light); opacity:0; transform:translateX(-6px); transition:.3s;}
+.univers-card:hover .arrow{opacity:1; transform:translateX(0);}
+.univers-card .tag{position:absolute; top:-10px; left:18px; background:var(--gold); color:var(--black); font-family:var(--ff-mono); font-size:10px; letter-spacing:0.1em; text-transform:uppercase; padding:4px 10px; transform:rotate(-3deg);}
+
+/* ---------- CHIFFRES band ---------- */
+.chiffres{
+  background:linear-gradient(160deg,var(--emerald-deep),var(--black-2) 70%);
+  border-top:1px solid var(--line); border-bottom:1px solid var(--line);
+  position:relative; overflow:hidden;
+}
+.chiffres::before{
+  content:''; position:absolute; inset:0; opacity:0.5;
+  background-image:var(--texture-porcelaine); background-size:cover; background-position:center; mix-blend-mode:overlay;
+}
+.chiffres-grid{position:relative; z-index:1; display:grid; grid-template-columns:repeat(4,1fr); gap:24px;}
+@media (max-width:900px){ .chiffres-grid{grid-template-columns:repeat(2,1fr);} }
+.chiffre{padding:26px 18px; border-left:1px solid var(--line-strong);}
+.chiffre .value{font-family:var(--ff-display); font-size:clamp(38px,5vw,64px); color:var(--gold-light); line-height:1;}
+.chiffre .label{font-family:var(--ff-mono); font-size:11px; letter-spacing:0.1em; text-transform:uppercase; color:var(--muted); margin-top:10px;}
+
+/* ---------- SHOWROOMS ---------- */
+.showrooms-grid{display:grid; grid-template-columns:1fr 1fr; gap:40px;}
+@media (max-width:900px){ .showrooms-grid{grid-template-columns:1fr;} }
+.showroom-card{position:relative; background:var(--panel); border:1px solid var(--line); padding:30px; transform:rotate(var(--tilt,-1deg));}
+.showroom-card:nth-child(2){--tilt:1deg;}
+.showroom-card .city-tag{font-family:var(--ff-mono); font-size:11px; letter-spacing:0.14em; text-transform:uppercase; color:var(--gold); display:inline-block; margin-bottom:14px; transform:rotate(-2deg);}
+.showroom-card h3{font-family:var(--ff-display); font-size:2rem; font-weight:400; margin:0 0 18px;}
+.detail-row{display:flex; gap:12px; align-items:flex-start; padding:12px 0; border-top:1px solid var(--line);}
+.detail-row:first-of-type{border-top:none;}
+.detail-row svg{flex:0 0 auto; width:18px; height:18px; margin-top:2px; color:var(--emerald-2);}
+.detail-row strong{display:block; font-size:0.78rem; letter-spacing:0.06em; text-transform:uppercase; color:var(--muted); margin-bottom:3px;}
+.detail-row .val{color:var(--white); font-size:0.96rem;}
+.detail-row .val a{color:var(--emerald-glow);}
+.map-embed{width:100%; height:220px; border:0; filter:grayscale(0.4) invert(0.92) contrast(0.9); margin-top:18px;}
+.showroom-card .btn-outline{margin-top:16px; width:100%; justify-content:center;}
+
+/* ---------- AVIS ---------- */
+.avis-grid{display:grid; grid-template-columns:1fr 1fr; gap:34px;}
+@media (max-width:820px){ .avis-grid{grid-template-columns:1fr;} }
+.rating-card{
+  display:block; background:var(--panel); border:1px solid var(--line); padding:30px; transform:rotate(var(--tilt,1.2deg));
+  transition:transform .3s, border-color .3s;
+}
+.rating-card:nth-child(2){--tilt:-1.2deg;}
+.rating-card:hover{border-color:var(--gold); transform:rotate(0deg) translateY(-4px);}
+.rating-number{font-family:var(--ff-display); font-size:56px; color:var(--white);}
+.rating-number span{font-size:22px; color:var(--muted);}
+.stars{display:flex; gap:4px; margin:14px 0;}
+.stars svg{width:18px; height:18px;}
+.stars .filled{fill:var(--gold);}
+.stars .empty{fill:none; stroke:var(--muted-2); stroke-width:1.4;}
+.rating-card .count{color:var(--muted); font-size:0.92rem; margin:0 0 16px;}
+.rating-card .btn-outline{display:inline-flex;}
+.avis-note{text-align:center; color:var(--muted-2); font-size:0.82rem; margin-top:26px;}
+
+/* ---------- INSTAGRAM band ---------- */
+.ig-band{
+  position:relative; padding:100px 0; text-align:center; overflow:hidden;
+  background:radial-gradient(80% 100% at 50% 100%, rgba(31,122,82,0.35), transparent 70%);
+}
+.ig-count{
+  font-family:var(--ff-display); font-size:clamp(90px,16vw,220px); line-height:0.85; color:var(--white);
+  background:linear-gradient(120deg,var(--gold-light),var(--emerald-glow)); -webkit-background-clip:text; background-clip:text; color:transparent;
+}
+.ig-handle{font-family:var(--ff-mono); font-size:14px; letter-spacing:0.14em; color:var(--gold-light); margin-top:6px;}
+.ig-line{max-width:480px; margin:22px auto 30px; color:var(--muted);}
+
+/* ---------- CONTACT CTA ---------- */
+.contact-cta{background:var(--black-2); border-top:1px solid var(--line); padding:110px 0;}
+.cta-grid{display:grid; grid-template-columns:1.1fr 1fr; gap:50px; align-items:end;}
+@media (max-width:900px){ .cta-grid{grid-template-columns:1fr;} }
+.cta-title{font-family:var(--ff-display); font-weight:400; font-size:clamp(36px,5.4vw,72px); line-height:1.02; margin:0;}
+.cta-title em{color:var(--gold-light); font-style:italic;}
+.cta-channels{display:grid; gap:16px;}
+.cta-channel{display:flex; align-items:center; justify-content:space-between; gap:16px; border-top:1px solid var(--line); padding:18px 0;}
+.cta-channel:first-child{border-top:none;}
+.cta-channel .label{font-family:var(--ff-mono); font-size:11px; letter-spacing:0.1em; text-transform:uppercase; color:var(--muted);}
+.cta-channel .value{font-family:var(--ff-display); font-size:1.5rem;}
+.cta-channel .value:hover{color:var(--gold-light);}
+
+/* ---------- FOOTER ---------- */
+.site-footer{background:var(--black); border-top:1px solid var(--line); padding:70px 0 28px;}
+.footer-grid{display:grid; grid-template-columns:1.4fr 1fr 1fr 1fr; gap:40px;}
+@media (max-width:860px){ .footer-grid{grid-template-columns:1fr 1fr;} }
+@media (max-width:560px){ .footer-grid{grid-template-columns:1fr;} }
+.footer-brand svg{width:170px; height:auto; margin-bottom:16px;}
+.footer-brand p{color:var(--muted); font-size:0.9rem; max-width:280px;}
+.footer-social{display:flex; gap:12px; margin-top:16px;}
+.footer-social a{width:38px; height:38px; border:1px solid var(--line-strong); border-radius:50%; display:flex; align-items:center; justify-content:center;}
+.footer-social a:hover{border-color:var(--gold);}
+.footer-social svg{width:16px; height:16px;}
+.site-footer h5{font-family:var(--ff-mono); font-size:11px; letter-spacing:0.14em; text-transform:uppercase; color:var(--muted); margin:0 0 16px;}
+.site-footer ul li{margin-bottom:10px;}
+.site-footer a:hover{color:var(--gold-light);}
+.site-footer .contact-line{color:var(--muted); font-size:0.92rem; line-height:1.7;}
+.footer-bottom{display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px; border-top:1px solid var(--line); margin-top:56px; padding-top:22px; color:var(--muted-2); font-size:0.8rem;}
+
+/* ---------- back to top magnetic ---------- */
+.back-to-top{
+  position:fixed; right:24px; bottom:24px; z-index:850; width:56px; height:56px; border-radius:50%;
+  border:1px solid var(--line-strong); background:rgba(7,8,10,0.7); backdrop-filter:blur(6px);
+  display:flex; align-items:center; justify-content:center; opacity:0; pointer-events:none; transition:opacity .3s;
+}
+.back-to-top.is-visible{opacity:1; pointer-events:auto;}
+.back-to-top svg{width:18px; height:18px;}
+.back-to-top:hover{border-color:var(--gold);}
+</style>
+</head>
+<body class="has-grain">
+
+<div class="grain" aria-hidden="true"></div>
+<div class="cursor-ring" id="cursorRing" aria-hidden="true"></div>
+<div class="cursor-dot" id="cursorDot" aria-hidden="true"></div>
+<div class="scroll-progress" id="scrollProgress" aria-hidden="true"></div>
+
+<div class="preloader" id="preloader" aria-hidden="true">
+  <p class="preloader-word" data-split-instant>TANGER CARREAUX</p>
+  <div class="preloader-bar"><span id="preloaderBar"></span></div>
+  <p class="preloader-tag">Négoce de carrelage &amp; sanitaire — Tanger · Casablanca</p>
+</div>
+
+<div class="page-transition" id="pageTransition" aria-hidden="true">
+  <div class="pt-panel pt-panel--emerald"></div>
+  <div class="pt-panel pt-panel--gold"></div>
+  <div class="pt-panel pt-panel--black"></div>
+</div>
+
+<header class="site-header">
+  <a href="#hero" class="brand-lockup" data-magnetic data-lenis-anchor>
+    <svg viewBox="0 0 700 230" role="img" aria-label="Tanger Carreaux">
+      <defs><linearGradient id="tc-green" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#34a374"/><stop offset="1" stop-color="#1f7a52"/></linearGradient></defs>
+      <rect x="296" y="92" width="338" height="54" fill="url(#tc-green)"/>
+      <g stroke="#eafaf4" stroke-width="1.5"><line x1="363.6" y1="92" x2="363.6" y2="146"/><line x1="431.2" y1="92" x2="431.2" y2="146"/><line x1="498.8" y1="92" x2="498.8" y2="146"/><line x1="566.4" y1="92" x2="566.4" y2="146"/><line x1="296" y1="119" x2="634" y2="119"/></g>
+      <path d="M 38,88 Q 66,60 104,70" fill="none" stroke="#f2f4f1" stroke-width="4" stroke-linecap="round"/>
+      <text x="56" y="132" font-family="'Arial Black','Helvetica Neue',Arial,sans-serif" font-weight="900" font-size="54" letter-spacing="0.5" fill="#f2f4f1">TANGER</text>
+      <text x="306" y="132" font-family="'Arial Black','Helvetica Neue',Arial,sans-serif" font-weight="900" font-size="54" letter-spacing="0.5" fill="#f2f4f1">CARREAUX</text>
+      <path d="M 38,88 C 45,185 240,205 380,186 C 480,172 555,157 602,143 C 616,139 626,132 632,122" fill="none" stroke="#34a374" stroke-width="4" stroke-linecap="round"/>
+    </svg>
+  </a>
+  <nav class="header-nav">
+    <a href="#univers" data-lenis-anchor>Univers</a>
+    <a href="#showrooms" data-lenis-anchor>Showrooms</a>
+    <a href="#avis" data-lenis-anchor>Avis</a>
+    <a href="#contact" data-lenis-anchor>Contact</a>
+  </nav>
+  <div class="header-actions">
+    <a href="tel:+212539324696" class="header-phone" data-magnetic>05 39 32 46 96</a>
+    <a href="index.html" class="btn-catalogue" data-magnetic>Catalogue complet →</a>
+  </div>
+</header>
+
+<main>
+
+  <!-- ================= HERO ================= -->
+  <section class="hero" id="hero">
+    <div class="hero-layer" data-parallax="0.35">
+      <img src="assets/images/hero-bathroom.jpg" alt="Showroom Tanger Carreaux — salle de bain marbre et laiton, miroir LED">
+    </div>
+    <div class="hero-vignette"></div>
+    <figure class="hero-sticker torn" data-parallax="0.6">
+      <img src="assets/images/motifs/motif-porcelaine.jpg" alt="Détail grand format porcelaine — matière Tanger Carreaux">
+      <figcaption>Grand format — porcelaine</figcaption>
+    </figure>
+
+    <div class="hero-content">
+      <p class="hero-eyebrow">Tanger Carreaux S.A.R.L. — depuis Tanger</p>
+      <h1 class="hero-title">
+        <span class="line line--tilt" data-split>TANGER</span>
+        <span class="line"><span class="line--stamp" data-split>CARREAUX</span></span>
+      </h1>
+      <p class="hero-sub">Nos gammes multiples et uniques sur le marché, c'est la force de notre positionnement.</p>
+      <p class="hero-note">Carrelage, sanitaire, robinetterie, mosaïque &amp; pierre naturelle — showrooms à Tanger (Avenue Moulay Youssef) et Casablanca (Route de Mediouna).</p>
+      <div class="hero-ctas">
+        <a href="index.html" class="btn btn-primary" data-magnetic>Voir le catalogue</a>
+        <a href="tel:+212539324696" class="btn btn-outline" data-magnetic>Appeler Tanger — 05 39 32 46 96</a>
+        <a href="https://wa.me/212653775609" target="_blank" rel="noopener" class="btn btn-outline" data-magnetic>WhatsApp Casablanca</a>
+      </div>
+    </div>
+    <span class="hero-scroll-cue">Défiler pour explorer</span>
+  </section>
+
+  <div class="marquee-band">
+    <div class="marquee">
+      <div class="marquee-track">
+        <span>Carrelage</span><span class="accent">Sanitaire</span><span>Robinetterie</span><span class="accent">Mosaïque &amp; Pierre</span><span>Meubles de salle de bain</span><span class="accent">Miroirs LED</span><span>Déstockage</span><span class="accent">Tanger</span><span>Casablanca</span>
+        <span>Carrelage</span><span class="accent">Sanitaire</span><span>Robinetterie</span><span class="accent">Mosaïque &amp; Pierre</span><span>Meubles de salle de bain</span><span class="accent">Miroirs LED</span><span>Déstockage</span><span class="accent">Tanger</span><span>Casablanca</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= UNIVERS ================= -->
+  <section class="section" id="univers">
+    <div class="container">
+      <div class="section-head">
+        <p class="eyebrow">Nos univers produits</p>
+        <h2 data-split-scroll>Sept univers, un seul geste</h2>
+        <p>Carrelage, sanitaire, robinetterie, mosaïque &amp; pierre, meubles de salle de bain, miroirs LED et déstockage — le catalogue complet reste léger et rapide, volontairement.</p>
+      </div>
+
+      <div class="univers-grid">
+        <a class="univers-card reveal-up" href="carrelage.html" data-magnetic-soft style="--img:url('assets/images/carrelage-interieur.jpg');">
+          <div class="media"><img src="assets/images/carrelage-interieur.jpg" alt="Carrelage intérieur — Tanger Carreaux" loading="lazy"></div>
+          <div class="meta"><div><span class="num">01</span><h3>Carrelage</h3></div><span class="arrow">Voir →</span></div>
+        </a>
+        <a class="univers-card reveal-up" href="sanitaire.html" data-magnetic-soft style="--img:url('assets/images/sanitaire.jpg');">
+          <div class="media"><img src="assets/images/sanitaire.jpg" alt="Sanitaire — Tanger Carreaux" loading="lazy"></div>
+          <div class="meta"><div><span class="num">02</span><h3>Sanitaire</h3></div><span class="arrow">Voir →</span></div>
+        </a>
+        <a class="univers-card reveal-up" href="robinetterie.html" data-magnetic-soft style="--img:url('assets/images/robinetterie.jpg');">
+          <div class="media"><img src="assets/images/robinetterie.jpg" alt="Robinetterie — Tanger Carreaux" loading="lazy"></div>
+          <div class="meta"><div><span class="num">03</span><h3>Robinetterie</h3></div><span class="arrow">Voir →</span></div>
+        </a>
+        <a class="univers-card reveal-up" href="mosaique-pierre.html" data-magnetic-soft style="--img:url('assets/images/mosaique-pierre.jpg');">
+          <div class="media"><img src="assets/images/mosaique-pierre.jpg" alt="Mosaïque et pierre naturelle — Tanger Carreaux" loading="lazy"></div>
+          <div class="meta"><div><span class="num">04</span><h3>Mosaïque &amp; Pierre</h3></div><span class="arrow">Voir →</span></div>
+        </a>
+        <a class="univers-card reveal-up" href="meubles-salle-de-bain.html" data-magnetic-soft style="--img:url('assets/images/about-marble.jpg');">
+          <div class="media"><img src="assets/images/about-marble.jpg" alt="Meubles de salle de bain — Tanger Carreaux" loading="lazy"></div>
+          <div class="meta"><div><span class="num">05</span><h3>Meubles de salle de bain</h3></div><span class="arrow">Voir →</span></div>
+        </a>
+        <a class="univers-card reveal-up" href="miroirs-led.html" data-magnetic-soft style="--img:url('assets/images/showroom-interior.jpg');">
+          <div class="media"><img src="assets/images/showroom-interior.jpg" alt="Miroirs LED — Tanger Carreaux" loading="lazy"></div>
+          <div class="meta"><div><span class="num">06</span><h3>Miroirs LED</h3></div><span class="arrow">Voir →</span></div>
+        </a>
+        <a class="univers-card reveal-up" href="destockage.html" data-magnetic-soft style="--img:url('assets/images/carrelage-exterieur.jpg');">
+          <span class="tag">Offres en cours</span>
+          <div class="media"><img src="assets/images/carrelage-exterieur.jpg" alt="Déstockage — Tanger Carreaux" loading="lazy"></div>
+          <div class="meta"><div><span class="num">07</span><h3>Déstockage</h3></div><span class="arrow">Voir →</span></div>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= CHIFFRES ================= -->
+  <section class="chiffres" id="chiffres" style="--texture-porcelaine:url('assets/images/motifs/motif-porcelaine.jpg');">
+    <div class="container section">
+      <div class="chiffres-grid">
+        <div class="chiffre reveal-up"><div class="value" data-count-to="47" data-suffix="K">0K</div><div class="label">Abonnés Instagram — @tangercarreaux</div></div>
+        <div class="chiffre reveal-up"><div class="value" data-count-to="2">0</div><div class="label">Showrooms au Maroc — Tanger &amp; Casablanca</div></div>
+        <div class="chiffre reveal-up"><div class="value">3,6<span>/5</span></div><div class="label">Note Google — Showroom Tanger (10 avis)</div></div>
+        <div class="chiffre reveal-up"><div class="value">4,1<span>/5</span></div><div class="label">Note Google — Showroom Casablanca (22 avis)</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= SHOWROOMS ================= -->
+  <section class="section" id="showrooms">
+    <div class="container">
+      <div class="section-head">
+        <p class="eyebrow">Nos points de vente</p>
+        <h2 data-split-scroll>Tanger, siège historique. Casablanca, développement.</h2>
+        <p>Nos horaires précis sont en cours de confirmation — le plus simple est de nous appeler avant votre visite.</p>
+      </div>
+      <div class="showrooms-grid">
+
+        <div class="showroom-card reveal-up">
+          <span class="city-tag">Tanger — siège historique</span>
+          <h3>Showroom Tanger</h3>
+          <div class="detail-row">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 21s-7-4.5-9.5-9A5.5 5.5 0 0 1 12 6a5.5 5.5 0 0 1 9.5 6c-2.5 4.5-9.5 9-9.5 9Z"/></svg>
+            <div><strong>Adresse</strong><span class="val">Avenue Moulay Youssef, angle Rue Mimosa, Immeuble Mimosa N°1-2, Magasin 21, Tanger</span></div>
+          </div>
+          <div class="detail-row">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.68 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.32 1.85.55 2.81.68A2 2 0 0 1 22 16.92Z"/></svg>
+            <div><strong>Téléphones</strong><span class="val"><a href="tel:+212539324696">05 39 32 46 96</a> · <a href="tel:+212539324697">05 39 32 46 97</a></span></div>
+          </div>
+          <iframe class="map-embed" loading="lazy" referrerpolicy="no-referrer-when-downgrade" src="https://www.google.com/maps?q=35.7702193,-5.8080179+(Tanger+Carreaux)&z=17&output=embed" title="Carte — Showroom Tanger Carreaux, Tanger"></iframe>
+          <a href="https://www.google.com/maps/place/Magasin+Tanger+Carreaux+SARL/@35.7702193,-5.8080179,17z" target="_blank" rel="noopener" class="btn btn-outline" data-magnetic>Itinéraire vers Tanger</a>
+        </div>
+
+        <div class="showroom-card reveal-up">
+          <span class="city-tag">Casablanca — développement</span>
+          <h3>Showroom Casablanca</h3>
+          <div class="detail-row">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 21s-7-4.5-9.5-9A5.5 5.5 0 0 1 12 6a5.5 5.5 0 0 1 9.5 6c-2.5 4.5-9.5 9-9.5 9Z"/></svg>
+            <div><strong>Adresse</strong><span class="val">Route de Mediouna, km 12, Casablanca</span></div>
+          </div>
+          <div class="detail-row">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.68 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.32 1.85.55 2.81.68A2 2 0 0 1 22 16.92Z"/></svg>
+            <div><strong>Téléphone / WhatsApp</strong><span class="val"><a href="tel:+212653775609">06 53 77 56 09</a></span></div>
+          </div>
+          <iframe class="map-embed" loading="lazy" referrerpolicy="no-referrer-when-downgrade" src="https://www.google.com/maps?q=33.5084188,-7.5460645+(Tanger+Carreaux)&z=17&output=embed" title="Carte — Showroom Tanger Carreaux, Casablanca"></iframe>
+          <a href="https://www.google.com/maps/place/Tanger+carreaux+mediouna/@33.5084188,-7.5460645,17z" target="_blank" rel="noopener" class="btn btn-outline" data-magnetic>Itinéraire vers Casablanca</a>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= AVIS ================= -->
+  <section class="section section-tight" id="avis">
+    <div class="container">
+      <div class="section-head" style="margin-left:auto; margin-right:auto; text-align:center;">
+        <p class="eyebrow" style="justify-content:center;">Avis Google — vérifiés</p>
+        <h2 data-split-scroll>Ce que disent nos avis</h2>
+        <p style="margin-left:auto; margin-right:auto;">Notes affichées telles qu'elles apparaissent publiquement sur nos fiches Google Business, sans tri ni sélection.</p>
+      </div>
+      <div class="avis-grid">
+        <a class="rating-card reveal-up" href="https://www.google.com/maps/place/Magasin+Tanger+Carreaux+SARL/@35.7702193,-5.8080179,17z" target="_blank" rel="noopener">
+          <span class="city-tag">Showroom Tanger</span>
+          <div class="rating-number">3,6<span>/5</span></div>
+          <div class="stars" aria-hidden="true">
+            <svg class="filled" viewBox="0 0 24 24"><path d="M12 2 14.9 8.6 22 9.3 16.7 14.1 18.2 21 12 17.3 5.8 21 7.3 14.1 2 9.3 9.1 8.6 12 2Z"/></svg>
+            <svg class="filled" viewBox="0 0 24 24"><path d="M12 2 14.9 8.6 22 9.3 16.7 14.1 18.2 21 12 17.3 5.8 21 7.3 14.1 2 9.3 9.1 8.6 12 2Z"/></svg>
+            <svg class="filled" viewBox="0 0 24 24"><path d="M12 2 14.9 8.6 22 9.3 16.7 14.1 18.2 21 12 17.3 5.8 21 7.3 14.1 2 9.3 9.1 8.6 12 2Z"/></svg>
+            <svg class="filled" viewBox="0 0 24 24"><path d="M12 2 14.9 8.6 22 9.3 16.7 14.1 18.2 21 12 17.3 5.8 21 7.3 14.1 2 9.3 9.1 8.6 12 2Z"/></svg>
+            <svg class="empty" viewBox="0 0 24 24"><path d="M12 2 14.9 8.6 22 9.3 16.7 14.1 18.2 21 12 17.3 5.8 21 7.3 14.1 2 9.3 9.1 8.6 12 2Z"/></svg>
+          </div>
+          <p class="count">10 avis sur Google</p>
+          <span class="btn btn-outline" data-magnetic>Voir les avis</span>
+        </a>
+        <a class="rating-card reveal-up" href="https://www.google.com/maps/place/Tanger+carreaux+mediouna/@33.5084188,-7.5460645,17z" target="_blank" rel="noopener">
+          <span class="city-tag">Showroom Casablanca</span>
+          <div class="rating-number">4,1<span>/5</span></div>
+          <div class="stars" aria-hidden="true">
+            <svg class="filled" viewBox="0 0 24 24"><path d="M12 2 14.9 8.6 22 9.3 16.7 14.1 18.2 21 12 17.3 5.8 21 7.3 14.1 2 9.3 9.1 8.6 12 2Z"/></svg>
+            <svg class="filled" viewBox="0 0 24 24"><path d="M12 2 14.9 8.6 22 9.3 16.7 14.1 18.2 21 12 17.3 5.8 21 7.3 14.1 2 9.3 9.1 8.6 12 2Z"/></svg>
+            <svg class="filled" viewBox="0 0 24 24"><path d="M12 2 14.9 8.6 22 9.3 16.7 14.1 18.2 21 12 17.3 5.8 21 7.3 14.1 2 9.3 9.1 8.6 12 2Z"/></svg>
+            <svg class="filled" viewBox="0 0 24 24"><path d="M12 2 14.9 8.6 22 9.3 16.7 14.1 18.2 21 12 17.3 5.8 21 7.3 14.1 2 9.3 9.1 8.6 12 2Z"/></svg>
+            <svg class="empty" viewBox="0 0 24 24"><path d="M12 2 14.9 8.6 22 9.3 16.7 14.1 18.2 21 12 17.3 5.8 21 7.3 14.1 2 9.3 9.1 8.6 12 2Z"/></svg>
+          </div>
+          <p class="count">22 avis sur Google</p>
+          <span class="btn btn-outline" data-magnetic>Voir les avis</span>
+        </a>
+      </div>
+      <p class="avis-note">Voir également <a href="avis.html" style="text-decoration:underline;">la page Avis clients</a> du site complet.</p>
+    </div>
+  </section>
+
+  <!-- ================= INSTAGRAM ================= -->
+  <section class="ig-band">
+    <div class="container">
+      <p class="eyebrow" style="justify-content:center;">@tangercarreaux</p>
+      <div class="ig-count" data-count-to="47" data-suffix="K">0K</div>
+      <p class="ig-handle">abonnés Instagram</p>
+      <p class="ig-line">Une communauté qui grandit chaque jour et qui fait de Tanger Carreaux une référence reconnue dans le négoce de carrelage et d'équipement de salle de bain au Maroc.</p>
+      <a href="https://www.instagram.com/tangercarreaux" target="_blank" rel="noopener" class="btn btn-primary" data-magnetic>Voir Instagram</a>
+    </div>
+  </section>
+
+  <!-- ================= CONTACT ================= -->
+  <section class="contact-cta" id="contact">
+    <div class="container">
+      <div class="cta-grid">
+        <h2 class="cta-title reveal-up">Un projet ?<br><em>Parlons-en</em> à Tanger ou à Casablanca.</h2>
+        <div class="cta-channels reveal-up">
+          <div class="cta-channel">
+            <span class="label">Tanger</span>
+            <a class="value" href="tel:+212539324696" data-magnetic>05 39 32 46 96</a>
+          </div>
+          <div class="cta-channel">
+            <span class="label">Casablanca / WhatsApp</span>
+            <a class="value" href="https://wa.me/212653775609" target="_blank" rel="noopener" data-magnetic>06 53 77 56 09</a>
+          </div>
+          <div class="cta-channel">
+            <span class="label">Email</span>
+            <a class="value" href="mailto:tangercarreaux1@gmail.com" data-magnetic style="font-size:1.05rem;">tangercarreaux1@gmail.com</a>
+          </div>
+          <div class="cta-channel">
+            <span class="label">Formulaire complet</span>
+            <a class="value" href="contact.html" data-magnetic style="font-size:1.05rem;">contact.html →</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="site-footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <svg viewBox="0 0 700 230" role="img" aria-label="Tanger Carreaux">
+          <defs><linearGradient id="tc-green-f" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#34a374"/><stop offset="1" stop-color="#1f7a52"/></linearGradient></defs>
+          <rect x="296" y="92" width="338" height="54" fill="url(#tc-green-f)"/>
+          <g stroke="#eafaf4" stroke-width="1.5"><line x1="363.6" y1="92" x2="363.6" y2="146"/><line x1="431.2" y1="92" x2="431.2" y2="146"/><line x1="498.8" y1="92" x2="498.8" y2="146"/><line x1="566.4" y1="92" x2="566.4" y2="146"/><line x1="296" y1="119" x2="634" y2="119"/></g>
+          <text x="56" y="132" font-family="'Arial Black','Helvetica Neue',Arial,sans-serif" font-weight="900" font-size="54" letter-spacing="0.5" fill="#f2f4f1">TANGER</text>
+          <text x="306" y="132" font-family="'Arial Black','Helvetica Neue',Arial,sans-serif" font-weight="900" font-size="54" letter-spacing="0.5" fill="#f2f4f1">CARREAUX</text>
+          <path d="M 38,88 C 45,185 240,205 380,186 C 480,172 555,157 602,143 C 616,139 626,132 632,122" fill="none" stroke="#34a374" stroke-width="4" stroke-linecap="round"/>
+        </svg>
+        <p>Négoce de carrelage, faïence, sanitaire, robinetterie, mosaïque et pierre naturelle. Deux showrooms au Maroc — Tanger et Casablanca.</p>
+        <div class="footer-social">
+          <a href="https://www.instagram.com/tangercarreaux" target="_blank" rel="noopener" aria-label="Instagram" data-magnetic><svg viewBox="0 0 24 24"><defs><linearGradient id="igGradF" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#FED576"/><stop offset="0.26" stop-color="#F47133"/><stop offset="0.61" stop-color="#BC3081"/><stop offset="1" stop-color="#4C63D2"/></linearGradient></defs><path fill="url(#igGradF)" d="M12 0C8.74 0 8.333.014 7.053.072 5.775.132 4.905.333 4.14.63c-.789.306-1.459.717-2.126 1.384S.935 3.35.63 4.14C.333 4.905.131 5.775.072 7.053.014 8.333 0 8.74 0 12s.014 3.667.072 4.947c.06 1.277.261 2.148.558 2.913.306.788.717 1.459 1.384 2.126.667.666 1.336 1.079 2.126 1.384.766.296 1.636.499 2.913.558C8.333 23.988 8.74 24 12 24s3.667-.014 4.947-.072c1.277-.06 2.148-.262 2.913-.558.788-.306 1.459-.718 2.126-1.384.666-.667 1.079-1.335 1.384-2.126.296-.765.499-1.636.558-2.913.06-1.28.072-1.687.072-4.947s-.014-3.667-.072-4.947c-.06-1.277-.262-2.149-.558-2.913-.306-.789-.718-1.459-1.384-2.126C21.319 1.347 20.651.935 19.86.63c-.765-.297-1.636-.499-2.913-.558C15.667.014 15.26 0 12 0zm0 2.16c3.203 0 3.585.016 4.85.071 1.17.055 1.805.249 2.227.415.562.217.96.477 1.382.896.419.42.679.819.896 1.381.164.422.36 1.057.413 2.227.057 1.266.07 1.646.07 4.85s-.015 3.585-.074 4.85c-.061 1.17-.256 1.805-.421 2.227-.224.562-.479.96-.897 1.382-.419.419-.824.679-1.38.896-.42.164-1.065.36-2.235.413-1.274.057-1.649.07-4.859.07-3.211 0-3.586-.015-4.859-.074-1.171-.061-1.816-.256-2.236-.421-.569-.224-.96-.479-1.379-.897-.421-.419-.69-.824-.9-1.38-.165-.42-.359-1.065-.42-2.235-.045-1.26-.061-1.649-.061-4.844 0-3.196.016-3.586.061-4.861.061-1.17.255-1.814.42-2.234.21-.57.479-.96.9-1.381.419-.419.81-.689 1.379-.898.42-.166 1.051-.361 2.221-.421 1.275-.045 1.65-.06 4.859-.06l.045.03zm0 3.678c-3.405 0-6.162 2.76-6.162 6.162 0 3.405 2.76 6.162 6.162 6.162 3.405 0 6.162-2.76 6.162-6.162 0-3.405-2.76-6.162-6.162-6.162zM12 16c-2.21 0-4-1.79-4-4s1.79-4 4-4 4 1.79 4 4-1.79 4-4 4zm7.846-10.405c0 .795-.646 1.44-1.44 1.44-.795 0-1.44-.646-1.44-1.44 0-.794.646-1.439 1.44-1.439.793-.001 1.44.645 1.44 1.439z"/></svg></a>
+          <a href="https://www.facebook.com/" target="_blank" rel="noopener" aria-label="Facebook" data-magnetic><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3Z"/></svg></a>
+        </div>
+      </div>
+      <div>
+        <h5>Navigation</h5>
+        <ul>
+          <li><a href="index.html">Accueil</a></li>
+          <li><a href="destockage.html">Déstockage</a></li>
+          <li><a href="carrelage.html">Carrelage</a></li>
+          <li><a href="sanitaire.html">Sanitaire</a></li>
+          <li><a href="robinetterie.html">Robinetterie</a></li>
+          <li><a href="mosaique-pierre.html">Mosaïque &amp; Pierre</a></li>
+          <li><a href="meubles-salle-de-bain.html">Meubles de salle de bain</a></li>
+          <li><a href="miroirs-led.html">Miroirs LED</a></li>
+          <li><a href="showrooms.html">Nos magasins</a></li>
+          <li><a href="a-propos.html">À propos</a></li>
+          <li><a href="avis.html">Avis clients</a></li>
+        </ul>
+      </div>
+      <div>
+        <h5>Showroom Tanger</h5>
+        <p class="contact-line">Avenue Moulay Youssef, angle Rue Mimosa,<br>Immeuble Mimosa N°1-2, Magasin 21, Tanger<br><a href="tel:+212539324696">05 39 32 46 96</a><br><a href="tel:+212539324697">05 39 32 46 97</a></p>
+      </div>
+      <div>
+        <h5>Showroom Casablanca</h5>
+        <p class="contact-line">Route de Mediouna, km 12, Casablanca<br><a href="tel:+212653775609">06 53 77 56 09</a></p>
+        <h5 style="margin-top:22px;">Email</h5>
+        <p class="contact-line"><a href="mailto:tangercarreaux1@gmail.com">tangercarreaux1@gmail.com</a></p>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© <span id="currentYear"></span> Tanger Carreaux S.A.R.L. Tous droits réservés.</span>
+      <span>Édition collage — fichier HTML autonome, sans framework ni build.</span>
+    </div>
+  </div>
+</footer>
+
+<button type="button" class="back-to-top" id="backToTop" aria-label="Retour en haut" data-magnetic>
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+</button>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+
+<script>
+/* ---- Lenis (vendored inline — v1.3.26, no external dependency) ---- */
+(function(){var e=`1.3.26`;function t(e,t,n){return Math.max(e,Math.min(t,n))}function n(e,t,n){return(1-n)*e+n*t}function r(e,t,r,i){return n(e,t,1-Math.exp(-r*i))}function i(e,t){return(e%t+t)%t}var a=class{isRunning=!1;value=0;from=0;to=0;currentTime=0;lerp;duration;easing;onUpdate;advance(e){if(!this.isRunning)return;let n=!1;if(this.duration&&this.easing){this.currentTime+=e;let r=t(0,this.currentTime/this.duration,1);n=r>=1;let i=n?1:this.easing(r);this.value=this.from+(this.to-this.from)*i}else this.lerp?(this.value=r(this.value,this.to,this.lerp*60,e),Math.round(this.value)===Math.round(this.to)&&(this.value=this.to,n=!0)):(this.value=this.to,n=!0);n&&this.stop(),this.onUpdate?.(this.value,n)}stop(){this.isRunning=!1}fromTo(e,t,{lerp:n,duration:r,easing:i,onStart:a,onUpdate:o}){this.from=this.value=e,this.to=t,this.lerp=n,this.duration=r,this.easing=i,this.currentTime=0,this.isRunning=!0,a?.(),this.onUpdate=o}};function o(e,t){let n;return function(...r){clearTimeout(n),n=setTimeout(()=>{n=void 0,e.apply(this,r)},t)}}var s=class{width=0;height=0;scrollHeight=0;scrollWidth=0;debouncedResize;wrapperResizeObserver;contentResizeObserver;constructor(e,t,{autoResize:n=!0,debounce:r=250}={}){this.wrapper=e,this.content=t,n&&(this.debouncedResize=o(this.resize,r),this.wrapper instanceof Window?window.addEventListener(`resize`,this.debouncedResize):(this.wrapperResizeObserver=new ResizeObserver(this.debouncedResize),this.wrapperResizeObserver.observe(this.wrapper)),this.contentResizeObserver=new ResizeObserver(this.debouncedResize),this.contentResizeObserver.observe(this.content)),this.resize()}destroy(){this.wrapperResizeObserver?.disconnect(),this.contentResizeObserver?.disconnect(),this.wrapper===window&&this.debouncedResize&&window.removeEventListener(`resize`,this.debouncedResize)}resize=()=>{this.onWrapperResize(),this.onContentResize()};onWrapperResize=()=>{this.wrapper instanceof Window?(this.width=window.innerWidth,this.height=window.innerHeight):(this.width=this.wrapper.clientWidth,this.height=this.wrapper.clientHeight)};onContentResize=()=>{this.wrapper instanceof Window?(this.scrollHeight=this.content.scrollHeight,this.scrollWidth=this.content.scrollWidth):(this.scrollHeight=this.wrapper.scrollHeight,this.scrollWidth=this.wrapper.scrollWidth)};get limit(){return{x:this.scrollWidth-this.width,y:this.scrollHeight-this.height}}},c=class{events={};emit(e,...t){let n=this.events[e]||[];for(let e=0,r=n.length;e<r;e++)n[e]?.(...t)}on(e,t){return this.events[e]?this.events[e].push(t):this.events[e]=[t],()=>{this.events[e]=this.events[e]?.filter(e=>t!==e)}}off(e,t){this.events[e]=this.events[e]?.filter(e=>t!==e)}destroy(){this.events={}}};let l={passive:!1};function u(e,t){return e===1?16.666666666666668:e===2?t:1}var d=class{touchStart={x:0,y:0};lastDelta={x:0,y:0};window={width:0,height:0};emitter=new c;constructor(e,t={wheelMultiplier:1,touchMultiplier:1}){this.element=e,this.options=t,window.addEventListener(`resize`,this.onWindowResize),this.onWindowResize(),this.element.addEventListener(`wheel`,this.onWheel,l),this.element.addEventListener(`touchstart`,this.onTouchStart,l),this.element.addEventListener(`touchmove`,this.onTouchMove,l),this.element.addEventListener(`touchend`,this.onTouchEnd,l)}on(e,t){return this.emitter.on(e,t)}destroy(){this.emitter.destroy(),window.removeEventListener(`resize`,this.onWindowResize),this.element.removeEventListener(`wheel`,this.onWheel,l),this.element.removeEventListener(`touchstart`,this.onTouchStart,l),this.element.removeEventListener(`touchmove`,this.onTouchMove,l),this.element.removeEventListener(`touchend`,this.onTouchEnd,l)}onTouchStart=e=>{let{clientX:t,clientY:n}=e.targetTouches?e.targetTouches[0]:e;this.touchStart.x=t,this.touchStart.y=n,this.lastDelta={x:0,y:0},this.emitter.emit(`scroll`,{deltaX:0,deltaY:0,event:e})};onTouchMove=e=>{let{clientX:t,clientY:n}=e.targetTouches?e.targetTouches[0]:e,r=-(t-this.touchStart.x)*this.options.touchMultiplier,i=-(n-this.touchStart.y)*this.options.touchMultiplier;this.touchStart.x=t,this.touchStart.y=n,this.lastDelta={x:r,y:i},this.emitter.emit(`scroll`,{deltaX:r,deltaY:i,event:e})};onTouchEnd=e=>{this.emitter.emit(`scroll`,{deltaX:this.lastDelta.x,deltaY:this.lastDelta.y,event:e})};onWheel=e=>{let{deltaX:t,deltaY:n,deltaMode:r}=e,i=u(r,this.window.width),a=u(r,this.window.height);t*=i,n*=a,t*=this.options.wheelMultiplier,n*=this.options.wheelMultiplier,this.emitter.emit(`scroll`,{deltaX:t,deltaY:n,event:e})};onWindowResize=()=>{this.window={width:window.innerWidth,height:window.innerHeight}}};let f=e=>Math.min(1,1.001-2**(-10*e));var p=class{_isScrolling=!1;_isStopped=!1;_isLocked=!1;_preventNextNativeScrollEvent=!1;_resetVelocityTimeout=null;_rafId=null;_isDraggingSelection=!1;reducedMotionMediaQuery=window.matchMedia(`(prefers-reduced-motion: reduce)`);isTouching;isIos;time=0;userData={};lastVelocity=0;velocity=0;direction=0;options;targetScroll;animatedScroll;animate=new a;emitter=new c;dimensions;virtualScroll;constructor({wrapper:t=window,content:n=document.documentElement,eventsTarget:r=t,smoothWheel:i=!0,syncTouch:a=!1,syncTouchLerp:o=.075,touchInertiaExponent:c=1.7,duration:l,easing:u,lerp:p=.1,infinite:m=!1,orientation:h=`vertical`,gestureOrientation:g=h===`horizontal`?`both`:`vertical`,touchMultiplier:_=1,wheelMultiplier:v=1,autoResize:y=!0,prevent:b,virtualScroll:x,overscroll:S=!0,autoRaf:C=!1,anchors:w=!1,autoToggle:T=!1,allowNestedScroll:E=!1,__experimental__naiveDimensions:D=!1,naiveDimensions:O=D,stopInertiaOnNavigate:k=!1,respectReducedMotion:A=!0}={}){window.lenisVersion=e,window.lenis||(window.lenis={}),window.lenis.version=e,h===`horizontal`&&(window.lenis.horizontal=!0),a===!0&&(window.lenis.touch=!0),this.isIos=/(iPad|iPhone|iPod)/g.test(navigator.userAgent),(!t||t===document.documentElement)&&(t=window),typeof l==`number`&&typeof u!=`function`?u=f:typeof u==`function`&&typeof l!=`number`&&(l=1),this.options={wrapper:t,content:n,eventsTarget:r,smoothWheel:i,syncTouch:a,syncTouchLerp:o,touchInertiaExponent:c,duration:l,easing:u,lerp:p,infinite:m,gestureOrientation:g,orientation:h,touchMultiplier:_,wheelMultiplier:v,autoResize:y,prevent:b,virtualScroll:x,overscroll:S,autoRaf:C,anchors:w,autoToggle:T,allowNestedScroll:E,naiveDimensions:O,stopInertiaOnNavigate:k,respectReducedMotion:A},this.dimensions=new s(t,n,{autoResize:y}),this.updateClassName(),this.targetScroll=this.animatedScroll=this.actualScroll,this.options.wrapper.addEventListener(`scroll`,this.onNativeScroll),this.options.wrapper.addEventListener(`scrollend`,this.onScrollEnd,{capture:!0}),(this.options.anchors||this.options.stopInertiaOnNavigate)&&this.options.wrapper.addEventListener(`click`,this.onClick),this.options.wrapper.addEventListener(`pointerdown`,this.onPointerDown),this.virtualScroll=new d(r,{touchMultiplier:_,wheelMultiplier:v}),this.virtualScroll.on(`scroll`,this.onVirtualScroll),this.options.autoToggle&&(this.checkOverflow(),this.rootElement.addEventListener(`transitionend`,this.onTransitionEnd)),this.options.autoRaf&&(this._rafId=requestAnimationFrame(this.raf))}destroy(){this.emitter.destroy(),this.options.wrapper.removeEventListener(`scroll`,this.onNativeScroll),this.options.wrapper.removeEventListener(`scrollend`,this.onScrollEnd,{capture:!0}),this.options.wrapper.removeEventListener(`pointerdown`,this.onPointerDown),(this.options.anchors||this.options.stopInertiaOnNavigate)&&this.options.wrapper.removeEventListener(`click`,this.onClick),this.virtualScroll.destroy(),this.dimensions.destroy(),this.cleanUpClassName(),this._rafId&&cancelAnimationFrame(this._rafId)}on(e,t){return this.emitter.on(e,t)}off(e,t){return this.emitter.off(e,t)}onScrollEnd=e=>{e instanceof CustomEvent||(this.isScrolling===`smooth`||this.isScrolling===!1)&&e.stopPropagation()};dispatchScrollendEvent=()=>{this.options.wrapper.dispatchEvent(new CustomEvent(`scrollend`,{bubbles:this.options.wrapper===window,detail:{lenisScrollEnd:!0}}))};get overflow(){let e=this.isHorizontal?`overflow-x`:`overflow-y`;return getComputedStyle(this.rootElement)[e]}checkOverflow(){[`hidden`,`clip`].includes(this.overflow)?this.internalStop():this.internalStart()}onTransitionEnd=e=>{e.propertyName?.includes(`overflow`)&&e.target===this.rootElement&&this.checkOverflow()};setScroll(e){this.isHorizontal?this.options.wrapper.scrollTo({left:e,behavior:`instant`}):this.options.wrapper.scrollTo({top:e,behavior:`instant`})}onClick=e=>{let t=e.composedPath().filter(e=>e instanceof HTMLAnchorElement&&e.href).map(e=>new URL(e.href)),n=new URL(window.location.href);if(this.options.anchors){let e=t.find(e=>n.host===e.host&&n.pathname===e.pathname&&e.hash);if(e){let t=typeof this.options.anchors==`object`&&this.options.anchors?this.options.anchors:void 0,n=decodeURIComponent(e.hash);this.scrollTo(n,t);return}}if(this.options.stopInertiaOnNavigate&&t.some(e=>n.host===e.host&&n.pathname!==e.pathname)){this.reset();return}};onPointerDown=e=>{e.button===1&&this.reset()};isTouchOnSelectionHandle(e){let t=window.getSelection();if(!t||t.isCollapsed||t.rangeCount===0)return!1;let n=e.targetTouches[0]??e.changedTouches[0];if(!n)return!1;let r=t.getRangeAt(0).getClientRects();if(r.length===0)return!1;let i=r[0],a=r[r.length-1],o=Math.hypot(n.clientX-i.left,n.clientY-i.top)<=40,s=Math.hypot(n.clientX-a.right,n.clientY-a.bottom)<=40;return o||s}onVirtualScroll=e=>{if(typeof this.options.virtualScroll==`function`&&this.options.virtualScroll(e)===!1)return;let{deltaX:t,deltaY:n,event:r}=e;if(this.emitter.emit(`virtual-scroll`,{deltaX:t,deltaY:n,event:r}),r.ctrlKey||r.lenisStopPropagation)return;let i=r.type.includes(`touch`),a=r.type.includes(`wheel`);if(i&&this.isIos&&(r.type===`touchstart`&&(this._isDraggingSelection=this.isTouchOnSelectionHandle(r)),this._isDraggingSelection)){r.type===`touchend`&&(this._isDraggingSelection=!1);return}this.isTouching=r.type===`touchstart`||r.type===`touchmove`;let o=t===0&&n===0;if(this.options.syncTouch&&i&&r.type===`touchstart`&&o&&!this.isStopped&&!this.isLocked){this.reset();return}let s=this.options.gestureOrientation===`vertical`&&n===0||this.options.gestureOrientation===`horizontal`&&t===0;if(o||s)return;let c=r.composedPath();c=c.slice(0,c.indexOf(this.rootElement));let l=this.options.prevent,u=Math.abs(t)>=Math.abs(n)?`horizontal`:`vertical`;if(c.find(e=>e instanceof HTMLElement&&(typeof l==`function`&&l?.(e)||e.hasAttribute?.(`data-lenis-prevent`)||u===`vertical`&&e.hasAttribute?.(`data-lenis-prevent-vertical`)||u===`horizontal`&&e.hasAttribute?.(`data-lenis-prevent-horizontal`)||i&&e.hasAttribute?.(`data-lenis-prevent-touch`)||a&&e.hasAttribute?.(`data-lenis-prevent-wheel`)||this.options.allowNestedScroll&&this.hasNestedScroll(e,{deltaX:t,deltaY:n}))))return;if(this.isStopped||this.isLocked){r.cancelable&&r.preventDefault();return}if(!(this.options.syncTouch&&i||this.options.smoothWheel&&a)){this.isScrolling=`native`,this.animate.stop(),r.lenisStopPropagation=!0;return}let d=n;this.options.gestureOrientation===`both`?d=Math.abs(n)>Math.abs(t)?n:t:this.options.gestureOrientation===`horizontal`&&(d=t),(!this.options.overscroll||this.options.infinite||this.options.wrapper!==window&&this.limit>0&&(this.animatedScroll>0&&this.animatedScroll<this.limit||this.animatedScroll===0&&n>0||this.animatedScroll===this.limit&&n<0))&&(r.lenisStopPropagation=!0),r.cancelable&&r.preventDefault();let f=i&&this.options.syncTouch,p=i&&r.type===`touchend`;p&&(d=Math.sign(d)*Math.abs(this.velocity)**this.options.touchInertiaExponent),this.scrollTo(this.targetScroll+d,{programmatic:!1,...f?{lerp:p?this.options.syncTouchLerp:1}:{lerp:this.options.lerp,duration:this.options.duration,easing:this.options.easing}})};resize(){this.dimensions.resize(),this.animatedScroll=this.targetScroll=this.actualScroll,this.emit()}emit(){this.emitter.emit(`scroll`,this)}onNativeScroll=()=>{if(this._resetVelocityTimeout!==null&&(clearTimeout(this._resetVelocityTimeout),this._resetVelocityTimeout=null),this._preventNextNativeScrollEvent){this._preventNextNativeScrollEvent=!1;return}if(this.isScrolling===!1||this.isScrolling===`native`){let e=this.animatedScroll;this.animatedScroll=this.targetScroll=this.actualScroll,this.lastVelocity=this.velocity,this.velocity=this.animatedScroll-e,this.direction=Math.sign(this.animatedScroll-e),this.isStopped||(this.isScrolling=`native`),this.emit(),this.velocity!==0&&(this._resetVelocityTimeout=setTimeout(()=>{this.lastVelocity=this.velocity,this.velocity=0,this.isScrolling=!1,this.emit()},400))}};reset(){this.isLocked=!1,this.isScrolling=!1,this.animatedScroll=this.targetScroll=this.actualScroll,this.lastVelocity=this.velocity=0,this.animate.stop()}start(){if(this.isStopped){if(this.options.autoToggle){this.rootElement.style.removeProperty(`overflow`);return}this.internalStart()}}internalStart(){this.isStopped&&(this.reset(),this.isStopped=!1,this.emit())}stop(){if(!this.isStopped){if(this.options.autoToggle){this.rootElement.style.setProperty(`overflow`,`clip`);return}this.internalStop()}}internalStop(){this.isStopped||(this.reset(),this.isStopped=!0,this.emit())}raf=e=>{let t=e-(this.time||e);this.time=e,this.animate.advance(t*.001),this.options.autoRaf&&(this._rafId=requestAnimationFrame(this.raf))};scrollTo(e,{offset:n=0,immediate:r=!1,lock:i=!1,programmatic:a=!0,lerp:o=a?this.options.lerp:void 0,duration:s=a?this.options.duration:void 0,easing:c=a?this.options.easing:void 0,onStart:l,onComplete:u,force:d=!1,userData:p}={}){if(this.prefersReducedMotion&&(a?r=!0:(o=1,s=void 0,c=void 0)),(this.isStopped||this.isLocked)&&!d)return;let m=e,h=n;if(typeof m==`string`&&[`top`,`left`,`start`,`#`].includes(m))m=0;else if(typeof m==`string`&&[`bottom`,`right`,`end`].includes(m))m=this.limit;else{let e=null;if(typeof m==`string`?(e=m.startsWith(`#`)?document.getElementById(m.slice(1)):document.querySelector(m),e||(m===`#top`?m=0:console.warn(`Lenis: Target not found`,m))):m instanceof HTMLElement&&m?.nodeType&&(e=m),e){if(this.options.wrapper!==window){let e=this.rootElement.getBoundingClientRect();h-=this.isHorizontal?e.left:e.top}let t=e.getBoundingClientRect(),n=getComputedStyle(e),r=this.isHorizontal?Number.parseFloat(n.scrollMarginLeft):Number.parseFloat(n.scrollMarginTop),i=getComputedStyle(this.rootElement),a=this.isHorizontal?Number.parseFloat(i.scrollPaddingLeft):Number.parseFloat(i.scrollPaddingTop);m=(this.isHorizontal?t.left:t.top)+this.animatedScroll-(Number.isNaN(r)?0:r)-(Number.isNaN(a)?0:a)}}if(typeof m==`number`){if(m+=h,this.options.infinite){if(a){this.targetScroll=this.animatedScroll=this.scroll;let e=m-this.animatedScroll;e>this.limit/2?m-=this.limit:e<-this.limit/2&&(m+=this.limit)}}else m=t(0,m,this.limit);if(m===this.targetScroll){l?.(this),u?.(this);return}if(this.userData=p??{},r){this.animatedScroll=this.targetScroll=m,this.setScroll(this.scroll),this.reset(),this.preventNextNativeScrollEvent(),this.emit(),u?.(this),this.userData={},requestAnimationFrame(()=>{this.dispatchScrollendEvent()});return}a||(this.targetScroll=m),typeof s==`number`&&typeof c!=`function`?c=f:typeof c==`function`&&typeof s!=`number`&&(s=1),this.animate.fromTo(this.animatedScroll,m,{duration:s,easing:c,lerp:o,onStart:()=>{i&&(this.isLocked=!0),this.isScrolling=`smooth`,l?.(this)},onUpdate:(e,t)=>{this.isScrolling=`smooth`,this.lastVelocity=this.velocity,this.velocity=e-this.animatedScroll,this.direction=Math.sign(this.velocity),this.animatedScroll=e,this.setScroll(this.scroll),a&&(this.targetScroll=e),t||this.emit(),t&&(this.reset(),this.emit(),u?.(this),this.userData={},requestAnimationFrame(()=>{this.dispatchScrollendEvent()}),this.preventNextNativeScrollEvent())}})}}preventNextNativeScrollEvent(){this._preventNextNativeScrollEvent=!0,requestAnimationFrame(()=>{this._preventNextNativeScrollEvent=!1})}hasNestedScroll(e,{deltaX:t,deltaY:n}){let r=Date.now();e._lenis||={};let i=e._lenis,a,o,s,c,l,u,d,f,p,m;if(r-(i.time??0)>2e3){i.time=Date.now();let t=window.getComputedStyle(e);if(i.computedStyle=t,a=[`auto`,`overlay`,`scroll`].includes(t.overflowX),o=[`auto`,`overlay`,`scroll`].includes(t.overflowY),l=[`auto`].includes(t.overscrollBehaviorX),u=[`auto`].includes(t.overscrollBehaviorY),i.hasOverflowX=a,i.hasOverflowY=o,!(a||o))return!1;d=e.scrollWidth,f=e.scrollHeight,p=e.clientWidth,m=e.clientHeight,s=d>p,c=f>m,i.isScrollableX=s,i.isScrollableY=c,i.scrollWidth=d,i.scrollHeight=f,i.clientWidth=p,i.clientHeight=m,i.hasOverscrollBehaviorX=l,i.hasOverscrollBehaviorY=u}else s=i.isScrollableX,c=i.isScrollableY,a=i.hasOverflowX,o=i.hasOverflowY,d=i.scrollWidth,f=i.scrollHeight,p=i.clientWidth,m=i.clientHeight,l=i.hasOverscrollBehaviorX,u=i.hasOverscrollBehaviorY;if(!(a&&s||o&&c))return!1;let h=Math.abs(t)>=Math.abs(n)?`horizontal`:`vertical`,g,_,v,y,b,x;if(h===`horizontal`)g=Math.round(e.scrollLeft),_=d-p,v=t,y=a,b=s,x=l;else if(h===`vertical`)g=Math.round(e.scrollTop),_=f-m,v=n,y=o,b=c,x=u;else return!1;return!x&&(g>=_||g<=0)?!0:(v>0?g<_:g>0)&&y&&b}get rootElement(){return this.options.wrapper===window?document.documentElement:this.options.wrapper}get limit(){return this.options.naiveDimensions?this.isHorizontal?this.rootElement.scrollWidth-this.rootElement.clientWidth:this.rootElement.scrollHeight-this.rootElement.clientHeight:this.dimensions.limit[this.isHorizontal?`x`:`y`]}get isHorizontal(){return this.options.orientation===`horizontal`}get actualScroll(){let e=this.options.wrapper;return this.isHorizontal?e.scrollX??e.scrollLeft:e.scrollY??e.scrollTop}get scroll(){return this.options.infinite?i(this.animatedScroll,this.limit):this.animatedScroll}get progress(){return this.limit===0?1:this.scroll/this.limit}get isScrolling(){return this._isScrolling}set isScrolling(e){this._isScrolling!==e&&(this._isScrolling=e,this.updateClassName())}get isStopped(){return this._isStopped}set isStopped(e){this._isStopped!==e&&(this._isStopped=e,this.updateClassName())}get isLocked(){return this._isLocked}set isLocked(e){this._isLocked!==e&&(this._isLocked=e,this.updateClassName())}get isSmooth(){return this.isScrolling===`smooth`}get prefersReducedMotion(){return this.options.respectReducedMotion&&this.reducedMotionMediaQuery.matches}get className(){let e=`lenis`;return this.options.autoToggle&&(e+=` lenis-autoToggle`),this.isStopped&&(e+=` lenis-stopped`),this.isLocked&&(e+=` lenis-locked`),this.isScrolling&&(e+=` lenis-scrolling`),this.isScrolling===`smooth`&&(e+=` lenis-smooth`),e}updateClassName(){this.cleanUpClassName(),this.className.split(` `).forEach(e=>{this.rootElement.classList.add(e)})}cleanUpClassName(){for(let e of Array.from(this.rootElement.classList))(e===`lenis`||e.startsWith(`lenis-`))&&this.rootElement.classList.remove(e)}};globalThis.Lenis=p,globalThis.Lenis.prototype=p.prototype})();
+</script>
+
+<script>
+(function(){
+  "use strict";
+  var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var hasFinePointer = window.matchMedia("(pointer:fine)").matches;
+  document.getElementById("currentYear").textContent = new Date().getFullYear();
+
+  /* ---------- letter split helper ---------- */
+  function splitChars(el){
+    var text = el.textContent;
+    el.setAttribute("aria-label", text);
+    el.textContent = "";
+    var chars = [];
+    text.split("").forEach(function(ch){
+      var span = document.createElement("span");
+      span.className = "char";
+      span.textContent = ch === " " ? " " : ch;
+      span.setAttribute("aria-hidden", "true");
+      el.appendChild(span);
+      chars.push(span);
+    });
+    return chars;
+  }
+
+  /* ---------- preloader ---------- */
+  var preloader = document.getElementById("preloader");
+  var preWord = document.querySelector("[data-split-instant]");
+  var preBar = document.getElementById("preloaderBar");
+  var preChars = preWord ? splitChars(preWord) : [];
+  var heroChars = [];
+  document.querySelectorAll(".hero-title [data-split]").forEach(function(el){
+    heroChars.push(splitChars(el));
+  });
+
+  function revealHero(){
+    if(window.gsap){
+      heroChars.forEach(function(group, gi){
+        gsap.fromTo(group, {opacity:0, y:"0.7em", rotate:6}, {opacity:1, y:"0em", rotate:0, duration:0.9, ease:"power4.out", stagger:0.028, delay:gi*0.05});
+      });
+      gsap.fromTo([".hero-eyebrow", ".hero-sub", ".hero-note", ".hero-ctas"], {opacity:0, y:16}, {opacity:1, y:0, duration:0.8, ease:"power2.out", stagger:0.08, delay:0.35});
+    }
+  }
+
+  function runPreloader(){
+    if(!preloader) return revealHero();
+    if(window.gsap){
+      var tl = gsap.timeline({onComplete:function(){
+        preloader.style.display = "none";
+        revealHero();
+      }});
+      tl.fromTo(preChars, {opacity:0, y:10}, {opacity:1, y:0, duration:0.45, stagger:0.025, ease:"power2.out"});
+      tl.to(preBar, {width:"100%", duration:0.7, ease:"power1.inOut"}, "-=0.1");
+      tl.to(preloader, {autoAlpha:0, duration:0.5, ease:"power2.inOut"}, "+=0.15");
+    } else {
+      preloader.style.display = "none";
+      revealHero();
+    }
+  }
+  window.addEventListener("load", function(){ setTimeout(runPreloader, 150); });
+
+  /* ---------- Lenis + GSAP ScrollTrigger ---------- */
+  var lenis = null;
+  if(window.Lenis){
+    lenis = new Lenis({ lerp: reduceMotion ? 1 : 0.11, wheelMultiplier: 1, smoothWheel: true });
+    lenis.on("scroll", function(e){
+      if(window.ScrollTrigger) ScrollTrigger.update();
+      var progress = e && e.limit ? Math.min(1, Math.max(0, e.scroll / e.limit)) : 0;
+      var bar = document.getElementById("scrollProgress");
+      if(bar) bar.style.width = (progress * 100) + "%";
+    });
+    function raf(time){ lenis.raf(time); requestAnimationFrame(raf); }
+    requestAnimationFrame(raf);
+
+    document.querySelectorAll("[data-lenis-anchor]").forEach(function(a){
+      a.addEventListener("click", function(e){
+        var href = a.getAttribute("href");
+        if(href && href.charAt(0) === "#"){
+          e.preventDefault();
+          lenis.scrollTo(href, {offset:-70});
+        }
+      });
+    });
+  }
+
+  if(window.gsap && window.ScrollTrigger){
+    gsap.registerPlugin(ScrollTrigger);
+
+    /* scroll-revealed headings, letter by letter */
+    document.querySelectorAll("[data-split-scroll]").forEach(function(el){
+      var chars = splitChars(el);
+      gsap.fromTo(chars, {opacity:0, y:"0.6em", rotate:4}, {
+        opacity:1, y:"0em", rotate:0, duration:0.7, ease:"power3.out", stagger:0.015,
+        scrollTrigger:{ trigger: el, start:"top 85%", once:true }
+      });
+    });
+
+    /* generic reveal-up for cards/blocks */
+    document.querySelectorAll(".reveal-up").forEach(function(el, i){
+      gsap.fromTo(el, {opacity:0, y:40}, {
+        opacity:1, y:0, duration:0.8, ease:"power3.out",
+        scrollTrigger:{ trigger: el, start:"top 90%", once:true }
+      });
+    });
+
+    /* parallax layers */
+    document.querySelectorAll("[data-parallax]").forEach(function(el){
+      var speed = parseFloat(el.getAttribute("data-parallax")) || 0.3;
+      gsap.to(el, {
+        yPercent: speed * 30,
+        ease:"none",
+        scrollTrigger:{ trigger: el.closest("section") || el, start:"top top", end:"bottom top", scrub:0.4 }
+      });
+    });
+
+    /* count-up stats */
+    document.querySelectorAll("[data-count-to]").forEach(function(el){
+      var to = parseFloat(el.getAttribute("data-count-to"));
+      var suffix = el.getAttribute("data-suffix") || "";
+      var obj = {val:0};
+      gsap.to(obj, {
+        val: to, duration:1.4, ease:"power2.out",
+        scrollTrigger:{ trigger: el, start:"top 90%", once:true },
+        onUpdate:function(){ el.textContent = Math.round(obj.val) + suffix; }
+      });
+    });
+  } else {
+    document.querySelectorAll("[data-split-scroll]").forEach(function(el){ splitChars(el); });
+  }
+
+  /* ---------- magnetic cursor ---------- */
+  var cursorDot = document.getElementById("cursorDot");
+  var cursorRing = document.getElementById("cursorRing");
+  if(hasFinePointer && cursorDot && cursorRing){
+    document.body.classList.add("has-fine-cursor");
+    var mx = window.innerWidth/2, my = window.innerHeight/2, rx = mx, ry = my;
+    window.addEventListener("pointermove", function(e){
+      mx = e.clientX; my = e.clientY;
+      cursorDot.style.transform = "translate(" + mx + "px," + my + "px)";
+    });
+    (function ringLoop(){
+      rx += (mx - rx) * 0.16; ry += (my - ry) * 0.16;
+      cursorRing.style.transform = "translate(" + rx + "px," + ry + "px)";
+      requestAnimationFrame(ringLoop);
+    })();
+
+    document.querySelectorAll("[data-magnetic], [data-magnetic-soft]").forEach(function(el){
+      var strength = el.hasAttribute("data-magnetic-soft") ? 0.16 : 0.35;
+      el.addEventListener("mouseenter", function(){ cursorRing.classList.add("is-active"); });
+      el.addEventListener("mousemove", function(e){
+        var r = el.getBoundingClientRect();
+        var relX = e.clientX - r.left - r.width/2;
+        var relY = e.clientY - r.top - r.height/2;
+        if(window.gsap){
+          gsap.to(el, {x: relX*strength, y: relY*strength, duration:0.5, ease:"power3.out"});
+        }
+      });
+      el.addEventListener("mouseleave", function(){
+        cursorRing.classList.remove("is-active");
+        if(window.gsap){ gsap.to(el, {x:0, y:0, duration:0.6, ease:"elastic.out(1,0.4)"}); }
+      });
+    });
+  }
+
+  /* ---------- page transition wipe for internal navigation ---------- */
+  var panels = document.querySelectorAll(".pt-panel");
+  function wipeTo(href){
+    if(!window.gsap || reduceMotion){ window.location.href = href; return; }
+    var tl = gsap.timeline({ onComplete:function(){ window.location.href = href; } });
+    tl.to(panels[0], {scaleY:1, duration:0.32, ease:"power3.inOut"})
+      .to(panels[1], {scaleY:1, duration:0.28, ease:"power3.inOut"}, "-=0.16")
+      .to(panels[2], {scaleY:1, duration:0.26, ease:"power3.inOut"}, "-=0.14");
+  }
+  document.querySelectorAll('a[href$=".html"]').forEach(function(a){
+    if(a.target === "_blank") return;
+    a.addEventListener("click", function(e){
+      var href = a.getAttribute("href");
+      if(!href || href.indexOf("http") === 0) return;
+      e.preventDefault();
+      wipeTo(href);
+    });
+  });
+
+  /* ---------- back to top ---------- */
+  var backToTop = document.getElementById("backToTop");
+  window.addEventListener("scroll", function(){
+    if(backToTop) backToTop.classList.toggle("is-visible", window.scrollY > 600);
+  });
+  if(backToTop){
+    backToTop.addEventListener("click", function(){
+      if(lenis) lenis.scrollTo(0); else window.scrollTo({top:0, behavior:"smooth"});
+    });
+  }
+})();
+</script>
+</body>
+</html>
