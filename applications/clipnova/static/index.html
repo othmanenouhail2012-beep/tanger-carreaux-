@@ -4,90 +4,58 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>ClipNova</title>
-<style>
-  :root { --bg:#0d0f14; --card:#171a22; --text:#f2f4f8; --muted:#9aa3b2; --accent:#00e5ff; --line:#2a2f3b; }
-  * { box-sizing:border-box; }
-  body { margin:0; background:var(--bg); color:var(--text); font:16px/1.5 system-ui, sans-serif; }
-  main { max-width:720px; margin:auto; padding:20px 16px 60px; }
-  h1 { margin:0 0 4px; font-size:28px; } h1 span { color:var(--accent); }
-  p.sub { margin:0 0 20px; color:var(--muted); }
-  .card { background:var(--card); border:1px solid var(--line); border-radius:14px; padding:16px; margin-bottom:16px; }
-  label { display:block; font-size:14px; color:var(--muted); margin:12px 0 4px; }
-  input, select { width:100%; padding:12px; border-radius:10px; border:1px solid var(--line); background:#0f1219; color:var(--text); font-size:16px; }
-  .row { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
-  button { width:100%; margin-top:16px; padding:14px; border:0; border-radius:12px; background:var(--accent); color:#001318; font-weight:700; font-size:17px; }
-  button:disabled { opacity:.5; }
-  .or { text-align:center; color:var(--muted); margin:8px 0; font-size:14px; }
-  #status { color:var(--accent); font-weight:600; }
-  .clips { display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:12px; }
-  .clip video { width:100%; aspect-ratio:9/16; border-radius:10px; background:#000; }
-  .score { font-weight:700; color:var(--accent); }
-  .clip small { color:var(--muted); display:block; }
-  .clip a { color:var(--text); }
-  .note { font-size:13px; color:var(--muted); }
-</style>
+<link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
-<main>
-  <h1>Clip<span>Nova</span></h1>
-  <p class="sub">Vidéo longue → clips verticaux sous-titrés. Gratuit, sans filigrane.</p>
+<main style="max-width:640px">
+  <header><h1>Clip<span>Nova</span></h1>
+    <p class="sub">Donne un lien, choisis tes réglages, ClipNova fait les clips.</p></header>
 
   <form class="card" id="form">
-    <label for="url">Lien de la vidéo (YouTube, etc.)</label>
-    <input id="url" name="url" type="url" placeholder="https://…">
-    <div class="or">— ou —</div>
-    <label for="file">Vidéo depuis ton téléphone</label>
-    <input id="file" name="file" type="file" accept="video/*">
+    <label for="url">Lien de la vidéo (YouTube, TikTok, Instagram, Facebook…)
+      <input id="url" name="url" type="url" placeholder="https://www.youtube.com/watch?v=…"></label>
+    <div class="or">ou</div>
+    <label for="file">Vidéo depuis ton téléphone / PC<input id="file" name="file" type="file" accept="video/*"></label>
 
-    <div class="row">
-      <div><label for="lang">Langue</label>
-        <select id="lang" name="lang"><option value="fr">Français</option><option value="ar">Arabe</option>
-          <option value="en">Anglais</option><option value="es">Espagnol</option><option value="auto">Auto</option></select></div>
-      <div><label for="count">Nombre de clips max</label><input id="count" name="count" type="number" value="10" min="1" max="30"></div>
-      <div><label for="min_d">Durée min (s)</label><input id="min_d" name="min_d" type="number" value="20" min="5"></div>
-      <div><label for="max_d">Durée max (s)</label><input id="max_d" name="max_d" type="number" value="60" min="10"></div>
-      <div><label for="model">Précision</label>
-        <select id="model" name="model"><option value="base">Rapide</option><option value="small" selected>Normale</option><option value="medium">Haute (lent)</option></select></div>
-      <div><label for="color">Couleur du mot actif</label>
-        <select id="color" name="color"><option value="FFE500">Cyan</option><option value="00E5FF">Jaune</option><option value="5AFF3C">Vert</option><option value="FF00FF">Rose</option></select></div>
+    <h2>Réglages</h2>
+    <div class="grid">
+      <label for="lang">Langue de la vidéo
+        <select id="lang" name="lang"><option value="fr">Français</option><option value="ar">Arabe / Darija</option>
+          <option value="en">Anglais</option><option value="es">Espagnol</option><option value="auto">Détection auto</option></select></label>
+      <label for="count">Nombre de clips<input id="count" name="count" type="number" value="10" min="1" max="30"></label>
+      <label for="min_d">Durée min (secondes)<input id="min_d" name="min_d" type="number" value="20" min="5"></label>
+      <label for="max_d">Durée max (secondes)<input id="max_d" name="max_d" type="number" value="60" min="10"></label>
+      <label for="model">Précision des sous-titres
+        <select id="model" name="model"><option value="base">Rapide</option><option value="small" selected>Normale</option><option value="medium">Haute (lent)</option></select></label>
+      <label for="color">Couleur du mot prononcé<input id="color" type="color" value="#ffe500"></label>
     </div>
-    <button id="go">Créer les clips</button>
-    <p class="note">Utilise seulement tes vidéos ou celles que tu as le droit de réutiliser.</p>
+    <label class="check" for="subs"><input id="subs" type="checkbox" checked> Ajouter les sous-titres</label>
+    <button id="go">Générer les clips</button>
+    <p class="note">Tu pourras tout modifier ensuite : sous-titres, couleurs, musique, coupe, zoom. Utilise seulement des vidéos que tu as le droit de réutiliser.</p>
   </form>
 
-  <div class="card"><div id="status">Prêt.</div></div>
-  <div class="clips" id="clips"></div>
+  <div class="card" id="progress" hidden>
+    <div id="status">Envoi…</div><div class="bar"><i id="bar"></i></div>
+  </div>
 </main>
 <script>
-const form = document.getElementById('form'), statusEl = document.getElementById('status'),
-      clipsEl = document.getElementById('clips'), go = document.getElementById('go');
+const form = document.getElementById('form'), go = document.getElementById('go');
 form.addEventListener('submit', async e => {
   e.preventDefault();
-  go.disabled = true; clipsEl.innerHTML = ''; statusEl.textContent = 'Envoi…';
+  const fd = new FormData(form);
+  fd.set('color', document.getElementById('color').value.slice(1));
+  fd.set('subs', document.getElementById('subs').checked);
+  go.disabled = true; document.getElementById('progress').hidden = false;
   try {
-    const res = await fetch('/api/jobs', { method: 'POST', body: new FormData(form) });
+    const res = await fetch('/api/jobs', { method: 'POST', body: fd });
     const data = await res.json();
     if (!res.ok) throw new Error(data.detail || 'Erreur');
-    poll(data.id);
-  } catch (err) { statusEl.textContent = '❌ ' + err.message; go.disabled = false; }
+    location.href = '/clips?job=' + data.id;
+  } catch (err) {
+    document.getElementById('status').innerHTML = '<span class="err">' + err.message + '</span>';
+    go.disabled = false;
+  }
 });
-async function poll(id) {
-  const job = await (await fetch('/api/jobs/' + id)).json();
-  statusEl.textContent = (job.status === 'error' ? '❌ ' : '') + job.step;
-  render(job.clips);
-  if (job.status === 'running') setTimeout(() => poll(id), 2500); else go.disabled = false;
-}
-function render(clips) {
-  if (clipsEl.children.length === clips.length) return;
-  clipsEl.innerHTML = clips.map((c, i) => `
-    <div class="clip card">
-      <video src="${c.file}" controls playsinline preload="metadata"></video>
-      <div><span class="score">${c.score}/100</span> · Clip ${i + 1} · ${c.start}s → ${c.end}s</div>
-      <small>${c.why}</small>
-      <small>« ${c.text.slice(0, 120).replace(/</g, '&lt;')}… »</small>
-      <a href="${c.file}" download>⬇ Télécharger</a>
-    </div>`).join('');
-}
 </script>
 </body>
 </html>

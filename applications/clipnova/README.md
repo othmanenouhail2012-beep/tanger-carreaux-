@@ -31,6 +31,13 @@ uvicorn server:app --host 0.0.0.0 --port 8000
 
 La première fois, le modèle de transcription se télécharge (≈ 500 Mo pour « Normale »).
 
+## Les 2 pages
+1. **Accueil** : lien ou fichier, langue, nombre de clips, durée min/max, couleur, sous-titres oui/non → « Générer les clips ».
+2. **Mes clips** : tous les clips avec leur note. Touche un clip pour ouvrir le montage :
+   sous-titres (oui/non, mots à la fois, position, majuscules), style (police, taille, couleurs, contour, fond),
+   musique (ton MP3, volumes voix/musique), coupe début/fin, zoom visage, texte d'accroche en haut,
+   « Appliquer le style à tous les clips », téléchargement.
+
 ## Conseils
 - Plus de clips : baisse la durée min, augmente « Nombre de clips max », relance avec une autre durée.
 - Arabe/darija : choisis « Arabe » et la précision « Haute ».

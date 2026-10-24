@@ -147,39 +147,107 @@ def ass_time(t: float) -> str:
     return f"{int(t // 3600)}:{int(t % 3600 // 60):02d}:{t % 60:05.2f}"
 
 
-def write_subs(clip: dict, path: Path, color: str) -> None:
-    """Sous-titres façon « shorts » : 3 mots à la fois, mot actif en couleur."""
-    words = [w for s in clip["sents"] for w in s["words"]]
+DEFAULT_STYLE = {
+    "subs": True,          # sous-titres oui / non
+    "font": "DejaVu Sans",
+    "size": 84,            # taille en px (sur 1920 de haut)
+    "color": "FFFFFF",     # couleur du texte (RRGGBB)
+    "highlight": "FFE500", # couleur du mot prononcé (RRGGBB)
+    "position": "bas",     # haut / milieu / bas
+    "words": 3,            # mots affichés à la fois
+    "upper": True,         # MAJUSCULES
+    "outline": 6,          # contour noir
+    "box": False,          # fond noir derrière le texte
+    "music_volume": 0.15,  # volume de la musique (0..1)
+    "voice_volume": 1.0,
+    "trim_start": 0.0,     # secondes coupées au début (+) ou ajoutées (-)
+    "trim_end": 0.0,
+    "zoom": 1.0,           # zoom sur le visage
+    "title": "",           # texte fixe en haut (accroche)
+}
+
+
+def bgr(hex_rgb: str) -> str:
+    h = hex_rgb.lstrip("#").upper().rjust(6, "0")[:6]
+    return h[4:6] + h[2:4] + h[0:2]
+
+
+def write_subs(words: list[dict], t0: float, path: Path, st: dict) -> None:
+    """Sous-titres façon « shorts » : quelques mots à la fois, mot prononcé en couleur."""
+    hi, base = bgr(st["highlight"]), bgr(st["color"])
+    n = max(1, int(st["words"]))
+    fmt = (lambda t: t.upper()) if st["upper"] else (lambda t: t)
     lines = []
-    for g in range(0, len(words), 3):
-        group = words[g:g + 3]
+    for g in range(0, len(words), n):
+        group = words[g:g + n]
         for k, w in enumerate(group):
-            st = w["start"] - clip["start"]
-            en = (group[k + 1]["start"] if k + 1 < len(group) else w["end"]) - clip["start"]
-            txt = " ".join(("{\\c&H%s&}%s{\\c&HFFFFFF&}" % (color, x["text"].upper())) if x is w
-                           else x["text"].upper() for x in group)
-            lines.append(f"Dialogue: 0,{ass_time(max(st, 0))},{ass_time(en)},Main,,0,0,0,,{txt}")
+            a = w["start"] - t0
+            e = (group[k + 1]["start"] if k + 1 < len(group) else w["end"]) - t0
+            if e <= 0:
+                continue
+            txt = " ".join(("{\\c&H%s&}%s{\\c&H%s&}" % (hi, fmt(x["text"]), base)) if x is w else fmt(x["text"])
+                           for x in group)
+            lines.append(f"Dialogue: 0,{ass_time(max(a, 0))},{ass_time(e)},Main,,0,0,0,,{txt}")
+    if st["title"]:
+        lines.append(f"Dialogue: 1,0:00:00.00,9:59:59.00,Title,,0,0,0,,{st['title']}")
+    align, margin = {"haut": (8, 260), "milieu": (5, 0), "bas": (2, 520)}.get(st["position"], (2, 520))
+    border = 3 if st["box"] else 1
     path.write_text(
-        "[Script Info]\nScriptType: v4.00+\nPlayResX: 1080\nPlayResY: 1920\n\n"
+        "[Script Info]\nScriptType: v4.00+\nPlayResX: 1080\nPlayResY: 1920\nWrapStyle: 0\n\n"
         "[V4+ Styles]\nFormat: Name, Fontname, Fontsize, PrimaryColour, OutlineColour, BackColour, Bold, "
-        "BorderStyle, Outline, Shadow, Alignment, MarginV\n"
-        "Style: Main,DejaVu Sans,84,&H00FFFFFF,&H00000000,&H80000000,1,1,6,2,2,520\n\n"
+        "BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV\n"
+        f"Style: Main,{st['font']},{int(st['size'])},&H00{base},&H00000000,&H90000000,1,{border},"
+        f"{int(st['outline'])},2,{align},60,60,{margin}\n"
+        f"Style: Title,{st['font']},64,&H00FFFFFF,&H00000000,&H90000000,1,3,14,0,8,60,60,140\n\n"
         "[Events]\nFormat: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text\n"
         + "\n".join(lines) + "\n", encoding="utf-8")
 
 
-def render(src: Path, clip: dict, out: Path, color: str) -> None:
-    cx, w, h = face_center(src, clip["start"], clip["end"])
-    cw = min(w, int(h * 9 / 16)) // 2 * 2
-    x = int(min(max(cx * w - cw / 2, 0), w - cw))
-    subs = out.with_suffix(".ass")
-    write_subs(clip, subs, color)
-    vf = f"crop={cw}:{h}:{x}:0,scale=1080:1920,ass={subs.name}"
-    subprocess.run(["ffmpeg", "-y", "-ss", f"{clip['start']:.2f}", "-to", f"{clip['end'] + 0.25:.2f}",
-                    "-i", str(src.resolve()), "-vf", vf, "-c:v", "libx264", "-preset", "veryfast", "-crf", "21",
-                    "-c:a", "aac", "-b:a", "160k", "-movflags", "+faststart", out.name],
-                   cwd=out.parent, capture_output=True, check=True)
+def render(src: Path, clip: dict, out: Path, style: dict | None = None, music: Path | None = None) -> None:
+    st = {**DEFAULT_STYLE, **(style or {})}
+    st["title"] = re.sub(r"[{}\\\n]", "", str(st["title"]))[:60]
+    start = max(0.0, clip["start"] + float(st["trim_start"]))
+    end = clip["end"] + 0.25 - float(st["trim_end"])
+    if end - start < 2:
+        raise RuntimeError("Clip trop court après la coupe.")
+    if "cx" not in clip:
+        clip["cx"], clip["w"], clip["h"] = face_center(src, clip["start"], clip["end"])
+    w, h, z = clip["w"], clip["h"], max(1.0, float(st["zoom"]))
+    ch = int(h / z) // 2 * 2
+    cw = min(w, int(ch * 9 / 16)) // 2 * 2
+    x = int(min(max(clip["cx"] * w - cw / 2, 0), w - cw))
+    y = (h - ch) // 3
+    vf = f"crop={cw}:{ch}:{x}:{y},scale=1080:1920"
+    subs = out.with_name(out.stem + ".ass")
+    if st["subs"] or st["title"]:
+        words = [wd for s in clip["sents"] for wd in s["words"] if wd["end"] > start and wd["start"] < end]
+        write_subs(words if st["subs"] else [], start, subs, st)
+        vf += f",ass={subs.name}"
+    cmd = ["ffmpeg", "-y", "-ss", f"{start:.2f}", "-to", f"{end:.2f}", "-i", str(src.resolve())]
+    if music:
+        cmd += ["-stream_loop", "-1", "-i", str(music.resolve()),
+                "-filter_complex",
+                f"[0:v]{vf}[v];[0:a]volume={float(st['voice_volume'])}[a0];"
+                f"[1:a]volume={float(st['music_volume'])}[a1];[a0][a1]amix=inputs=2:duration=first[a]",
+                "-map", "[v]", "-map", "[a]"]
+    else:
+        cmd += ["-vf", vf, "-af", f"volume={float(st['voice_volume'])}"]
+    tmp = out.with_name(out.stem + ".tmp.mp4")
+    cmd += ["-c:v", "libx264", "-preset", "veryfast", "-crf", "21", "-c:a", "aac", "-b:a", "160k",
+            "-movflags", "+faststart", tmp.name]
+    res = subprocess.run(cmd, cwd=out.parent, capture_output=True, text=True)
     subs.unlink(missing_ok=True)
+    if res.returncode != 0:
+        tmp.unlink(missing_ok=True)
+        raise RuntimeError(res.stderr[-800:])
+    tmp.replace(out)
+
+
+def public(job_id: str, n: int, c: dict) -> dict:
+    return {"n": n, "file": f"/files/{job_id}/{c['name']}?v={c.get('version', 0)}", "score": c["score"],
+            "why": c["why"], "start": round(c["start"], 1), "end": round(c["end"], 1),
+            "text": " ".join(s["text"] for s in c["sents"]), "style": c.get("style", {}),
+            "busy": c.get("busy", False), "error": c.get("error", "")}
 
 
 def process(job_id: str, url: str | None, upload: Path | None, opts: dict) -> None:
@@ -188,6 +256,7 @@ def process(job_id: str, url: str | None, upload: Path | None, opts: dict) -> No
     try:
         job["step"] = "Téléchargement de la vidéo…"
         src = download(url, folder) if url else upload
+        job["src"] = src
         job["step"] = "Transcription (peut prendre plusieurs minutes)…"
         words = transcribe(src, opts["lang"], opts["model"])
         if not words:
@@ -197,13 +266,13 @@ def process(job_id: str, url: str | None, upload: Path | None, opts: dict) -> No
         clips = find_clips(sents, opts["min"], opts["max"], opts["count"])
         if not clips:
             clips = find_clips(sents, 5, opts["max"], opts["count"])
+        style = {"highlight": opts["color"], "subs": opts.get("subs", True)}
         for n, c in enumerate(clips, 1):
             job["step"] = f"Création du clip {n}/{len(clips)}…"
-            name = f"clip{n:02d}_{int(c['start'])}s.mp4"
-            render(src, c, folder / name, opts["color"])
-            job["clips"].append({"file": f"/files/{job_id}/{name}", "score": c["score"], "why": c["why"],
-                                 "start": round(c["start"], 1), "end": round(c["end"], 1),
-                                 "text": " ".join(s["text"] for s in c["sents"])})
+            c["name"] = f"clip{n:02d}_{int(c['start'])}s.mp4"
+            c["style"] = dict(style)
+            render(src, c, folder / c["name"], c["style"])
+            job["raw"].append(c)
         job["status"] = "done"
         job["step"] = f"Terminé : {len(clips)} clips."
     except Exception as e:  # noqa: BLE001 — l'erreur est affichée à l'utilisateur
@@ -211,11 +280,38 @@ def process(job_id: str, url: str | None, upload: Path | None, opts: dict) -> No
         job["step"] = str(e)
 
 
+def edit_clip(job_id: str, n: int, style: dict, music: Path | None) -> None:
+    """Refait un clip avec les nouveaux réglages de montage (en arrière-plan)."""
+    job = JOBS[job_id]
+    c = job["raw"][n - 1]
+    c["busy"], c["error"] = True, ""
+
+    def work():
+        try:
+            if music:
+                c["music"] = music
+            new_style = {**c.get("style", {}), **style}
+            render(job["src"], c, WORK / job_id / c["name"], new_style, c.get("music") if new_style.get("music_on", True) else None)
+            c["style"] = new_style
+            c["version"] = c.get("version", 0) + 1
+        except Exception as e:  # noqa: BLE001
+            c["error"] = str(e)
+        c["busy"] = False
+
+    threading.Thread(target=work, daemon=True).start()
+
+
+def snapshot(job_id: str) -> dict:
+    job = JOBS[job_id]
+    return {"status": job["status"], "step": job["step"],
+            "clips": [public(job_id, i, c) for i, c in enumerate(job["raw"], 1)]}
+
+
 def new_job() -> tuple[str, Path]:
     job_id = uuid.uuid4().hex[:10]
     folder = WORK / job_id
     folder.mkdir()
-    JOBS[job_id] = {"status": "running", "step": "En attente…", "clips": []}
+    JOBS[job_id] = {"status": "running", "step": "En attente…", "raw": []}
     return job_id, folder
 
 

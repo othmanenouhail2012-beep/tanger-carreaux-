@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ClipNova — Mes clips</title>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<main>
+  <header class="row" style="align-items:center">
+    <h1><a href="/">Clip<span>Nova</span></a></h1>
+    <a class="btn ghost" href="/" style="flex:0">+ Nouvelle vidéo</a>
+  </header>
+
+  <div class="card" id="progress">
+    <div id="status">Chargement…</div><div class="bar"><i id="bar"></i></div>
+  </div>
+
+  <section class="card" id="editorCard" hidden>
+    <h2 id="edTitle">Montage</h2>
+    <div class="editor">
+      <div class="preview">
+        <video id="edVideo" controls playsinline></video>
+        <small id="edInfo"></small>
+        <div class="row" style="margin-top:8px">
+          <a class="btn" id="edDownload" download>⬇ Télécharger</a>
+        </div>
+      </div>
+
+      <form id="edForm" style="display:grid;gap:14px">
+        <div class="tabs" id="tabs">
+          <button type="button" data-tab="subs" class="on">Sous-titres</button>
+          <button type="button" data-tab="style">Style</button>
+          <button type="button" data-tab="music">Musique & son</button>
+          <button type="button" data-tab="cut">Coupe & cadrage</button>
+          <button type="button" data-tab="text">Texte d'accroche</button>
+        </div>
+
+        <div data-panel="subs" class="grid">
+          <label class="check" for="s_subs"><input id="s_subs" type="checkbox"> Afficher les sous-titres</label>
+          <label class="check" for="s_upper"><input id="s_upper" type="checkbox"> MAJUSCULES</label>
+          <label for="s_words">Mots à la fois<select id="s_words"><option>1</option><option>2</option><option>3</option><option>4</option><option>6</option></select></label>
+          <label for="s_position">Position<select id="s_position"><option value="haut">Haut</option><option value="milieu">Milieu</option><option value="bas">Bas</option></select></label>
+        </div>
+
+        <div data-panel="style" class="grid" hidden>
+          <label for="s_font">Police<select id="s_font">
+            <option>DejaVu Sans</option><option>Arial</option><option>Impact</option><option>Montserrat</option>
+            <option>Bebas Neue</option><option>Poppins</option><option>Comic Sans MS</option></select></label>
+          <label for="s_size">Taille <span id="v_size"></span><input id="s_size" type="range" min="40" max="140" step="2"></label>
+          <label for="s_color">Couleur du texte<input id="s_color" type="color"></label>
+          <label for="s_highlight">Couleur du mot prononcé<input id="s_highlight" type="color"></label>
+          <label for="s_outline">Contour <span id="v_outline"></span><input id="s_outline" type="range" min="0" max="12"></label>
+          <label class="check" for="s_box"><input id="s_box" type="checkbox"> Fond noir derrière le texte</label>
+        </div>
+
+        <div data-panel="music" class="grid" hidden>
+          <label for="music">Musique de fond (MP3, libre de droits)<input id="music" type="file" accept="audio/*"></label>
+          <label class="check" for="s_music_on"><input id="s_music_on" type="checkbox"> Garder la musique</label>
+          <label for="s_music_volume">Volume musique <span id="v_music_volume"></span><input id="s_music_volume" type="range" min="0" max="1" step="0.05"></label>
+          <label for="s_voice_volume">Volume voix <span id="v_voice_volume"></span><input id="s_voice_volume" type="range" min="0" max="2" step="0.1"></label>
+          <p class="note" style="grid-column:1/-1">Musiques gratuites : Bibliothèque audio YouTube, Pixabay Music. Évite les chansons connues : TikTok et YouTube peuvent bloquer le clip.</p>
+        </div>
+
+        <div data-panel="cut" class="grid" hidden>
+          <label for="s_trim_start">Début : couper (s) <small>négatif = rallonger</small><input id="s_trim_start" type="number" step="0.5"></label>
+          <label for="s_trim_end">Fin : couper (s) <small>négatif = rallonger</small><input id="s_trim_end" type="number" step="0.5"></label>
+          <label for="s_zoom">Zoom sur le visage <span id="v_zoom"></span><input id="s_zoom" type="range" min="1" max="2" step="0.05"></label>
+        </div>
+
+        <div data-panel="text" class="grid" hidden>
+          <label for="s_title" style="grid-column:1/-1">Texte fixe en haut du clip (accroche)<input id="s_title" maxlength="60" placeholder="Ex. : La vraie raison de ton échec 😳"></label>
+        </div>
+
+        <div class="row">
+          <button id="apply">Appliquer le montage</button>
+          <button type="button" class="ghost" id="applyAll">Appliquer le style à tous les clips</button>
+        </div>
+        <div id="edStatus" class="note"></div>
+      </form>
+    </div>
+  </section>
+
+  <section>
+    <h2 style="margin-bottom:10px">Mes clips <small style="display:inline">— touche un clip pour le monter</small></h2>
+    <div class="clips" id="clips"></div>
+  </section>
+</main>
+
+<script>
+const job = new URLSearchParams(location.search).get('job');
+const $ = id => document.getElementById(id);
+const DEF = { subs:true, font:'DejaVu Sans', size:84, color:'FFFFFF', highlight:'FFE500', position:'bas', words:3, upper:true,
+  outline:6, box:false, music_volume:0.15, voice_volume:1, trim_start:0, trim_end:0, zoom:1, title:'', music_on:true };
+let clips = [], current = null, done = false;
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+async function poll() {
+  try {
+    const r = await fetch('/api/jobs/' + job);
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.detail);
+    $('status').innerHTML = d.status === 'error' ? '<span class="err">' + esc(d.step) + '</span>' : esc(d.step);
+    const m = d.step.match(/(\d+)\/(\d+)/);
+    $('bar').style.width = d.status !== 'running' ? '100%' : m ? (40 + 60 * m[1] / m[2]) + '%' : d.step.includes('Transcription') ? '25%' : '10%';
+    clips = d.clips; drawList(); refreshEditor();
+    done = d.status !== 'running';
+    const busy = clips.some(c => c.busy);
+    if (!done || busy) setTimeout(poll, 2500);
+  } catch (e) { $('status').innerHTML = '<span class="err">' + esc(e.message) + '</span>'; }
+}
+
+let drawn = '';
+function drawList() {
+  const key = clips.map(c => c.file + c.busy).join();
+  if (key === drawn) return; drawn = key;
+  $('clips').innerHTML = clips.map(c => `
+    <div class="card clip ${current === c.n ? 'sel' : ''}" data-n="${c.n}">
+      <video src="${c.file}" muted playsinline preload="metadata"></video>
+      <div><span class="score">${c.score}/100</span> · Clip ${c.n} ${c.busy ? '· ⏳ montage…' : ''}</div>
+      <small>${c.start}s → ${c.end}s · ${esc(c.why)}</small>
+    </div>`).join('');
+}
+$('clips').addEventListener('click', e => {
+  const el = e.target.closest('.clip'); if (!el) return;
+  openEditor(+el.dataset.n);
+});
+
+function openEditor(n) {
+  current = n; drawn = ''; drawList();
+  const c = clips[n - 1], st = { ...DEF, ...c.style };
+  $('editorCard').hidden = false;
+  $('edTitle').textContent = 'Montage du clip ' + n;
+  for (const k in DEF) {
+    const el = $('s_' + k); if (!el) continue;
+    if (el.type === 'checkbox') el.checked = !!st[k];
+    else if (el.type === 'color') el.value = '#' + String(st[k]).toLowerCase();
+    else el.value = st[k];
+  }
+  $('music').value = ''; showValues(); setVideo(c);
+  $('editorCard').scrollIntoView({ behavior: 'smooth' });
+}
+function setVideo(c) {
+  if ($('edVideo').getAttribute('src') !== c.file) $('edVideo').src = c.file;
+  $('edDownload').href = c.file.split('?')[0];
+  $('edInfo').textContent = '« ' + c.text.slice(0, 160) + '… »';
+}
+function refreshEditor() {
+  if (!current) return;
+  const c = clips[current - 1];
+  setVideo(c);
+  $('apply').disabled = c.busy;
+  $('edStatus').innerHTML = c.busy ? '⏳ Montage en cours…' : c.error ? '<span class="err">' + esc(c.error) + '</span>' : '';
+}
+function readStyle() {
+  const st = {};
+  for (const k in DEF) {
+    const el = $('s_' + k); if (!el) continue;
+    st[k] = el.type === 'checkbox' ? el.checked : el.type === 'color' ? el.value.slice(1).toUpperCase()
+      : (el.type === 'range' || el.type === 'number') ? +el.value : el.value;
+  }
+  st.words = +st.words; return st;
+}
+function showValues() {
+  $('v_size').textContent = $('s_size').value; $('v_outline').textContent = $('s_outline').value;
+  $('v_music_volume').textContent = Math.round($('s_music_volume').value * 100) + '%';
+  $('v_voice_volume').textContent = Math.round($('s_voice_volume').value * 100) + '%';
+  $('v_zoom').textContent = '×' + (+$('s_zoom').value).toFixed(2);
+}
+$('edForm').addEventListener('input', showValues);
+$('tabs').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  document.querySelectorAll('#tabs button').forEach(x => x.classList.toggle('on', x === b));
+  document.querySelectorAll('[data-panel]').forEach(p => p.hidden = p.dataset.panel !== b.dataset.tab);
+});
+
+async function send(n, style, withMusic) {
+  const fd = new FormData();
+  fd.set('style', JSON.stringify(style));
+  if (withMusic && $('music').files[0]) fd.set('music', $('music').files[0]);
+  const r = await fetch(`/api/jobs/${job}/clips/${n}`, { method: 'POST', body: fd });
+  if (!r.ok) throw new Error((await r.json()).detail);
+}
+$('edForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  try { await send(current, readStyle(), true); clips[current - 1].busy = true; refreshEditor(); setTimeout(poll, 1500); }
+  catch (err) { $('edStatus').innerHTML = '<span class="err">' + esc(err.message) + '</span>'; }
+});
+$('applyAll').addEventListener('click', async () => {
+  const st = readStyle(); delete st.trim_start; delete st.trim_end; delete st.zoom;
+  for (const c of clips) if (!c.busy) await send(c.n, st, true).catch(() => {});
+  $('edStatus').textContent = '⏳ Style appliqué à tous les clips, montage en cours…';
+  setTimeout(poll, 1500);
+});
+
+if (!job) $('status').innerHTML = '<span class="err">Aucune vidéo. <a href="/">Commence ici</a>.</span>'; else poll();
+</script>
+</body>
+</html>
