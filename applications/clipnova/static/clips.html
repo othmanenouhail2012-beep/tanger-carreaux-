@@ -1,0 +1,242 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ClipNova — Mes clips</title>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<main>
+  <header class="row" style="align-items:center">
+    <h1><a href="/">Clip<span>Nova</span></a></h1>
+    <a class="btn ghost" href="/" style="flex:0">+ Nouvelle vidéo</a>
+  </header>
+
+  <div class="card" id="progress">
+    <div id="status" aria-live="polite">Chargement…</div><div class="bar"><i id="bar"></i></div>
+  </div>
+
+  <section class="card" id="editorCard" hidden>
+    <h2 id="edTitle">Montage</h2>
+    <div class="editor">
+      <div class="preview">
+        <video id="edVideo" controls playsinline></video>
+        <small id="edInfo"></small>
+        <div class="row" style="margin-top:8px">
+          <a class="btn" id="edDownload" download>⬇ Télécharger</a>
+        </div>
+        <small style="margin-top:6px">Sur iPad/iPhone : touche Télécharger, ouvre le fichier, puis Partager → « Enregistrer la vidéo » pour l'avoir dans Photos.</small>
+      </div>
+
+      <form id="edForm" style="display:grid;gap:14px">
+        <div class="tabs" id="tabs" role="tablist">
+          <button type="button" role="tab" aria-selected="true" data-tab="subs" class="on">Sous-titres</button>
+          <button type="button" role="tab" aria-selected="false" data-tab="style">Style</button>
+          <button type="button" role="tab" aria-selected="false" data-tab="music">Musique & son</button>
+          <button type="button" role="tab" aria-selected="false" data-tab="cut">Coupe & cadrage</button>
+          <button type="button" role="tab" aria-selected="false" data-tab="text">Texte d'accroche</button>
+        </div>
+
+        <div data-panel="subs" class="grid">
+          <label class="check" for="s_subs"><input id="s_subs" type="checkbox"> Afficher les sous-titres</label>
+          <label class="check" for="s_upper"><input id="s_upper" type="checkbox"> MAJUSCULES</label>
+          <label for="s_words">Mots à la fois<select id="s_words"><option>1</option><option>2</option><option>3</option><option>4</option><option>6</option></select></label>
+          <label for="s_position">Position<select id="s_position"><option value="haut">Haut</option><option value="milieu">Milieu</option><option value="bas">Bas</option></select></label>
+        </div>
+
+        <div data-panel="style" class="grid" hidden>
+          <div class="presets" id="presets">
+            <button type="button" data-p="jaune">Gros jaune</button><button type="button" data-p="boite">Boîte noire</button>
+            <button type="button" data-p="neon">Néon</button><button type="button" data-p="minimal">Minimal</button></div>
+          <label for="s_font">Police<select id="s_font">
+            <option>DejaVu Sans</option><option>Arial</option><option>Impact</option><option>Montserrat</option>
+            <option>Bebas Neue</option><option>Poppins</option><option>Comic Sans MS</option></select></label>
+          <label for="s_size">Taille <span id="v_size"></span><input id="s_size" type="range" min="40" max="140" step="2"></label>
+          <label for="s_color">Couleur du texte<input id="s_color" type="color"></label>
+          <label for="s_highlight">Couleur du mot prononcé<input id="s_highlight" type="color"></label>
+          <label for="s_outline">Contour <span id="v_outline"></span><input id="s_outline" type="range" min="0" max="12"></label>
+          <label class="check" for="s_box"><input id="s_box" type="checkbox"> Fond noir derrière le texte</label>
+        </div>
+
+        <div data-panel="music" class="grid" hidden>
+          <label for="music">Musique de fond (MP3, libre de droits)<input id="music" type="file" accept="audio/*"></label>
+          <label class="check" for="s_music_on"><input id="s_music_on" type="checkbox"> Musique activée (décoche pour la retirer)</label>
+          <label for="s_music_volume">Volume musique <span id="v_music_volume"></span><input id="s_music_volume" type="range" min="0" max="1" step="0.05"></label>
+          <label for="s_voice_volume">Volume voix <span id="v_voice_volume"></span><input id="s_voice_volume" type="range" min="0" max="2" step="0.1"></label>
+          <p class="note" style="grid-column:1/-1">Musiques gratuites : Bibliothèque audio YouTube, Pixabay Music. Évite les chansons connues : TikTok et YouTube peuvent bloquer le clip.</p>
+        </div>
+
+        <div data-panel="cut" class="grid" hidden>
+          <label for="s_trim_start">Début : couper (s) <small>négatif = rallonger</small><input id="s_trim_start" type="number" step="0.5" min="-10" max="30"></label>
+          <label for="s_trim_end">Fin : couper (s) <small>négatif = rallonger</small><input id="s_trim_end" type="number" step="0.5" min="-10" max="30"></label>
+          <label for="s_zoom">Zoom sur le visage <span id="v_zoom"></span><input id="s_zoom" type="range" min="1" max="2" step="0.05"></label>
+        </div>
+
+        <div data-panel="text" class="grid" hidden>
+          <label for="s_title" style="grid-column:1/-1">Texte fixe en haut du clip (accroche)<input id="s_title" maxlength="60" placeholder="Ex. : La vraie raison de ton échec 😳"></label>
+        </div>
+
+        <div class="row">
+          <button id="apply">Appliquer le montage</button>
+          <button type="button" class="ghost" id="applyAll">Appliquer le style à tous les clips</button>
+        </div>
+        <div id="edStatus" class="note" aria-live="polite"></div>
+      </form>
+    </div>
+  </section>
+
+  <section style="display:grid;gap:12px">
+    <input id="search" type="search" placeholder="🔍 Chercher des mots-clés ou des moments…">
+    <div class="row" style="align-items:center"><h2 id="count">Clips</h2>
+      <a class="btn ghost" id="zip" style="flex:0 0 auto" hidden>⬇ Tout télécharger (ZIP)</a></div>
+    <div id="clips" style="display:grid;gap:12px"></div>
+  </section>
+</main>
+
+<script>
+const job = new URLSearchParams(location.search).get('job');
+const $ = id => document.getElementById(id);
+const DEF = { subs:true, font:'DejaVu Sans', size:84, color:'FFFFFF', highlight:'FFE500', position:'bas', words:3, upper:true,
+  outline:6, box:false, music_volume:0.15, voice_volume:1, trim_start:0, trim_end:0, zoom:1, title:'', music_on:true };
+let clips = [], current = null, done = false;
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+async function poll() {
+  try {
+    const r = await fetch('/api/jobs/' + job);
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.detail);
+    $('status').innerHTML = d.status === 'error' ? '<span class="err">' + esc(d.step) + '</span>' : esc(d.step);
+    const m = d.step.match(/(\d+)\/(\d+)/);
+    $('bar').style.width = d.status !== 'running' ? '100%' : m ? (40 + 60 * m[1] / m[2]) + '%' : d.step.includes('Transcription') ? '25%' : '10%';
+    clips = d.clips; drawList(); refreshEditor();
+    $('zip').hidden = d.status !== 'done' || !clips.length; $('zip').href = `/api/jobs/${job}/zip`;
+    done = d.status !== 'running';
+    const busy = clips.some(c => c.busy);
+    if (!done || busy) setTimeout(poll, 2500);
+  } catch (e) { $('status').innerHTML = '<span class="err">' + esc(e.message) + '</span>'; }
+}
+
+let drawn = '';
+const GR = { hook: 'Accroche', flow: 'Fluidité', value: 'Valeur', trend: 'Tendance' };
+const mm = t => Math.floor(t / 60).toString().padStart(2, '0') + ':' + Math.floor(t % 60).toString().padStart(2, '0');
+function hl(text, q) { const t = esc(text); return q ? t.replace(new RegExp('(' + q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'gi'), '<mark>$1</mark>') : t; }
+function drawList() {
+  const q = $('search').value.trim();
+  const shown = clips.filter(c => !q || (c.title + ' ' + c.text).toLowerCase().includes(q.toLowerCase()));
+  const key = q + '|' + current + '|' + clips.map(c => c.file + c.busy).join();
+  if (key === drawn) return; drawn = key;
+  $('count').textContent = `Clips (${shown.length}${q ? ' / ' + clips.length : ''})`;
+  $('clips').innerHTML = shown.map((c, i) => `
+    <div class="card result ${current === c.n ? 'sel' : ''}" data-n="${c.n}" tabindex="0" role="button" aria-label="Monter le clip ${c.n}">
+      <h3>#${clips.indexOf(c) + 1} ${hl(c.title || 'Clip ' + c.n, q)}</h3>
+      <video src="${c.file.split('?')[0]}#t=0.5" muted playsinline preload="metadata"></video>
+      <div>
+        <div class="big">${c.score}<small>/100</small></div>
+        <div class="grades">${Object.entries(GR).map(([k, l]) => `<b>${c.grades?.[k] || '–'}</b><span>${l}</span>`).join('')}</div>
+        <small style="margin-top:8px">${mm(c.start)} → ${mm(c.end)}${c.busy ? ' · ⏳ montage…' : ''}</small>
+      </div>
+      <div class="scene"><b style="color:var(--fg)">Analyse de scène</b><br>
+        ${(c.transcript || []).map(x => `<span>[${mm(x.t)}]</span> ${hl(x.text, q)}`).join('<br>')}</div>
+    </div>`).join('') || '<p class="note">Aucun clip ne contient ces mots.</p>';
+}
+$('search').addEventListener('input', drawList);
+$('clips').addEventListener('keydown', e => {
+  const el = e.target.closest('.result'); if (el && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); openEditor(+el.dataset.n); }
+});
+const PRESETS = {
+  jaune: { font:'Montserrat', size:96, color:'FFFFFF', highlight:'FFE500', outline:8, box:false, upper:true, words:3 },
+  boite: { font:'DejaVu Sans', size:80, color:'FFFFFF', highlight:'2FD6EA', outline:0, box:true, upper:false, words:4 },
+  neon:  { font:'Poppins', size:90, color:'FFFFFF', highlight:'FF2BD6', outline:4, box:false, upper:true, words:2 },
+  minimal: { font:'DejaVu Sans', size:64, color:'FFFFFF', highlight:'FFFFFF', outline:3, box:false, upper:false, words:6 },
+};
+$('presets').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  for (const [k, v] of Object.entries(PRESETS[b.dataset.p])) { const el = $('s_' + k); if (!el) continue;
+    if (el.type === 'checkbox') el.checked = v; else if (el.type === 'color') el.value = '#' + v.toLowerCase(); else el.value = v; }
+  showValues(); dirty = true;
+});
+let dirty = false;
+$('edForm').addEventListener('input', () => { dirty = true; });
+$('clips').addEventListener('click', e => {
+  const el = e.target.closest('.result'); if (!el) return;
+  openEditor(+el.dataset.n);
+});
+
+function openEditor(n) {
+  if (dirty && current && n !== current && !confirm('Tu as des réglages non appliqués sur ce clip. Les abandonner ?')) return;
+  dirty = false;
+  current = n; drawn = ''; drawList();
+  const c = clips[n - 1], st = { ...DEF, ...c.style };
+  $('editorCard').hidden = false;
+  $('edTitle').textContent = 'Montage du clip ' + n;
+  for (const k in DEF) {
+    const el = $('s_' + k); if (!el) continue;
+    if (el.type === 'checkbox') el.checked = !!st[k];
+    else if (el.type === 'color') el.value = '#' + String(st[k]).toLowerCase();
+    else el.value = st[k];
+  }
+  $('music').value = ''; showValues(); setVideo(c);
+  $('editorCard').scrollIntoView({ behavior: 'smooth' });
+}
+function setVideo(c) {
+  if ($('edVideo').getAttribute('src') !== c.file) $('edVideo').src = c.file;
+  $('edDownload').href = c.file.split('?')[0];
+  $('edInfo').textContent = '« ' + c.text.slice(0, 160) + '… »';
+}
+function refreshEditor() {
+  if (!current) return;
+  const c = clips[current - 1];
+  setVideo(c);
+  $('apply').disabled = c.busy;
+  $('edStatus').innerHTML = c.busy ? '⏳ Montage en cours…' : c.error ? '<span class="err">' + esc(c.error) + '</span>' : '';
+}
+function readStyle() {
+  const st = {};
+  for (const k in DEF) {
+    const el = $('s_' + k); if (!el) continue;
+    st[k] = el.type === 'checkbox' ? el.checked : el.type === 'color' ? el.value.slice(1).toUpperCase()
+      : (el.type === 'range' || el.type === 'number') ? +el.value : el.value;
+  }
+  st.words = +st.words; return st;
+}
+function showValues() {
+  $('v_size').textContent = $('s_size').value; $('v_outline').textContent = $('s_outline').value;
+  $('v_music_volume').textContent = Math.round($('s_music_volume').value * 100) + '%';
+  $('v_voice_volume').textContent = Math.round($('s_voice_volume').value * 100) + '%';
+  $('v_zoom').textContent = '×' + (+$('s_zoom').value).toFixed(2);
+}
+$('edForm').addEventListener('input', showValues);
+$('tabs').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  document.querySelectorAll('#tabs button').forEach(x => { x.classList.toggle('on', x === b); x.setAttribute('aria-selected', x === b); });
+  document.querySelectorAll('[data-panel]').forEach(p => p.hidden = p.dataset.panel !== b.dataset.tab);
+});
+
+async function send(n, style, withMusic) {
+  const fd = new FormData();
+  fd.set('style', JSON.stringify(style));
+  if (withMusic && $('music').files[0]) fd.set('music', $('music').files[0]);
+  const r = await fetch(`/api/jobs/${job}/clips/${n}`, { method: 'POST', body: fd });
+  if (!r.ok) throw new Error((await r.json()).detail);
+}
+$('edForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  const a = +$('s_trim_start').value, b = +$('s_trim_end').value, c0 = clips[current - 1];
+  if (a + b >= (c0.end - c0.start) - 2) { $('edStatus').innerHTML = '<span class="err">La coupe est plus longue que le clip. Réduis Début ou Fin.</span>'; return; }
+  dirty = false;
+  try { await send(current, readStyle(), true); clips[current - 1].busy = true; refreshEditor(); setTimeout(poll, 1500); }
+  catch (err) { $('edStatus').innerHTML = '<span class="err">' + esc(err.message) + '</span>'; }
+});
+$('applyAll').addEventListener('click', async () => {
+  const st = readStyle(); delete st.trim_start; delete st.trim_end; delete st.zoom; delete st.title; delete st.music_on;
+  for (const c of clips) if (!c.busy) await send(c.n, st, false).catch(() => {});
+  $('edStatus').textContent = '⏳ Style appliqué à tous les clips, montage en cours…';
+  setTimeout(poll, 1500);
+});
+
+if (!job) $('status').innerHTML = '<span class="err">Aucune vidéo. <a href="/">Commence ici</a>.</span>'; else poll();
+</script>
+</body>
+</html>
