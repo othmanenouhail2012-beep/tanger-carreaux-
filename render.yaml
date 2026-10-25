@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: mediaflow
+    runtime: docker
+    rootDir: mediaflow
+    dockerfilePath: ./Dockerfile
+    plan: free
+    healthCheckPath: /
+    envVars:
+      - key: FILE_TTL_MIN
+        value: "60"
+      - key: MAX_UPLOAD_MB
+        value: "300"
