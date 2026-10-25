@@ -7,6 +7,7 @@ import json
 import re
 import subprocess
 import threading
+import time
 import uuid
 from pathlib import Path
 
@@ -73,32 +74,58 @@ def sentences(words: list[dict]) -> list[dict]:
     return out
 
 
-def score(sents: list[dict]) -> tuple[int, str]:
-    """Note sur 100 : accroche, densité de parole, questions, chiffres, émotion."""
+TREND_WORDS = {
+    "ia", "ai", "chatgpt", "tiktok", "argent", "business", "crypto", "maroc", "foot", "football",
+    "astuce", "gratuit", "2026", "viral", "instagram", "youtube", "money", "automation", "automatisation",
+}
+
+
+def grade(v: int) -> str:
+    return "A+" if v >= 90 else "A" if v >= 80 else "A-" if v >= 72 else "B" if v >= 60 else "C"
+
+
+def score(sents: list[dict], keywords: list[str] | None = None) -> dict:
+    """Note sur 100, détaillée comme OpusClip : Accroche, Fluidité, Valeur, Tendance."""
     first = sents[0]["text"].lower()
     text = " ".join(s["text"] for s in sents).lower()
+    tokens = [w.strip(",.!?;:«»\"'") for w in text.split()]
     dur = sents[-1]["end"] - sents[0]["start"]
-    n_words = len(text.split())
-    hook = sum(w.strip(",.!?") in HOOK_WORDS for w in first.split())
-    pts = 40
-    pts += min(hook * 8, 20)
-    pts += 8 if "?" in first else 0
-    pts += 6 if re.search(r"\d", text) else 0
-    pts += min(text.count("!") * 3, 9)
-    wps = n_words / max(dur, 1)
-    pts += 12 if 2.2 <= wps <= 3.8 else 4
-    pts += 5 if re.search(r"[.!?]$", sents[-1]["text"]) else 0
+    wps = len(tokens) / max(dur, 1)
+    n_hook = sum(w.strip(",.!?") in HOOK_WORDS for w in first.split())
+    hook = 45 + min(n_hook * 15, 30) + (15 if "?" in first else 0) + (8 if re.search(r"\d", first) else 0)
+    pauses = sum(1 for k in range(1, len(sents)) if sents[k]["start"] - sents[k - 1]["end"] > 1.2)
+    flow = 55 + (25 if 2.2 <= wps <= 3.8 else 10 if 1.6 <= wps <= 4.5 else 0) \
+        + (12 if re.search(r"[.!?]$", sents[-1]["text"]) else 0) - pauses * 6
+    value = 50 + min(len(set(tokens)) // 6, 20) + (10 if re.search(r"\d", text) else 0) + min(text.count("!") * 3, 9)
+    if keywords:
+        value += min(sum(k in text for k in keywords) * 15, 30)
+    trend = 50 + min(sum(w in TREND_WORDS for w in tokens) * 8, 40)
+    parts = {k: max(0, min(99, int(v))) for k, v in
+             {"hook": hook, "flow": flow, "value": value, "trend": trend}.items()}
+    total = int(parts["hook"] * .35 + parts["flow"] * .25 + parts["value"] * .25 + parts["trend"] * .15)
     reasons = []
-    if hook:
+    if n_hook or "?" in first:
         reasons.append("accroche forte")
-    if "?" in first:
-        reasons.append("question au début")
     if 2.2 <= wps <= 3.8:
         reasons.append("bon rythme")
-    return min(pts, 99), ", ".join(reasons) or "passage complet"
+    if keywords and any(k in text for k in keywords):
+        reasons.append("contient tes mots-clés")
+    return {"score": total, "parts": parts, "grades": {k: grade(v) for k, v in parts.items()},
+            "why": ", ".join(reasons) or "passage complet"}
 
 
-def find_clips(sents: list[dict], min_d: float, max_d: float, count: int) -> list[dict]:
+def make_title(sents: list[dict]) -> str:
+    """Titre court tiré de la phrase la plus accrocheuse du clip."""
+    best = max(sents[:3], key=lambda s: ("?" in s["text"]) * 2 + sum(w.lower().strip(",.!?") in HOOK_WORDS
+                                                                       for w in s["text"].split()))
+    t = best["text"].strip()
+    return t if len(t) <= 70 else t[:67].rsplit(" ", 1)[0] + "…"
+
+
+def find_clips(sents: list[dict], min_d: float, max_d: float, count: int,
+               keywords: list[str] | None = None, t_from: float = 0, t_to: float = 0) -> list[dict]:
+    if t_to > t_from:
+        sents = [s for s in sents if s["start"] >= t_from and s["end"] <= t_to]
     cands = []
     for i in range(len(sents)):
         for j in range(i, len(sents)):
@@ -106,9 +133,8 @@ def find_clips(sents: list[dict], min_d: float, max_d: float, count: int) -> lis
             if d > max_d:
                 break
             if d >= min_d:
-                s, why = score(sents[i:j + 1])
-                cands.append({"start": sents[i]["start"], "end": sents[j]["end"], "score": s,
-                              "why": why, "sents": sents[i:j + 1]})
+                sc = score(sents[i:j + 1], keywords)
+                cands.append({"start": sents[i]["start"], "end": sents[j]["end"], **sc, "sents": sents[i:j + 1]})
     cands.sort(key=lambda c: -c["score"])
     chosen = []
     for c in cands:  # pas de chevauchement = pas de répétition
@@ -116,7 +142,10 @@ def find_clips(sents: list[dict], min_d: float, max_d: float, count: int) -> lis
             chosen.append(c)
         if len(chosen) >= count:
             break
-    return sorted(chosen, key=lambda c: c["start"])
+    chosen.sort(key=lambda c: -c["score"])  # meilleur clip en premier, comme OpusClip
+    for c in chosen:
+        c["title"] = make_title(c["sents"])
+    return chosen
 
 
 _face = cv2.CascadeClassifier(cv2.data.haarcascades + "haarcascade_frontalface_default.xml")
@@ -245,7 +274,10 @@ def render(src: Path, clip: dict, out: Path, style: dict | None = None, music: P
 
 def public(job_id: str, n: int, c: dict) -> dict:
     return {"n": n, "file": f"/files/{job_id}/{c['name']}?v={c.get('version', 0)}", "score": c["score"],
-            "why": c["why"], "start": round(c["start"], 1), "end": round(c["end"], 1),
+            "why": c["why"], "title": c.get("title", ""), "grades": c.get("grades", {}),
+            "parts": c.get("parts", {}), "transcript": [{"t": round(x["start"] - c["start"], 1), "text": x["text"]}
+                                                          for x in c["sents"]],
+            "start": round(c["start"], 1), "end": round(c["end"], 1),
             "text": " ".join(s["text"] for s in c["sents"]), "style": c.get("style", {}),
             "busy": c.get("busy", False), "error": c.get("error", "")}
 
@@ -263,9 +295,14 @@ def process(job_id: str, url: str | None, upload: Path | None, opts: dict) -> No
             raise RuntimeError("Aucune parole détectée dans la vidéo.")
         sents = sentences(words)
         job["step"] = "Recherche des meilleurs moments…"
-        clips = find_clips(sents, opts["min"], opts["max"], opts["count"])
+        kw = [k.strip().lower() for k in opts.get("keywords", "").split(",") if k.strip()]
+        rng = (opts.get("t_from", 0), opts.get("t_to", 0))
+        clips = find_clips(sents, opts["min"], opts["max"], opts["count"], kw, *rng)
         if not clips:
-            clips = find_clips(sents, 5, opts["max"], opts["count"])
+            clips = find_clips(sents, 5, opts["max"], opts["count"], kw, *rng)
+        if not opts.get("ai", True):  # « Ne pas découper » : toute la vidéo en un seul clip vertical
+            clips = [{"start": sents[0]["start"], "end": sents[-1]["end"], "sents": sents, "title": make_title(sents),
+                      **score(sents, kw)}]
         style = {"highlight": opts["color"], "subs": opts.get("subs", True)}
         for n, c in enumerate(clips, 1):
             job["step"] = f"Création du clip {n}/{len(clips)}…"
@@ -303,7 +340,7 @@ def edit_clip(job_id: str, n: int, style: dict, music: Path | None) -> None:
 
 def snapshot(job_id: str) -> dict:
     job = JOBS[job_id]
-    return {"status": job["status"], "step": job["step"],
+    return {"status": job["status"], "step": job["step"], "name": job.get("name", ""), "created": job.get("created", 0),
             "clips": [public(job_id, i, c) for i, c in enumerate(job["raw"], 1)]}
 
 
@@ -311,7 +348,7 @@ def new_job() -> tuple[str, Path]:
     job_id = uuid.uuid4().hex[:10]
     folder = WORK / job_id
     folder.mkdir()
-    JOBS[job_id] = {"status": "running", "step": "En attente…", "raw": []}
+    JOBS[job_id] = {"status": "running", "step": "En attente…", "raw": [], "created": time.time()}
     return job_id, folder
 
 

@@ -82,9 +82,10 @@
     </div>
   </section>
 
-  <section>
-    <h2 style="margin-bottom:10px">Mes clips <small style="display:inline">— touche un clip pour le monter</small></h2>
-    <div class="clips" id="clips"></div>
+  <section style="display:grid;gap:12px">
+    <input id="search" type="search" placeholder="🔍 Chercher des mots-clés ou des moments…">
+    <h2 id="count">Clips</h2>
+    <div id="clips" style="display:grid;gap:12px"></div>
   </section>
 </main>
 
@@ -112,18 +113,31 @@ async function poll() {
 }
 
 let drawn = '';
+const GR = { hook: 'Accroche', flow: 'Fluidité', value: 'Valeur', trend: 'Tendance' };
+const mm = t => Math.floor(t / 60).toString().padStart(2, '0') + ':' + Math.floor(t % 60).toString().padStart(2, '0');
+function hl(text, q) { const t = esc(text); return q ? t.replace(new RegExp('(' + q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'gi'), '<mark>$1</mark>') : t; }
 function drawList() {
-  const key = clips.map(c => c.file + c.busy).join();
+  const q = $('search').value.trim();
+  const shown = clips.filter(c => !q || (c.title + ' ' + c.text).toLowerCase().includes(q.toLowerCase()));
+  const key = q + '|' + current + '|' + clips.map(c => c.file + c.busy).join();
   if (key === drawn) return; drawn = key;
-  $('clips').innerHTML = clips.map(c => `
-    <div class="card clip ${current === c.n ? 'sel' : ''}" data-n="${c.n}">
-      <video src="${c.file}" muted playsinline preload="metadata"></video>
-      <div><span class="score">${c.score}/100</span> · Clip ${c.n} ${c.busy ? '· ⏳ montage…' : ''}</div>
-      <small>${c.start}s → ${c.end}s · ${esc(c.why)}</small>
-    </div>`).join('');
+  $('count').textContent = `Clips (${shown.length}${q ? ' / ' + clips.length : ''})`;
+  $('clips').innerHTML = shown.map((c, i) => `
+    <div class="card result ${current === c.n ? 'sel' : ''}" data-n="${c.n}">
+      <h3>#${clips.indexOf(c) + 1} ${hl(c.title || 'Clip ' + c.n, q)}</h3>
+      <video src="${c.file.split('?')[0]}#t=0.5" muted playsinline preload="metadata"></video>
+      <div>
+        <div class="big">${c.score}<small>/100</small></div>
+        <div class="grades">${Object.entries(GR).map(([k, l]) => `<b>${c.grades?.[k] || '–'}</b><span>${l}</span>`).join('')}</div>
+        <small style="margin-top:8px">${mm(c.start)} → ${mm(c.end)}${c.busy ? ' · ⏳ montage…' : ''}</small>
+      </div>
+      <div class="scene"><b style="color:var(--fg)">Analyse de scène</b><br>
+        ${(c.transcript || []).map(x => `<span>[${mm(x.t)}]</span> ${hl(x.text, q)}`).join('<br>')}</div>
+    </div>`).join('') || '<p class="note">Aucun clip ne contient ces mots.</p>';
 }
+$('search').addEventListener('input', drawList);
 $('clips').addEventListener('click', e => {
-  const el = e.target.closest('.clip'); if (!el) return;
+  const el = e.target.closest('.result'); if (!el) return;
   openEditor(+el.dataset.n);
 });
 

@@ -7,54 +7,137 @@
 <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
-<main style="max-width:640px">
-  <header><h1>Clip<span>Nova</span></h1>
-    <p class="sub">Donne un lien, choisis tes réglages, ClipNova fait les clips.</p></header>
+<main style="max-width:760px">
+  <header><h1>Clip<span>Nova</span></h1></header>
 
-  <form class="card" id="form">
-    <label for="url">Lien de la vidéo (YouTube, TikTok, Instagram, Facebook…)
-      <input id="url" name="url" type="url" placeholder="https://www.youtube.com/watch?v=…"></label>
+  <!-- ÉTAPE 1 : lien -->
+  <section id="step1" style="display:grid;gap:16px">
+    <div class="hero">
+      <p class="note">GÉNÉRATEUR DE CLIPS PAR IA · 100 % GRATUIT</p>
+      <h2>1 vidéo longue, 10 clips viraux.</h2>
+      <p class="sub">ClipNova transforme tes vidéos longues en Shorts, Reels et TikToks sous-titrés.</p>
+    </div>
+    <form class="drop" id="linkForm">
+      <input id="url" type="url" placeholder="🔗 Colle un lien vidéo (YouTube, TikTok…)" aria-label="Lien vidéo">
+      <button>Obtenir les clips</button>
+    </form>
     <div class="or">ou</div>
-    <label for="file">Vidéo depuis ton téléphone / PC<input id="file" name="file" type="file" accept="video/*"></label>
+    <label class="btn ghost" for="file" style="cursor:pointer">⬆ Importer un fichier vidéo<input id="file" type="file" accept="video/*" hidden></label>
+    <div id="err1" class="err"></div>
+    <div class="tools">
+      <div class="tool"><b>✂️</b>Long → courts</div>
+      <div class="tool"><b>CC</b>Sous-titres IA</div>
+      <div class="tool"><b>🎬</b>Éditeur vidéo</div>
+      <div class="tool"><b>🎵</b>Musique</div>
+    </div>
+    <h2>Mes projets</h2>
+    <div class="projects" id="projects"><p class="note">Aucun projet pour l'instant.</p></div>
+  </section>
 
-    <h2>Réglages</h2>
-    <div class="grid">
-      <label for="lang">Langue de la vidéo
-        <select id="lang" name="lang"><option value="fr">Français</option><option value="ar">Arabe / Darija</option>
-          <option value="en">Anglais</option><option value="es">Espagnol</option><option value="auto">Détection auto</option></select></label>
-      <label for="count">Nombre de clips<input id="count" name="count" type="number" value="10" min="1" max="30"></label>
-      <label for="min_d">Durée min (secondes)<input id="min_d" name="min_d" type="number" value="20" min="5"></label>
-      <label for="max_d">Durée max (secondes)<input id="max_d" name="max_d" type="number" value="60" min="10"></label>
+  <!-- ÉTAPE 2 : réglages -->
+  <form id="step2" class="card" hidden>
+    <img id="thumb" class="thumb" alt="">
+    <video id="localPreview" class="thumb" controls playsinline hidden></video>
+    <b id="vTitle"></b>
+    <p class="note">Utiliser une vidéo qui ne t'appartient pas peut violer le droit d'auteur. En continuant, tu confirmes que c'est ton contenu ou que tu as l'autorisation.</p>
+
+    <div class="seg" id="aiSeg"><button type="button" class="on" data-ai="1">Découpage IA</button><button type="button" data-ai="0">Ne pas découper</button></div>
+
+    <div class="grid" id="aiOpts">
+      <label for="length">Durée des clips
+        <select id="length"><option value="15-90">Auto (0-1m30)</option><option value="10-30">&lt; 30 s</option><option value="30-60" selected>30 s – 60 s</option>
+          <option value="60-90">60 s – 90 s</option><option value="90-180">90 s – 3 min</option></select></label>
+      <label for="count">Nombre de clips<input id="count" type="number" value="10" min="1" max="30"></label>
+      <label for="lang">Langue
+        <select id="lang"><option value="fr">Français</option><option value="ar">Arabe / Darija</option><option value="en">Anglais</option>
+          <option value="es">Espagnol</option><option value="auto">Auto</option></select></label>
       <label for="model">Précision des sous-titres
-        <select id="model" name="model"><option value="base">Rapide</option><option value="small" selected>Normale</option><option value="medium">Haute (lent)</option></select></label>
+        <select id="model"><option value="base">Rapide</option><option value="small" selected>Normale</option><option value="medium">Haute (lent)</option></select></label>
+    </div>
+    <label for="keywords">Inclure des moments précis <small style="display:inline">(mots-clés séparés par des virgules)</small>
+      <input id="keywords" placeholder="Ex. : argent, erreur, secret"></label>
+
+    <div>
+      <label>Plage de traitement</label>
+      <div class="dual"><div class="track"></div><div class="fill" id="fill"></div>
+        <input id="tFrom" type="range" min="0" max="100" value="0" aria-label="Début">
+        <input id="tTo" type="range" min="0" max="100" value="100" aria-label="Fin"></div>
+      <div class="times"><span id="tFromL">00:00</span><span id="tToL">--:--</span></div>
+    </div>
+
+    <div class="grid">
+      <label class="check" for="subs"><input id="subs" type="checkbox" checked> Sous-titres IA</label>
       <label for="color">Couleur du mot prononcé<input id="color" type="color" value="#ffe500"></label>
     </div>
-    <label class="check" for="subs"><input id="subs" type="checkbox" checked> Ajouter les sous-titres</label>
-    <button id="go">Générer les clips</button>
-    <p class="note">Tu pourras tout modifier ensuite : sous-titres, couleurs, musique, coupe, zoom. Utilise seulement des vidéos que tu as le droit de réutiliser.</p>
+    <div class="row">
+      <button type="button" class="ghost" id="back">← Retour</button>
+      <button id="go">Obtenir les clips en 1 clic</button>
+    </div>
+    <div id="err2" class="err"></div>
   </form>
-
-  <div class="card" id="progress" hidden>
-    <div id="status">Envoi…</div><div class="bar"><i id="bar"></i></div>
-  </div>
 </main>
 <script>
-const form = document.getElementById('form'), go = document.getElementById('go');
-form.addEventListener('submit', async e => {
+const $ = id => document.getElementById(id);
+let dur = 0, ai = true, source = null; // source = {url} ou {file}
+const fmt = s => { s = Math.round(s); const h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60), x = s % 60;
+  return (h ? h + ':' : '') + String(m).padStart(2, '0') + ':' + String(x).padStart(2, '0'); };
+
+function showStep2() { $('step1').hidden = true; $('step2').hidden = false; updRange(); }
+$('linkForm').addEventListener('submit', async e => {
   e.preventDefault();
-  const fd = new FormData(form);
-  fd.set('color', document.getElementById('color').value.slice(1));
-  fd.set('subs', document.getElementById('subs').checked);
-  go.disabled = true; document.getElementById('progress').hidden = false;
+  const url = $('url').value.trim(); if (!url) return;
+  $('err1').textContent = 'Lecture du lien…';
   try {
-    const res = await fetch('/api/jobs', { method: 'POST', body: fd });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.detail || 'Erreur');
-    location.href = '/clips?job=' + data.id;
-  } catch (err) {
-    document.getElementById('status').innerHTML = '<span class="err">' + err.message + '</span>';
-    go.disabled = false;
-  }
+    const r = await fetch('/api/info?url=' + encodeURIComponent(url)); const d = await r.json();
+    if (!r.ok) throw new Error(d.detail);
+    source = { url }; dur = d.duration || 0;
+    $('thumb').hidden = !d.thumbnail; $('thumb').src = d.thumbnail || ''; $('localPreview').hidden = true;
+    $('vTitle').textContent = d.title; $('err1').textContent = ''; showStep2();
+  } catch (err) { $('err1').textContent = err.message; }
+});
+$('file').addEventListener('change', () => {
+  const f = $('file').files[0]; if (!f) return;
+  source = { file: f };
+  const v = $('localPreview'); v.src = URL.createObjectURL(f); v.hidden = false; $('thumb').hidden = true;
+  v.onloadedmetadata = () => { dur = v.duration || 0; updRange(); };
+  $('vTitle').textContent = f.name; showStep2();
+});
+$('back').addEventListener('click', () => { $('step2').hidden = true; $('step1').hidden = false; });
+$('aiSeg').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  ai = b.dataset.ai === '1';
+  $('aiSeg').querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b));
+  $('aiOpts').style.opacity = ai ? 1 : .4;
+});
+function updRange() {
+  let a = +$('tFrom').value, b = +$('tTo').value;
+  if (a > b - 1) { a = b - 1; $('tFrom').value = a; }
+  $('fill').style.left = a + '%'; $('fill').style.width = (b - a) + '%';
+  $('tFromL').textContent = fmt(dur * a / 100); $('tToL').textContent = dur ? fmt(dur * b / 100) : '--:--';
+}
+$('tFrom').addEventListener('input', updRange); $('tTo').addEventListener('input', updRange);
+
+$('step2').addEventListener('submit', async e => {
+  e.preventDefault(); $('go').disabled = true; $('err2').textContent = 'Envoi…';
+  const fd = new FormData();
+  if (source.url) fd.set('url', source.url); else fd.set('file', source.file);
+  const [mn, mx] = $('length').value.split('-');
+  for (const [k, v] of Object.entries({ min_d: mn, max_d: mx, count: $('count').value, lang: $('lang').value, model: $('model').value,
+    keywords: $('keywords').value, subs: $('subs').checked, ai, color: $('color').value.slice(1),
+    t_from: dur * $('tFrom').value / 100, t_to: +$('tTo').value >= 100 ? 0 : dur * $('tTo').value / 100 })) fd.set(k, v);
+  try {
+    const r = await fetch('/api/jobs', { method: 'POST', body: fd }); const d = await r.json();
+    if (!r.ok) throw new Error(d.detail);
+    location.href = '/clips?job=' + d.id;
+  } catch (err) { $('err2').textContent = err.message; $('go').disabled = false; }
+});
+
+fetch('/api/projects').then(r => r.json()).then(list => {
+  if (!list.length) return;
+  $('projects').innerHTML = list.map(p => `<a class="project card" href="/clips?job=${p.id}">
+    ${p.thumb ? `<video src="${p.thumb.split('?')[0]}#t=0.5" muted preload="metadata"></video>` : ''}
+    <b style="overflow-wrap:anywhere">${(p.name || 'Projet').replace(/</g, '&lt;').slice(0, 60)}</b>
+    <small>${p.status === 'running' ? '⏳ ' + p.step.replace(/</g, '&lt;') : p.count + ' clips'}</small></a>`).join('');
 });
 </script>
 </body>
