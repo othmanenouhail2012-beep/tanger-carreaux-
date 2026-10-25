@@ -1,0 +1,43 @@
+import type { Dict } from './fr';
+export const en: Dict = {
+  nav: { home: 'Home', tools: 'Tools', converter: 'Converter', subtitles: 'Subtitles', tasks: 'Tasks', help: 'Help', theme: 'Toggle theme', menu: 'Menu', language: 'Language' },
+  hero: { title: 'Your media, simply.', subtitle: 'Analyze, convert and export your media files in a few clicks.', placeholder: 'Paste a link to a media file…', analyze: 'Analyze', clear: 'Clear', notice: 'Only use media you own or are authorized to save.', or: 'or' },
+  drop: { title: 'Drag and drop a file here', hint: 'Video or audio — up to {mb} MB', browse: 'Import a file', uploading: 'Uploading and analyzing… {p}%' },
+  result: { duration: 'Duration', type: 'Type', source: 'Source', size: 'Size', resolution: 'Resolution', unknown: 'Unknown', sizeUnknown: 'Unknown size', noMeta: 'Detailed metadata (duration, resolution) will be read during processing.', choose: 'Choose a format', video: 'Video', audio: 'Audio', original: 'original', start: 'Start processing', noOptions: 'No format available for this source.', noThumb: 'No thumbnail available', subtitlesFound: '{n} subtitle track(s) detected', openSubtitles: 'Open in Subtitles' },
+  reason: { no_audio: 'No audio track', no_video: 'No video track' },
+  task: { queued: 'Queued', analyzing: 'Fetching source', processing: 'Processing', ready: 'Ready', failed: 'Failed', cancelled: 'Cancelled', expired: 'Expired', cancel: 'Cancel', download: 'Download', retry: 'Retry', remove: 'Delete', elapsed: 'Elapsed', convert: 'Conversion', extract_audio: 'Audio extraction' },
+  tasks: { title: 'Task manager', subtitle: 'Files are deleted automatically after {min} minutes.', empty: 'No tasks yet.', search: 'Search by name…', allTypes: 'All types', allStatus: 'All statuses', clear: 'Clear history', confirmClear: 'Delete all tasks and their files?', confirmRemove: 'Delete this task and its file?' },
+  toast: { analyzed: 'Analysis complete', ready: 'File ready: {name}', failed: 'Processing failed', cancelled: 'Task cancelled', started: 'Processing started' },
+  errors: {
+    url_empty: 'Paste a link before analyzing.', url_invalid: 'This link is not valid. Make sure it starts with https://', url_private: 'Local or private addresses are not allowed.',
+    connector_not_configured: 'Connector not configured: this platform does not allow downloads without an official API. Import your own file instead.',
+    not_media: 'This link does not point to an audio or video file.', source_unreachable: 'Source unreachable. Check the link and retry.', too_many_redirects: 'Too many redirects.',
+    too_large: 'Size limit reached.', too_long: 'The media exceeds the maximum allowed duration.', invalid_media: 'Unreadable file or unsupported format.', rate_limited: 'Too many requests. Wait a minute.',
+    network: 'Network error: the server cannot be reached.', convert_failed: 'Conversion failed.', processing_error: 'Processing error.', not_found: 'Item not found or expired.', transcription_not_configured: 'No transcription engine is configured on this server.', subtitle_failed: 'Could not extract this track.', bad_request: 'Invalid request.', server_error: 'Server error.', interrupted: 'Download interrupted.',
+  },
+  converter: { title: 'Audio & video converter', subtitle: 'Import a file, pick a format, get the result. Real processing with FFmpeg.', initial: 'Original size', final: 'Final size' },
+  subs: { title: 'Subtitles & transcription', subtitle: 'Export subtitle tracks embedded in your files (MKV, MP4…) as SRT, VTT or TXT.', tracks: 'Available tracks', none: 'No text subtitle track in this file.', preview: 'Preview', localFile: 'Or open a .srt / .vtt file', transcribe: 'Speech transcription', transcribeOff: 'Not configured: no speech recognition engine is connected. No transcript will be made up.', imageBased: 'image track (not exportable)' },
+  tools: { title: 'All tools', available: 'Available', soon: 'Not configured', open: 'Open',
+    items: { analyzer: ['Link analyzer', 'Analyzes direct links to audio/video files.'], video: ['Video converter', 'MP4, WebM, MOV with resolution choice.'], audio: ['Audio converter', 'MP3, WAV, M4A, AAC.'], extract: ['Audio extractor', 'Pull the soundtrack from your videos.'], subs: ['Subtitle exporter', 'SRT, VTT and TXT from embedded tracks.'], transcript: ['Transcript generator', 'Requires a speech recognition engine.'], preview: ['Preview player', 'Play the imported file before processing.'], files: ['Session files', 'Find your recent exports.'], meta: ['Metadata inspector', 'Codecs, resolution, duration via FFprobe.'], thumb: ['Thumbnail extractor', 'Not implemented on the server yet.'] } },
+  platforms: { title: 'Sources', configured: 'Configured', notConfigured: 'Not configured' },
+  meta: { container: 'Container', videoCodec: 'Video codec', audioCodec: 'Audio codec' },
+  help: { title: 'Help & FAQ', faq: [
+    ['Can I download a YouTube, Instagram or TikTok video?', 'No. These platforms forbid downloading in their terms and protect their streams. MediaFlow does not bypass any protection: their connectors stay "not configured" until an authorized official API is plugged in. For your own videos, use the platform’s export (e.g. YouTube Studio, Instagram/TikTok “Download your data”), then import the file here.'],
+    ['Why can’t I pick 4K or 8K?', 'MediaFlow only offers resolutions up to your file’s own: upscaling 1080p to 4K adds no detail. If your file is 4K or 8K, those qualities appear.'],
+    ['Which links work?', 'Direct (https) links to a public audio or video file, e.g. https://example.com/clip.mp4.'],
+    ['Are my files kept?', 'No. They are deleted automatically after the configured time, or immediately when you delete the task.'],
+    ['Is the progress real?', 'Yes, it comes straight from FFmpeg and the source download.'],
+  ] },
+  terms: { title: 'Terms of use', body: [
+    'MediaFlow is a media file conversion tool. Only process content you own or are authorized to copy.',
+    'You may not use the service to bypass technical protection measures, paywalls or a platform’s terms of use.',
+    'The service is provided “as is”, with size, duration and rate limits.',
+  ] },
+  privacy: { title: 'Privacy policy', body: [
+    'No account is required. A random session id is stored in your browser to tie tasks to you alone.',
+    'Imported and generated files are stored temporarily on the server, isolated per session, then deleted automatically on expiry.',
+    'Pasted links are not written to logs. No data is sold or shared.',
+  ] },
+  notFound: { title: 'Page not found', body: 'This page does not exist.', back: 'Back to home' },
+  footer: { terms: 'Terms', privacy: 'Privacy', rights: 'A conversion tool for your own media.' },
+};
