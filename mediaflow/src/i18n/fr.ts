@@ -1,0 +1,43 @@
+export const fr = {
+  nav: { home: 'Accueil', tools: 'Outils', converter: 'Convertisseur', subtitles: 'Sous-titres', tasks: 'Tâches', help: 'Aide', theme: 'Changer de thème', menu: 'Menu', language: 'Langue' },
+  hero: { title: 'Vos médias, simplement.', subtitle: 'Analysez, convertissez et exportez vos fichiers multimédias en quelques clics.', placeholder: 'Collez le lien d’un fichier média…', analyze: 'Analyser', clear: 'Effacer', notice: 'Utilisez uniquement des médias que vous possédez ou que vous êtes autorisé à enregistrer.', or: 'ou' },
+  drop: { title: 'Glissez-déposez un fichier ici', hint: 'Vidéo ou audio — jusqu’à {mb} Mo', browse: 'Importer un fichier', uploading: 'Envoi et analyse… {p}%' },
+  result: { duration: 'Durée', type: 'Type', source: 'Source', size: 'Taille', resolution: 'Résolution', unknown: 'Inconnu', sizeUnknown: 'Taille inconnue', noMeta: 'Les métadonnées détaillées (durée, résolution) seront lues pendant le traitement.', choose: 'Choisissez un format', video: 'Vidéo', audio: 'Audio', original: 'original', start: 'Lancer le traitement', noOptions: 'Aucun format disponible pour cette source.', noThumb: 'Aucune miniature disponible', subtitlesFound: '{n} piste(s) de sous-titres détectée(s)', openSubtitles: 'Ouvrir dans Sous-titres' },
+  reason: { no_audio: 'Pas de piste audio', no_video: 'Pas de piste vidéo' },
+  task: { queued: 'En attente', analyzing: 'Téléchargement de la source', processing: 'Traitement', ready: 'Prêt', failed: 'Échec', cancelled: 'Annulé', expired: 'Expiré', cancel: 'Annuler', download: 'Télécharger', retry: 'Réessayer', remove: 'Supprimer', elapsed: 'Temps écoulé', convert: 'Conversion', extract_audio: 'Extraction audio' },
+  tasks: { title: 'Gestionnaire de tâches', subtitle: 'Les fichiers sont supprimés automatiquement après {min} minutes.', empty: 'Aucune tâche pour le moment.', search: 'Rechercher par nom…', allTypes: 'Tous les types', allStatus: 'Tous les statuts', clear: 'Vider l’historique', confirmClear: 'Supprimer toutes les tâches et leurs fichiers ?', confirmRemove: 'Supprimer cette tâche et son fichier ?' },
+  toast: { analyzed: 'Analyse terminée', ready: 'Fichier prêt : {name}', failed: 'Échec du traitement', cancelled: 'Tâche annulée', started: 'Traitement lancé' },
+  errors: {
+    url_empty: 'Collez un lien avant de lancer l’analyse.', url_invalid: 'Ce lien n’est pas valide. Vérifiez qu’il commence par https://', url_private: 'Les adresses locales ou privées ne sont pas autorisées.',
+    connector_not_configured: 'Connecteur non configuré : cette plateforme n’autorise pas le téléchargement sans API officielle. Importez plutôt votre propre fichier.',
+    not_media: 'Ce lien ne pointe pas vers un fichier audio ou vidéo.', source_unreachable: 'Source inaccessible. Vérifiez le lien et réessayez.', too_many_redirects: 'Trop de redirections.',
+    too_large: 'Limite de taille atteinte.', too_long: 'Le média dépasse la durée maximale autorisée.', invalid_media: 'Fichier illisible ou format non pris en charge.', rate_limited: 'Trop de requêtes. Patientez une minute.',
+    network: 'Erreur réseau : le serveur est injoignable.', convert_failed: 'La conversion a échoué.', processing_error: 'Erreur de traitement.', not_found: 'Élément introuvable ou expiré.', transcription_not_configured: 'Aucun moteur de transcription n’est configuré sur ce serveur.', subtitle_failed: 'Impossible d’extraire cette piste.', bad_request: 'Requête invalide.', server_error: 'Erreur du serveur.', interrupted: 'Téléchargement interrompu.',
+  },
+  converter: { title: 'Convertisseur audio et vidéo', subtitle: 'Importez un fichier, choisissez un format, récupérez le résultat. Traitement réel par FFmpeg.', initial: 'Taille initiale', final: 'Taille finale' },
+  subs: { title: 'Sous-titres et transcription', subtitle: 'Exportez les pistes de sous-titres intégrées à vos fichiers (MKV, MP4…) en SRT, VTT ou TXT.', tracks: 'Pistes disponibles', none: 'Aucune piste de sous-titres texte dans ce fichier.', preview: 'Aperçu', localFile: 'Ou ouvrez un fichier .srt / .vtt', transcribe: 'Transcription vocale', transcribeOff: 'Non configurée : aucun moteur de reconnaissance vocale n’est connecté. Aucune transcription ne sera inventée.', imageBased: 'piste image (non exportable)' },
+  tools: { title: 'Tous les outils', available: 'Disponible', soon: 'Non configuré', open: 'Ouvrir',
+    items: { analyzer: ['Analyseur de liens', 'Analyse les liens directs vers des fichiers audio/vidéo.'], video: ['Convertisseur vidéo', 'MP4, WebM, MOV avec choix de la résolution.'], audio: ['Convertisseur audio', 'MP3, WAV, M4A, AAC.'], extract: ['Extracteur audio', 'Récupère la bande son de vos vidéos.'], subs: ['Exportateur de sous-titres', 'SRT, VTT et TXT depuis les pistes intégrées.'], transcript: ['Générateur de transcription', 'Nécessite un moteur de reconnaissance vocale.'], preview: ['Lecteur de prévisualisation', 'Lisez le fichier importé avant de le traiter.'], files: ['Fichiers de session', 'Retrouvez vos exports récents.'], meta: ['Vérificateur de métadonnées', 'Codecs, résolution, durée via FFprobe.'], thumb: ['Extracteur de miniature', 'Pas encore implémenté côté serveur.'] } },
+  platforms: { title: 'Sources', configured: 'Configuré', notConfigured: 'Non configuré' },
+  meta: { container: 'Conteneur', videoCodec: 'Codec vidéo', audioCodec: 'Codec audio' },
+  help: { title: 'Aide et FAQ', faq: [
+    ['Puis-je télécharger une vidéo YouTube, Instagram ou TikTok ?', 'Non. Ces plateformes interdisent le téléchargement dans leurs conditions et protègent leurs flux. MediaFlow ne contourne aucune protection : leurs connecteurs restent « non configurés » tant qu’aucune API officielle autorisée n’est branchée. Pour vos propres vidéos, utilisez l’export proposé par la plateforme (par ex. YouTube Studio, « Télécharger vos données » d’Instagram/TikTok), puis importez le fichier ici.'],
+    ['Pourquoi ne puis-je pas choisir 4K ou 8K ?', 'MediaFlow ne propose que les résolutions inférieures ou égales à celle de votre fichier : agrandir une vidéo 1080p en 4K n’ajoute aucun détail. Si votre fichier est en 4K ou 8K, ces qualités apparaissent.'],
+    ['Quels liens fonctionnent ?', 'Les liens directs (https) vers un fichier audio ou vidéo public, par exemple https://exemple.com/clip.mp4.'],
+    ['Mes fichiers sont-ils conservés ?', 'Non. Ils sont supprimés automatiquement après la durée configurée, ou immédiatement quand vous supprimez la tâche.'],
+    ['La progression est-elle réelle ?', 'Oui, elle provient directement de FFmpeg et du téléchargement de la source.'],
+  ] },
+  terms: { title: 'Conditions d’utilisation', body: [
+    'MediaFlow est un outil de conversion de fichiers multimédias. Vous ne devez traiter que des contenus que vous possédez ou que vous êtes autorisé à copier.',
+    'Il est interdit d’utiliser le service pour contourner des mesures techniques de protection, des paywalls ou les conditions d’utilisation d’une plateforme.',
+    'Le service est fourni « en l’état », avec des limites de taille, de durée et de fréquence d’utilisation.',
+  ] },
+  privacy: { title: 'Politique de confidentialité', body: [
+    'Aucun compte n’est requis. Un identifiant de session aléatoire est stocké dans votre navigateur pour relier vos tâches à vous seul.',
+    'Les fichiers importés et générés sont stockés temporairement sur le serveur, isolés par session, puis supprimés automatiquement à expiration.',
+    'Les liens collés ne sont pas enregistrés dans les journaux. Aucune donnée n’est vendue ni partagée.',
+  ] },
+  notFound: { title: 'Page introuvable', body: 'Cette page n’existe pas.', back: 'Retour à l’accueil' },
+  footer: { terms: 'Conditions', privacy: 'Confidentialité', rights: 'Outil de conversion pour vos propres médias.' },
+};
+export type Dict = typeof fr;
