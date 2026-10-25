@@ -1,9 +1,11 @@
 """Serveur web de ClipNova : ouvre http://<ip-du-pc>:8000 depuis ton téléphone."""
 import json
+import io
 import shutil
+import zipfile
 
 from fastapi import FastAPI, File, Form, HTTPException, UploadFile
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 
 import clipnova
@@ -27,16 +29,21 @@ def clips_page():
 def create_job(url: str = Form(""), file: UploadFile | None = File(None), lang: str = Form("fr"),
                min_d: float = Form(20), max_d: float = Form(60), count: int = Form(10),
                model: str = Form("small"), color: str = Form("FFE500"), subs: bool = Form(True),
-               ai: bool = Form(True), keywords: str = Form(""), t_from: float = Form(0), t_to: float = Form(0)):
+               ai: bool = Form(True), keywords: str = Form(""), t_from: float = Form(0), t_to: float = Form(0),
+               rights: bool = Form(False)):
     if not url.strip() and not (file and file.filename):
         raise HTTPException(400, "Donne un lien ou une vidéo.")
+    if not rights:
+        raise HTTPException(400, "Coche « Je possède les droits de cette vidéo » pour continuer.")
+    if min_d >= max_d:
+        raise HTTPException(400, "La durée min doit être plus petite que la durée max.")
     job_id, folder = clipnova.new_job()
     upload = None
     if file and file.filename:
         upload = folder / ("source" + (clipnova.Path(file.filename).suffix or ".mp4"))
         with upload.open("wb") as f:
             shutil.copyfileobj(file.file, f)
-    opts = {"lang": lang if lang != "auto" else None, "min": min_d, "max": max(max_d, min_d + 5),
+    opts = {"lang": lang if lang != "auto" else None, "min": min_d, "max": max_d,
             "count": max(1, min(count, 30)), "model": model, "color": color, "subs": subs,
             "ai": ai, "keywords": keywords, "t_from": t_from, "t_to": t_to}
     clipnova.JOBS[job_id]["name"] = (file.filename if upload else url.strip())[:120]
@@ -92,3 +99,16 @@ def edit_clip(job_id: str, n: int, style: str = Form("{}"), music: UploadFile | 
             shutil.copyfileobj(music.file, f)
     clipnova.edit_clip(job_id, n, data, track)
     return {"ok": True}
+
+
+@app.get("/api/jobs/{job_id}/zip")
+def download_all(job_id: str):
+    """Tous les clips dans un seul fichier ZIP."""
+    job = get_job(job_id)
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, "w", zipfile.ZIP_STORED) as z:
+        for c in job["raw"]:
+            z.write(clipnova.WORK / job_id / c["name"], c["name"])
+    buf.seek(0)
+    return StreamingResponse(buf, media_type="application/zip",
+                             headers={"Content-Disposition": f'attachment; filename="clipnova-{job_id}.zip"'})

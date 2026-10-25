@@ -23,7 +23,7 @@
     </form>
     <div class="or">ou</div>
     <label class="btn ghost" for="file" style="cursor:pointer">⬆ Importer un fichier vidéo<input id="file" type="file" accept="video/*" hidden></label>
-    <div id="err1" class="err"></div>
+    <div id="err1" class="err" aria-live="polite"></div>
     <div class="tools">
       <div class="tool"><b>✂️</b>Long → courts</div>
       <div class="tool"><b>CC</b>Sous-titres IA</div>
@@ -69,11 +69,12 @@
       <label class="check" for="subs"><input id="subs" type="checkbox" checked> Sous-titres IA</label>
       <label for="color">Couleur du mot prononcé<input id="color" type="color" value="#ffe500"></label>
     </div>
+    <label class="check" for="rights"><input id="rights" type="checkbox" required> Je possède les droits de cette vidéo (ou j'ai l'autorisation)</label>
     <div class="row">
       <button type="button" class="ghost" id="back">← Retour</button>
       <button id="go">Obtenir les clips en 1 clic</button>
     </div>
-    <div id="err2" class="err"></div>
+    <div id="err2" class="err" aria-live="polite"></div>
   </form>
 </main>
 <script>
@@ -123,7 +124,7 @@ $('step2').addEventListener('submit', async e => {
   if (source.url) fd.set('url', source.url); else fd.set('file', source.file);
   const [mn, mx] = $('length').value.split('-');
   for (const [k, v] of Object.entries({ min_d: mn, max_d: mx, count: $('count').value, lang: $('lang').value, model: $('model').value,
-    keywords: $('keywords').value, subs: $('subs').checked, ai, color: $('color').value.slice(1),
+    keywords: $('keywords').value, rights: $('rights').checked, subs: $('subs').checked, ai, color: $('color').value.slice(1),
     t_from: dur * $('tFrom').value / 100, t_to: +$('tTo').value >= 100 ? 0 : dur * $('tTo').value / 100 })) fd.set(k, v);
   try {
     const r = await fetch('/api/jobs', { method: 'POST', body: fd }); const d = await r.json();

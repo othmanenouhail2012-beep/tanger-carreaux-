@@ -14,7 +14,7 @@
   </header>
 
   <div class="card" id="progress">
-    <div id="status">Chargement…</div><div class="bar"><i id="bar"></i></div>
+    <div id="status" aria-live="polite">Chargement…</div><div class="bar"><i id="bar"></i></div>
   </div>
 
   <section class="card" id="editorCard" hidden>
@@ -29,12 +29,12 @@
       </div>
 
       <form id="edForm" style="display:grid;gap:14px">
-        <div class="tabs" id="tabs">
-          <button type="button" data-tab="subs" class="on">Sous-titres</button>
-          <button type="button" data-tab="style">Style</button>
-          <button type="button" data-tab="music">Musique & son</button>
-          <button type="button" data-tab="cut">Coupe & cadrage</button>
-          <button type="button" data-tab="text">Texte d'accroche</button>
+        <div class="tabs" id="tabs" role="tablist">
+          <button type="button" role="tab" aria-selected="true" data-tab="subs" class="on">Sous-titres</button>
+          <button type="button" role="tab" aria-selected="false" data-tab="style">Style</button>
+          <button type="button" role="tab" aria-selected="false" data-tab="music">Musique & son</button>
+          <button type="button" role="tab" aria-selected="false" data-tab="cut">Coupe & cadrage</button>
+          <button type="button" role="tab" aria-selected="false" data-tab="text">Texte d'accroche</button>
         </div>
 
         <div data-panel="subs" class="grid">
@@ -45,6 +45,9 @@
         </div>
 
         <div data-panel="style" class="grid" hidden>
+          <div class="presets" id="presets">
+            <button type="button" data-p="jaune">Gros jaune</button><button type="button" data-p="boite">Boîte noire</button>
+            <button type="button" data-p="neon">Néon</button><button type="button" data-p="minimal">Minimal</button></div>
           <label for="s_font">Police<select id="s_font">
             <option>DejaVu Sans</option><option>Arial</option><option>Impact</option><option>Montserrat</option>
             <option>Bebas Neue</option><option>Poppins</option><option>Comic Sans MS</option></select></label>
@@ -57,15 +60,15 @@
 
         <div data-panel="music" class="grid" hidden>
           <label for="music">Musique de fond (MP3, libre de droits)<input id="music" type="file" accept="audio/*"></label>
-          <label class="check" for="s_music_on"><input id="s_music_on" type="checkbox"> Garder la musique</label>
+          <label class="check" for="s_music_on"><input id="s_music_on" type="checkbox"> Musique activée (décoche pour la retirer)</label>
           <label for="s_music_volume">Volume musique <span id="v_music_volume"></span><input id="s_music_volume" type="range" min="0" max="1" step="0.05"></label>
           <label for="s_voice_volume">Volume voix <span id="v_voice_volume"></span><input id="s_voice_volume" type="range" min="0" max="2" step="0.1"></label>
           <p class="note" style="grid-column:1/-1">Musiques gratuites : Bibliothèque audio YouTube, Pixabay Music. Évite les chansons connues : TikTok et YouTube peuvent bloquer le clip.</p>
         </div>
 
         <div data-panel="cut" class="grid" hidden>
-          <label for="s_trim_start">Début : couper (s) <small>négatif = rallonger</small><input id="s_trim_start" type="number" step="0.5"></label>
-          <label for="s_trim_end">Fin : couper (s) <small>négatif = rallonger</small><input id="s_trim_end" type="number" step="0.5"></label>
+          <label for="s_trim_start">Début : couper (s) <small>négatif = rallonger</small><input id="s_trim_start" type="number" step="0.5" min="-10" max="30"></label>
+          <label for="s_trim_end">Fin : couper (s) <small>négatif = rallonger</small><input id="s_trim_end" type="number" step="0.5" min="-10" max="30"></label>
           <label for="s_zoom">Zoom sur le visage <span id="v_zoom"></span><input id="s_zoom" type="range" min="1" max="2" step="0.05"></label>
         </div>
 
@@ -77,14 +80,15 @@
           <button id="apply">Appliquer le montage</button>
           <button type="button" class="ghost" id="applyAll">Appliquer le style à tous les clips</button>
         </div>
-        <div id="edStatus" class="note"></div>
+        <div id="edStatus" class="note" aria-live="polite"></div>
       </form>
     </div>
   </section>
 
   <section style="display:grid;gap:12px">
     <input id="search" type="search" placeholder="🔍 Chercher des mots-clés ou des moments…">
-    <h2 id="count">Clips</h2>
+    <div class="row" style="align-items:center"><h2 id="count">Clips</h2>
+      <a class="btn ghost" id="zip" style="flex:0 0 auto" hidden>⬇ Tout télécharger (ZIP)</a></div>
     <div id="clips" style="display:grid;gap:12px"></div>
   </section>
 </main>
@@ -106,6 +110,7 @@ async function poll() {
     const m = d.step.match(/(\d+)\/(\d+)/);
     $('bar').style.width = d.status !== 'running' ? '100%' : m ? (40 + 60 * m[1] / m[2]) + '%' : d.step.includes('Transcription') ? '25%' : '10%';
     clips = d.clips; drawList(); refreshEditor();
+    $('zip').hidden = d.status !== 'done' || !clips.length; $('zip').href = `/api/jobs/${job}/zip`;
     done = d.status !== 'running';
     const busy = clips.some(c => c.busy);
     if (!done || busy) setTimeout(poll, 2500);
@@ -123,7 +128,7 @@ function drawList() {
   if (key === drawn) return; drawn = key;
   $('count').textContent = `Clips (${shown.length}${q ? ' / ' + clips.length : ''})`;
   $('clips').innerHTML = shown.map((c, i) => `
-    <div class="card result ${current === c.n ? 'sel' : ''}" data-n="${c.n}">
+    <div class="card result ${current === c.n ? 'sel' : ''}" data-n="${c.n}" tabindex="0" role="button" aria-label="Monter le clip ${c.n}">
       <h3>#${clips.indexOf(c) + 1} ${hl(c.title || 'Clip ' + c.n, q)}</h3>
       <video src="${c.file.split('?')[0]}#t=0.5" muted playsinline preload="metadata"></video>
       <div>
@@ -136,12 +141,31 @@ function drawList() {
     </div>`).join('') || '<p class="note">Aucun clip ne contient ces mots.</p>';
 }
 $('search').addEventListener('input', drawList);
+$('clips').addEventListener('keydown', e => {
+  const el = e.target.closest('.result'); if (el && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); openEditor(+el.dataset.n); }
+});
+const PRESETS = {
+  jaune: { font:'Montserrat', size:96, color:'FFFFFF', highlight:'FFE500', outline:8, box:false, upper:true, words:3 },
+  boite: { font:'DejaVu Sans', size:80, color:'FFFFFF', highlight:'2FD6EA', outline:0, box:true, upper:false, words:4 },
+  neon:  { font:'Poppins', size:90, color:'FFFFFF', highlight:'FF2BD6', outline:4, box:false, upper:true, words:2 },
+  minimal: { font:'DejaVu Sans', size:64, color:'FFFFFF', highlight:'FFFFFF', outline:3, box:false, upper:false, words:6 },
+};
+$('presets').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  for (const [k, v] of Object.entries(PRESETS[b.dataset.p])) { const el = $('s_' + k); if (!el) continue;
+    if (el.type === 'checkbox') el.checked = v; else if (el.type === 'color') el.value = '#' + v.toLowerCase(); else el.value = v; }
+  showValues(); dirty = true;
+});
+let dirty = false;
+$('edForm').addEventListener('input', () => { dirty = true; });
 $('clips').addEventListener('click', e => {
   const el = e.target.closest('.result'); if (!el) return;
   openEditor(+el.dataset.n);
 });
 
 function openEditor(n) {
+  if (dirty && current && n !== current && !confirm('Tu as des réglages non appliqués sur ce clip. Les abandonner ?')) return;
+  dirty = false;
   current = n; drawn = ''; drawList();
   const c = clips[n - 1], st = { ...DEF, ...c.style };
   $('editorCard').hidden = false;
@@ -185,7 +209,7 @@ function showValues() {
 $('edForm').addEventListener('input', showValues);
 $('tabs').addEventListener('click', e => {
   const b = e.target.closest('button'); if (!b) return;
-  document.querySelectorAll('#tabs button').forEach(x => x.classList.toggle('on', x === b));
+  document.querySelectorAll('#tabs button').forEach(x => { x.classList.toggle('on', x === b); x.setAttribute('aria-selected', x === b); });
   document.querySelectorAll('[data-panel]').forEach(p => p.hidden = p.dataset.panel !== b.dataset.tab);
 });
 
@@ -198,12 +222,15 @@ async function send(n, style, withMusic) {
 }
 $('edForm').addEventListener('submit', async e => {
   e.preventDefault();
+  const a = +$('s_trim_start').value, b = +$('s_trim_end').value, c0 = clips[current - 1];
+  if (a + b >= (c0.end - c0.start) - 2) { $('edStatus').innerHTML = '<span class="err">La coupe est plus longue que le clip. Réduis Début ou Fin.</span>'; return; }
+  dirty = false;
   try { await send(current, readStyle(), true); clips[current - 1].busy = true; refreshEditor(); setTimeout(poll, 1500); }
   catch (err) { $('edStatus').innerHTML = '<span class="err">' + esc(err.message) + '</span>'; }
 });
 $('applyAll').addEventListener('click', async () => {
-  const st = readStyle(); delete st.trim_start; delete st.trim_end; delete st.zoom;
-  for (const c of clips) if (!c.busy) await send(c.n, st, true).catch(() => {});
+  const st = readStyle(); delete st.trim_start; delete st.trim_end; delete st.zoom; delete st.title; delete st.music_on;
+  for (const c of clips) if (!c.busy) await send(c.n, st, false).catch(() => {});
   $('edStatus').textContent = '⏳ Style appliqué à tous les clips, montage en cours…';
   setTimeout(poll, 1500);
 });
