@@ -46,10 +46,15 @@ def duration(path: Path) -> float:
     return float(json.loads(out)["format"]["duration"])
 
 
+_MODELS: dict = {}
+
+
 def transcribe(path: Path, lang: str | None, model_size: str) -> list[dict]:
     from faster_whisper import WhisperModel
 
-    model = WhisperModel(model_size, device="cpu", compute_type="int8")
+    if model_size not in _MODELS:  # le modèle est chargé une seule fois
+        _MODELS[model_size] = WhisperModel(model_size, device="cpu", compute_type="int8")
+    model = _MODELS[model_size]
     segments, _ = model.transcribe(str(path), language=lang or None, word_timestamps=True, vad_filter=True)
     words = []
     for seg in segments:
