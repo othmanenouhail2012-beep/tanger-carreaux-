@@ -20,7 +20,7 @@ export function cleanAlerts(list) {
 export function configureWebPush(webpush, env = process.env) {
   const pub = env.VAPID_PUBLIC_KEY, priv = env.VAPID_PRIVATE_KEY;
   if (!pub || !priv) throw new Error('VAPID_PUBLIC_KEY / VAPID_PRIVATE_KEY manquantes');
-  webpush.setVapidDetails(env.VAPID_SUBJECT || 'mailto:jarvis@example.com', pub, priv);
+  webpush.setVapidDetails(env.VAPID_SUBJECT || 'mailto:jarvis.minuteur@gmail.com', pub, priv);
   return webpush;
 }
 

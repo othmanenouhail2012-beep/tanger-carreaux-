@@ -464,6 +464,38 @@
     document.documentElement.style.setProperty('--accent', '#00e5ff');
   }
 
+  /* ---------- Diagnostic ---------- */
+  // Programme une alerte serveur dans 1 minute : ferme l'appli / lance un jeu et attends-la.
+  $('#btnTest1').onclick = async () => {
+    try {
+      if (!('Notification' in window)) throw new Error(isIOS() ? 'ouvre l’appli depuis l’icône de l’écran d’accueil' : 'notifications non disponibles');
+      if (Notification.permission !== 'granted' && await Notification.requestPermission() !== 'granted') throw new Error('notifications non autorisées');
+      const sub = await subscribePush();
+      const alerts = buildAlerts(state.acts).concat({ id: 'test1-' + Date.now(), at: Date.now() + 60000, title: 'Test JARVIS ✔', body: 'Si tu lis ceci, les alertes marchent même appli fermée.' });
+      const r = await fetch(FN + 'alerts', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ id: CLIENT_ID, subscription: sub, alerts }) });
+      if (!r.ok) throw new Error('le serveur a répondu ' + r.status);
+      pushStatus('🧪 Test programmé : va dans un jeu maintenant, la notification arrive dans 1 à 2 minutes.');
+    } catch (e) { pushStatus('❌ Test impossible : ' + e.message); }
+  };
+  $('#btnDiag').onclick = async () => {
+    const out = $('#diag'); out.hidden = false; out.textContent = 'Vérification…';
+    const L = [];
+    L.push((isStandalone() ? '✅' : '❌') + ' Appli ouverte depuis l’écran d’accueil' + (isStandalone() ? '' : ' (obligatoire sur iPad)'));
+    L.push(('Notification' in window && Notification.permission === 'granted' ? '✅' : '❌') + ' Notifications autorisées : ' + ('Notification' in window ? Notification.permission : 'non disponible'));
+    try { const reg = await navigator.serviceWorker.ready; const sub = await reg.pushManager.getSubscription(); L.push((sub ? '✅' : '❌') + ' Abonnement push' + (sub ? ' (' + new URL(sub.endpoint).host + ')' : '')); }
+    catch { L.push('❌ Service worker / push indisponible'); }
+    try {
+      const r = await fetch(FN + 'status?id=' + encodeURIComponent(CLIENT_ID), { cache: 'no-store' });
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      const d = await r.json();
+      L.push((d.vapid ? '✅' : '❌') + ' Clés VAPID sur Netlify' + (d.vapid ? '' : ' → ajoute-les dans Environment variables puis redéploie'));
+      const age = d.lastRun ? Math.round((d.now - d.lastRun.at) / 1000) : null;
+      L.push((age !== null && age < 180 ? '✅' : '❌') + ' Fonction planifiée : ' + (age === null ? 'n’a jamais tourné (le site doit être déployé en « production », pas en aperçu)' : 'dernier passage il y a ' + age + ' s' + (d.lastRun.error ? ' — erreur : ' + d.lastRun.error : '')));
+      L.push((d.pending.length ? '✅ ' : '⚠ ') + d.pending.length + ' alerte(s) en attente sur le serveur' + d.pending.slice(0, 3).map((a) => '\n   • ' + casaHHMM(a.at) + ' ' + a.title).join(''));
+    } catch (e) { L.push('❌ Serveur Netlify injoignable (' + e.message + ') → le site doit être déployé depuis GitHub, pas par glisser-déposer'); }
+    out.textContent = L.join('\n');
+  };
+
   /* ---------- Installation ---------- */
   function isStandalone() { return matchMedia('(display-mode: standalone)').matches || navigator.standalone === true; }
   function isIOS() { return /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1); }

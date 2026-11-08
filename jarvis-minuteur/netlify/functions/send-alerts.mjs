@@ -6,8 +6,12 @@ import webpush from 'web-push';
 import { configureWebPush, processDue } from '../lib/push-core.mjs';
 
 export default async () => {
-  configureWebPush(webpush);
-  const sent = await processDue(getStore('jarvis-alerts'), webpush, Date.now());
+  let sent = 0, error = null;
+  try {
+    configureWebPush(webpush);
+    sent = await processDue(getStore('jarvis-alerts'), webpush, Date.now());
+  } catch (e) { error = e.message; console.error(e); }
+  await getStore('jarvis-meta').setJSON('lastRun', { at: Date.now(), sent, error });
   console.log(`send-alerts: ${sent} notification(s) envoyée(s)`);
   return new Response('ok');
 };

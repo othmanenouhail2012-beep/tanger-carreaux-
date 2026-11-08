@@ -117,3 +117,7 @@ td:last-child { width: 56px; }
   .panel { padding: 14px; }
   td input[type=time] { min-width: 96px; }
 }
+
+.diag-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
+.diag-actions .btn { flex: 1 1 240px; }
+.diag { white-space: pre-wrap; background: var(--bg); border: 1px solid var(--line); border-radius: 12px; padding: 12px; font-size: 16px; }
