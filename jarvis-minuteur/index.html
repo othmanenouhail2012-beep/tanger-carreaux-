@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>JARVIS Minuteur</title>
+  <meta name="theme-color" content="#05080d">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="JARVIS">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="icons/icon-192.png">
+  <link rel="apple-touch-icon" href="icons/icon-180.png">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="top">
+    <div class="brand"><span class="dot"></span> J.A.R.V.I.S. <small>Minuteur</small></div>
+    <div class="top-actions">
+      <button id="btnInstall" class="btn btn-install" hidden>⬇ Installer sur l'écran d'accueil</button>
+      <button id="btnNotif" class="btn btn-ghost">🔔 Activer les notifications</button>
+    </div>
+  </header>
+
+  <main>
+    <!-- ============ ÉDITION ============ -->
+    <section id="viewEdit" class="panel">
+      <h1>Programme de la journée</h1>
+
+      <div class="tabs" role="tablist">
+        <button class="tab active" data-tab="tabImage">📷 Photo / capture</button>
+        <button class="tab" data-tab="tabPdf">📄 PDF</button>
+        <button class="tab" data-tab="tabText">⌨ Texte</button>
+      </div>
+
+      <div id="tabImage" class="tabpane active">
+        <label class="drop">
+          <input type="file" id="fileImage" accept="image/*">
+          <span>Choisir une photo ou une capture d'écran du programme</span>
+        </label>
+      </div>
+      <div id="tabPdf" class="tabpane">
+        <label class="drop">
+          <input type="file" id="filePdf" accept="application/pdf">
+          <span>Choisir un fichier PDF</span>
+        </label>
+      </div>
+      <div id="tabText" class="tabpane">
+        <textarea id="rawText" rows="7" placeholder="13h40 - 14h30 : Maths – exercices&#10;14h30 Pause&#10;14h45 – 15h30 HG – lire la leçon"></textarea>
+        <button id="btnParse" class="btn">Lire le texte</button>
+      </div>
+      <p id="ocrStatus" class="status" aria-live="polite"></p>
+
+      <div class="table-wrap">
+        <table id="tbl">
+          <thead><tr><th>Début</th><th>Fin</th><th>Activité</th><th></th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <div class="row-actions">
+        <button id="btnAddRow" class="btn btn-ghost">＋ Ajouter une ligne</button>
+        <button id="btnStart" class="btn btn-big">▶ Lancer le programme</button>
+      </div>
+    </section>
+
+    <!-- ============ MINUTEUR ============ -->
+    <section id="viewRun" class="panel" hidden>
+      <div class="reactor-wrap">
+        <svg id="reactor" viewBox="0 0 300 300" aria-hidden="true">
+          <circle class="r-track" cx="150" cy="150" r="130"/>
+          <circle id="ring" class="r-ring" cx="150" cy="150" r="130"/>
+          <circle class="r-inner" cx="150" cy="150" r="104"/>
+          <g class="r-ticks"></g>
+        </svg>
+        <div class="reactor-text">
+          <div id="curName" class="cur-name">—</div>
+          <div id="countdown" class="countdown">00:00</div>
+          <div id="curRange" class="cur-range"></div>
+        </div>
+      </div>
+      <div class="progress"><div id="bar"></div></div>
+      <p id="pausedTag" class="paused" hidden>⏸ EN PAUSE</p>
+
+      <div class="controls">
+        <button id="btnNext" class="btn">⏭ Activité suivante</button>
+        <button id="btnPlus5" class="btn">＋5 min</button>
+        <button id="btnPause" class="btn">⏸ Pause</button>
+        <button id="btnEdit" class="btn btn-ghost">✎ Modifier le programme</button>
+      </div>
+      <p id="pushStatus" class="status"></p>
+      <ul id="list" class="list"></ul>
+      <button id="btnStop" class="btn btn-danger">■ Arrêter le programme</button>
+    </section>
+  </main>
+
+  <!-- ============ AIDE INSTALLATION iPad ============ -->
+  <dialog id="iosDialog" class="dialog">
+    <h2>Installer sur iPad / iPhone</h2>
+    <ol class="steps">
+      <li><span class="ico">
+        <svg viewBox="0 0 24 24" width="34" height="34"><path d="M12 3v12M7 8l5-5 5 5" fill="none" stroke="currentColor" stroke-width="2"/><rect x="4" y="11" width="16" height="10" rx="2" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+      </span> Dans Safari, touche le bouton <b>Partager</b> (en haut à droite sur iPad).</li>
+      <li><span class="ico">
+        <svg viewBox="0 0 24 24" width="34" height="34"><rect x="3" y="3" width="18" height="18" rx="4" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 8v8M8 12h8" stroke="currentColor" stroke-width="2"/></svg>
+      </span> Choisis <b>« Sur l'écran d'accueil »</b> (fais défiler si besoin).</li>
+      <li><span class="ico big">✓</span> Touche <b>Ajouter</b>.</li>
+    </ol>
+    <p class="warn">⚠ Sur iPad, les notifications ne marchent <b>que</b> si l'appli est installée et ouverte depuis l'icône de l'écran d'accueil. Ouvre-la ensuite et touche « Activer les notifications ».</p>
+    <form method="dialog"><button class="btn">J'ai compris</button></form>
+  </dialog>
+
+  <script src="app.js"></script>
+</body>
+</html>
