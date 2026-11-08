@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="fr" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Quick Bricolage</title>
+<meta name="description" content="Quick Bricolage : intervention rapide et maalem de confiance à domicile au Maroc.">
+<meta name="theme-color" content="#f07c00">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Quick Bricolage">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="top">
+  <a href="#accueil" class="brand"><img src="icons/icon-192.png" alt="" width="36" height="36"><span><b>Quick Bricolage</b><small data-i18n="tagline"></small></span></a>
+  <nav class="topnav">
+    <a href="#accueil" data-i18n="home"></a><a href="#demande" data-i18n="request"></a><a href="#mes-demandes" data-i18n="myReq"></a>
+  </nav>
+  <div class="tools">
+    <select id="lang" aria-label="Langue"><option value="fr">FR</option><option value="ar">عربي</option><option value="da">Darija</option></select>
+    <button id="themeBtn" class="icon-btn" aria-label="Thème">🌓</button>
+  </div>
+</header>
+
+<main>
+<!-- ACCUEIL -->
+<section id="v-accueil" class="view">
+  <div class="hero wrap">
+    <p class="kicker" data-i18n="tagline"></p>
+    <h1 data-i18n="heroTitle"></h1>
+    <p class="lead" data-i18n="heroText"></p>
+    <a href="#demande" class="btn btn-xl" data-i18n="cta"></a>
+    <button id="installBtn" class="btn btn-ghost" hidden>📲 <span data-i18n="install"></span></button>
+  </div>
+
+  <div class="wrap">
+    <h2 data-i18n="services"></h2>
+    <div class="grid" id="homeServices"></div>
+
+    <h2 data-i18n="how"></h2>
+    <ol class="how">
+      <li><span class="num">1</span><b data-i18n="how1t"></b><p data-i18n="how1"></p></li>
+      <li><span class="num">2</span><b data-i18n="how2t"></b><p data-i18n="how2"></p></li>
+      <li><span class="num">3</span><b data-i18n="how3t"></b><p data-i18n="how3"></p></li>
+    </ol>
+
+    <section id="shop" class="card shop">
+      <h2 data-i18n="shop"></h2>
+      <p data-i18n="shopText"></p>
+      <p><b data-i18n="address"></b> : <span id="shopAddr"></span></p>
+      <p><b data-i18n="hours"></b> : <span id="shopHours"></span></p>
+      <iframe id="shopMap" title="Carte" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+      <div class="row">
+        <a class="btn" id="shopCall">📞 <span data-i18n="call"></span> <span id="shopTel"></span></a>
+        <a class="btn btn-ghost" id="shopDir" target="_blank" rel="noopener">🗺️ <span data-i18n="itinerary"></span></a>
+      </div>
+    </section>
+
+    <h2 data-i18n="faq"></h2>
+    <div id="faqList" class="faq"></div>
+  </div>
+</section>
+
+<!-- DEMANDE -->
+<section id="v-demande" class="view" hidden>
+  <div class="wrap narrow">
+    <div class="progress"><div id="bar"></div></div>
+    <p class="stepinfo"><span data-i18n="step"></span> <b id="stepNum">1</b> <span data-i18n="of"></span> 4</p>
+    <form id="form" novalidate>
+      <fieldset class="step" data-step="1">
+        <legend data-i18n="s1"></legend>
+        <div class="grid" id="formServices"></div>
+        <p class="err" id="e1"></p>
+      </fieldset>
+
+      <fieldset class="step" data-step="2" hidden>
+        <legend data-i18n="s2"></legend>
+        <textarea id="desc" rows="5" data-ph="descPh" required></textarea>
+        <label class="btn btn-ghost file"><span id="photoLbl" data-i18n="photo"></span> 📷
+          <input type="file" id="photo" accept="image/*" capture="environment"></label>
+        <div id="preview" hidden><img id="previewImg" alt=""><button type="button" class="link" id="photoDel" data-i18n="photoRemove"></button></div>
+        <p class="note" data-i18n="photoNote"></p>
+      </fieldset>
+
+      <fieldset class="step" data-step="3" hidden>
+        <legend data-i18n="s3"></legend>
+        <button type="button" class="btn btn-ghost wide" id="geoBtn">📍 <span data-i18n="geo"></span></button>
+        <p class="note" id="geoMsg"></p>
+        <label><span data-i18n="addr"></span><input id="addr" autocomplete="street-address"></label>
+        <div class="two">
+          <label><span data-i18n="district"></span><input id="district" required></label>
+          <label><span data-i18n="city"></span><input id="city" required list="cities" autocomplete="address-level2"></label>
+        </div>
+        <datalist id="cities"></datalist>
+      </fieldset>
+
+      <fieldset class="step" data-step="4" hidden>
+        <legend data-i18n="s4"></legend>
+        <div class="seg">
+          <label><input type="radio" name="when" value="urgent" checked><span data-i18n="urgent"></span></label>
+          <label><input type="radio" name="when" value="planned"><span data-i18n="planned"></span></label>
+        </div>
+        <div id="planned" class="two" hidden>
+          <label><span data-i18n="date"></span><input type="date" id="date"></label>
+          <label><span data-i18n="slot"></span><select id="slot"><option value="slotM" data-i18n="slotM"></option><option value="slotA" data-i18n="slotA"></option><option value="slotE" data-i18n="slotE"></option></select></label>
+        </div>
+        <label><span data-i18n="name"></span><input id="name" required autocomplete="name"></label>
+        <label><span data-i18n="phone"></span><input id="phone" type="tel" required autocomplete="tel" inputmode="tel" pattern="[0-9 +]{9,}"></label>
+      </fieldset>
+
+      <div class="nav">
+        <button type="button" class="btn btn-ghost" id="prev" data-i18n="back"></button>
+        <button type="button" class="btn" id="nextBtn" data-i18n="next"></button>
+        <button type="submit" class="btn btn-wa" id="sendBtn" hidden>💬 <span data-i18n="send"></span></button>
+      </div>
+    </form>
+  </div>
+</section>
+
+<!-- MES DEMANDES -->
+<section id="v-mes-demandes" class="view" hidden>
+  <div class="wrap narrow">
+    <h1 data-i18n="myReq"></h1>
+    <div id="reqList"></div>
+  </div>
+</section>
+</main>
+
+<footer class="foot wrap"><p>© <span id="year"></span> Quick Bricolage · quickbricolage.ma</p></footer>
+
+<!-- Barre fixe -->
+<div class="dock">
+  <a id="dockCall" class="btn btn-ghost">📞 <span data-i18n="call"></span></a>
+  <a href="#mes-demandes" class="btn btn-ghost dock-req" aria-label="Mes demandes">📋</a>
+  <a id="dockWa" class="btn btn-wa" target="_blank" rel="noopener">💬 <span data-i18n="whatsapp"></span></a>
+</div>
+
+<dialog id="dlgSent"><h3 data-i18n="sentTitle"></h3><p data-i18n="sentText"></p><button class="btn" data-close data-i18n="ok"></button></dialog>
+<dialog id="dlgIos"><h3 data-i18n="iosTitle"></h3><ol><li data-i18n="ios1"></li><li data-i18n="ios2"></li><li data-i18n="ios3"></li></ol><button class="btn" data-close data-i18n="close"></button></dialog>
+
+<script src="config.js"></script>
+<script src="i18n.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
