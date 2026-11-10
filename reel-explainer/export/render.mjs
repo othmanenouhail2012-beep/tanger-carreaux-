@@ -1,12 +1,16 @@
 // export/render.mjs — export image par image → out/reel.mp4
-// Usage : node export/render.mjs   (options : --story chauffe-eau --out reel.mp4 --fps 30 --from 0 --to <s> --keep)
+// Usage : node export/render.mjs
+//   options : --story chauffe-eau  --out reel.mp4  --fps 30  --from 0 --to <s>  --keep
+//             --voice <fichier>  --voice-offset <s>  --no-sfx  --music-volume 0.18
+// Audio : bruitages synthétisés (toujours, sauf --no-sfx) + audio/voice.* (ta voix) + audio/music.* (musique, en boucle, baissée sous la voix)
 import { createServer } from 'node:http';
-import { readFile, mkdir, rm, access } from 'node:fs/promises';
+import { readFile, writeFile, mkdir, rm, access } from 'node:fs/promises';
 import { spawnSync } from 'node:child_process';
 import { createRequire } from 'node:module';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+import { mixToWav } from '../js/sfx.js';
 const { chromium } = await import('playwright').catch(() => createRequire(import.meta.url)('playwright'));
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const arg = (k, d) => { const i = process.argv.indexOf('--' + k); return i > 0 ? process.argv[i + 1] : d; };
@@ -37,6 +41,7 @@ const { fps: fps0, duration } = await page.evaluate(() => ({ fps: window.__reel.
 const fps = +arg('fps', fps0), from = +arg('from', 0), to = Math.min(+arg('to', duration), duration);
 const n = Math.round((to - from) * fps);
 console.log(`→ ${n} frames @ ${fps} fps (${(to - from).toFixed(2)} s)`);
+const sfxEvents = process.argv.includes('--no-sfx') ? [] : await page.evaluate(() => window.__collectSfx());
 const stage = await page.$('#stage');
 const t0 = Date.now();
 for (let i = 0; i < n; i++) {
@@ -47,15 +52,40 @@ for (let i = 0; i < n; i++) {
 await browser.close(); server.close();
 console.log('\n→ ffmpeg');
 
-const voice = path.join(ROOT, 'audio', 'voice.mp3');
-const hasVoice = await access(voice).then(() => true, () => false);
+const exists = p => access(p).then(() => true, () => false);
+const findAudio = async base => { for (const e of ['wav', 'm4a', 'mp3', 'webm', 'ogg', 'aac', 'flac']) { const p = path.join(ROOT, 'audio', `${base}.${e}`); if (await exists(p)) return p; } return null; };
+const voice = arg('voice') ? path.resolve(arg('voice')) : await findAudio('voice');
+const music = await findAudio('music');
+const len = (to - from).toFixed(3);
 const out = path.join(OUT, arg('out', story ? story + '.mp4' : 'reel.mp4'));
+
 const ff = ['-y', '-loglevel', 'error', '-framerate', String(fps), '-i', path.join(FRAMES, '%04d.png')];
-if (hasVoice) ff.push('-i', voice);
-ff.push('-c:v', 'libx264', '-pix_fmt', 'yuv420p', '-crf', '18', '-r', String(fps), '-movflags', '+faststart');
-if (hasVoice) ff.push('-c:a', 'aac', '-b:a', '192k', '-shortest');
-ff.push(out);
+const filters = [], mixIn = []; let idx = 1;
+if (sfxEvents.length) {
+  const wav = path.join(OUT, 'sfx.wav');
+  await writeFile(wav, mixToWav(sfxEvents.map(e => ({ ...e, t: e.t - from })).filter(e => e.t >= 0), to - from));
+  ff.push('-i', wav); filters.push(`[${idx++}:a]volume=${voice ? .6 : 1}[sfx]`); mixIn.push('[sfx]');
+}
+if (voice) {
+  const off = +arg('voice-offset', 0) - from;
+  ff.push('-i', voice);
+  const shift = off > 0 ? `adelay=${Math.round(off * 1000)}:all=1,` : off < 0 ? `atrim=start=${-off},asetpts=PTS-STARTPTS,` : '';
+  // nettoyage léger : coupe les graves parasites, réduit le souffle, niveau standard réseaux sociaux (-16 LUFS)
+  filters.push(`[${idx++}:a]${shift}aformat=channel_layouts=mono,highpass=f=80,afftdn=nf=-25,loudnorm=I=-16:TP=-1.5:LRA=11,aresample=48000${music ? ',asplit=2[voice][key]' : '[voice]'}`);
+  mixIn.push('[voice]');
+}
+if (music) {
+  ff.push('-stream_loop', '-1', '-i', music);
+  filters.push(`[${idx++}:a]aresample=48000,volume=${arg('music-volume', voice ? .18 : .45)}${voice ? '[m0];[m0][key]sidechaincompress=threshold=0.03:ratio=6:attack=20:release=500[music]' : '[music]'}`);
+  mixIn.push('[music]');
+}
+if (mixIn.length) {
+  filters.push(`${mixIn.join('')}amix=inputs=${mixIn.length}:normalize=0:duration=longest,alimiter=limit=0.95,apad,afade=t=out:st=${Math.max(0, to - from - .4).toFixed(3)}:d=0.4[a]`);
+  ff.push('-filter_complex', filters.join(';'), '-map', '0:v', '-map', '[a]', '-c:a', 'aac', '-b:a', '192k', '-ar', '48000');
+}
+ff.push('-c:v', 'libx264', '-pix_fmt', 'yuv420p', '-crf', '18', '-r', String(fps), '-movflags', '+faststart', '-t', len, out);
 const r = spawnSync('ffmpeg', ff, { stdio: 'inherit' });
 if (r.status !== 0) { console.error('ffmpeg a échoué'); process.exit(1); }
 if (!KEEP) await rm(FRAMES, { recursive: true, force: true });
-console.log(`✓ ${path.relative(process.cwd(), out)}${hasVoice ? ' (avec voice.mp3)' : ''}`);
+const parts = [sfxEvents.length && `${sfxEvents.length} bruitages`, voice && `voix : ${path.relative(ROOT, voice)}`, music && `musique : ${path.relative(ROOT, music)}`].filter(Boolean);
+console.log(`✓ ${path.relative(process.cwd(), out)}${parts.length ? '  (' + parts.join(', ') + ')' : '  (sans son)'}`);

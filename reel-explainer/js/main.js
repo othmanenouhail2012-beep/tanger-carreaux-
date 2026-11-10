@@ -1,5 +1,6 @@
 // main.js — construit UNE timeline maître (en pause) à partir du storyboard
 import { createStage, mk, isPlayground, isExport, params } from './stage.js';
+import { bus } from './sfx.js';
 import { defs, compose } from './props.js';
 import * as camera from './camera.js';
 import { caption } from './captions.js';
@@ -21,7 +22,7 @@ function build() {
   const tl = gsap.timeline({ paused: true });
   const marks = []; let t = 0, prev = null;
   reel.scenes.forEach((sc, i) => {
-    const dur = sc.duration; marks.push({ id: sc.id, t });
+    const dur = sc.duration; marks.push({ id: sc.id, t, caption: sc.caption || '', duration: dur });
     if (sc.endCard) {
       if (prev) tl.to(prev, { opacity: 0, duration: .4 }, t + .4);
       tl.add(endCard(st.endcard, { brand: reel.brand }), t);
@@ -65,5 +66,13 @@ function build() {
     prev = g; t += dur;
   });
   window.__reel = { tl, fps: reel.fps, duration: tl.duration(), marks };
-  if (!isExport) import('./devtools.js').then(m => m.devtools(window.__reel));
+  // liste des bruitages {t, type} : on balaie la timeline, les callbacks emit() se déclenchent au passage
+  window.__collectSfx = (step = 1 / 240) => {
+    const out = []; tl.pause(); tl.seek(0, true);
+    bus.on = type => out.push({ t: +tl.time().toFixed(4), type });
+    for (let i = 1, n = Math.ceil(tl.duration() / step); i <= n; i++) tl.seek(Math.min(i * step, tl.duration()), false);
+    bus.on = null; tl.seek(0, true); return out;
+  };
+  if (params.has('record')) import('./recorder.js').then(m => m.recorder(window.__reel));
+  else if (!isExport) import('./devtools.js').then(m => m.devtools(window.__reel));
 }

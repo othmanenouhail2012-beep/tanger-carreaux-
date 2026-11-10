@@ -37,11 +37,19 @@ python3 -m http.server 5173  # ou : npx serve -l 5173 .
 - Marque : `brand: { name, logo, icon }`, où `icon: 'wrench'` dessine une clé dans le logo rond quand `logo` est vide.
 - La dernière scène `{ id: 'end', duration: 2.6, endCard: true }` affiche le logo et « تابعنا », puis revient en fondu sur la première image pour une boucle propre.
 
+## Le son
+- **Bruitages** (`js/sfx.js`) : goutte, pop, whoosh, ✓, alerte, carillon de fin. Ils sont synthétisés (aucun fichier, aucune voix) et déclenchés par la timeline, donc calés à l'image près. On les entend dans l'aperçu (bouton 🔊) et ils sont mixés à l'export.
+- **Ta voix** : ouvre `http://localhost:5173/?record=1` dans Chrome, avec un casque. Le reel défile et un prompteur affiche la phrase en cours et la suivante. Clique « ● Enregistrer » et lis. À la fin, télécharge `voice.webm` et mets-le dans `audio/`. Comme la voix est enregistrée en même temps que l'animation, elle est déjà synchronisée.
+  - Tu peux aussi enregistrer avec ton téléphone (mémo vocal) et déposer `audio/voice.m4a` (ou mp3, wav, ogg). Un léger décalage se corrige avec `--voice-offset 0.2` (en secondes).
+  - À l'export, la voix est nettoyée : coupe des graves, réduction du souffle, niveau à -16 LUFS.
+- **Musique** (optionnelle) : `audio/music.mp3`, une musique libre de droits. Elle passe en boucle et baisse automatiquement quand la voix parle.
+
 ## Exporter en MP4
 ```bash
 node export/render.mjs               # → out/reel.mp4 (H.264, yuv420p, 30 fps, crf 18)
 node export/render.mjs --from 18 --to 24 --keep   # extrait, en gardant frames/
+node export/render.mjs --no-sfx                    # sans bruitages
 ```
-Le script lance son propre serveur statique, ouvre `index.html?export=1` dans Chromium avec Playwright (viewport 1080×1920), attend les polices, puis pour chaque frame appelle `tl.seek(i / fps)` et fait une capture. ffmpeg assemble ensuite les images. Si `audio/voice.mp3` existe, il est ajouté avec `-shortest`. Il faut `ffmpeg` et `playwright` installés.
+Le script lance son propre serveur statique, ouvre `index.html?export=1` dans Chromium avec Playwright (viewport 1080×1920), attend les polices, puis pour chaque frame appelle `tl.seek(i / fps)` et fait une capture. ffmpeg assemble ensuite les images et mixe le son : bruitages, plus `audio/voice.*` et `audio/music.*` s'ils existent. Il faut `ffmpeg` et `playwright` installés.
 
 Toute l'animation passe par une seule timeline GSAP maître, en pause, sans setTimeout ni animation CSS. L'export est donc identique, image pour image, à la lecture.

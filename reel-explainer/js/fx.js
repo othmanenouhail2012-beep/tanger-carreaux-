@@ -3,12 +3,14 @@
 import { mk, frag, boxIn, rng, root } from './stage.js';
 import { C, icons, phone, elementView } from './props.js';
 import * as camera from './camera.js';
+import { emit } from './sfx.js';
 
 const q = (ctx, t) => (typeof t === 'string' ? ctx.root.querySelector(t) : t);
 const reps = (until, period) => Math.max(0, Math.floor(until / period) - 1);
 const dashed = { 'stroke-dasharray': '2 14', 'stroke-linecap': 'round', fill: 'none' };
 const ST = (w = 3, c = C.ink) => ({ stroke: c, 'stroke-width': w, 'stroke-linecap': 'round', 'stroke-linejoin': 'round' });
 const zoomOf = ctx => camera.get(ctx.world).s;
+const cue = (tl, type, pos = 0) => tl.call(emit, [type], pos); // bruitage calé sur la timeline
 const fmt = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
 // pop d'un groupe centré sur 0,0 (échelle via l'attribut transform : origine exacte)
 const scaleIn = (el, { from = 0, to = 1, duration = .35, ease = 'back.out(2)' } = {}) => {
@@ -27,7 +29,7 @@ export function ring(ctx, { target, hold }) {
   const c = mk('circle', { cx: b.cx, cy: b.cy, r, fill: 'none', ...ST(5, C.focus), 'vector-effect': 'non-scaling-stroke', opacity: 0, transform: `rotate(-90 ${b.cx} ${b.cy})` }, ctx.world);
   hold = hold ?? Math.max(.8, ctx.until - 1);
   const k = Math.max(1, Math.floor(hold / .8));
-  return gsap.timeline()
+  return cue(gsap.timeline(), 'swish')
     .set(c, { opacity: 1 })
     .fromTo(c, { drawSVG: '0%', scale: 1.15 }, { drawSVG: '100%', scale: 1, duration: .5, ease: 'power2.out', svgOrigin: `${b.cx} ${b.cy}`, immediateRender: false })
     .to(c, { scale: 1.04, duration: .4, yoyo: true, repeat: 2 * k - 1, ease: 'sine.inOut', svgOrigin: `${b.cx} ${b.cy}` })
@@ -46,7 +48,7 @@ export function pop(ctx, { icon = 'check', target, at = 'tr', size = 1, x, y, ar
   if (layer === 'world') k = size / zoomOf(ctx);
   const g = mk('g', { transform: `translate(${px} ${py}) scale(${k})` }, parent);
   const inner = frag(icons[icon](arg), g, { opacity: 0 });
-  const tl = gsap.timeline()
+  const tl = cue(gsap.timeline(), icon === 'warning' ? 'warn' : 'pop')
     .set(inner, { opacity: 1 })
     .add(scaleIn(inner));
   if (icon === 'warning') tl.to(inner, { opacity: .25, duration: .14, yoyo: true, repeat: 3, ease: 'none' });
@@ -63,7 +65,7 @@ export function insetCard(ctx, { target, content = '', close, x = 150, y = 130, 
   if (target) { const b = boxIn(q(ctx, target)); fx = b.cx - cx; fy = b.cy - cy; }
   const st = { x: fx, y: fy, s: .2, o: 0 };
   const draw = () => { card.setAttribute('transform', `translate(${cx + st.x} ${cy + st.y}) scale(${st.s}) translate(${-cx} ${-cy})`); card.setAttribute('opacity', st.o); };
-  const tl = gsap.timeline()
+  const tl = cue(gsap.timeline(), 'whoosh')
     .fromTo(st, { x: fx, y: fy, s: .2, o: 0 }, { x: 0, y: 0, s: 1, o: 1, duration: .45, ease: 'power3.out', immediateRender: false, onUpdate: draw });
   if (close != null) tl.to(st, { o: 0, s: .96, duration: .3, ease: 'power2.in', onUpdate: draw }, close);
   tl.el = card;
@@ -96,6 +98,7 @@ export function magnifier(ctx, { target, lens = { x: 760, y: 360 }, n = 26, seed
     .set(lensIn, { opacity: 1 })
     .add(scaleIn(lensIn))
     .fromTo(ps, { scale: 0 }, { scale: 1, duration: .25, ease: 'back.out(2)', stagger: .04, transformOrigin: '50% 50%', immediateRender: false });
+  cue(tl, 'pop', .6);
   const rest = ctx.until - tl.duration();
   if (rest > .8) tl.to(ps, { y: '+=4', duration: .5, yoyo: true, repeat: reps(rest, .5) | 1, ease: 'sine.inOut', stagger: { each: .03, from: 'random' } });
   return tl;
@@ -136,6 +139,8 @@ export function crossSection(ctx, { target, pos = { x: 790, y: 470 }, R = 190 })
     .to(clap, { y: -40, duration: .4, ease: 'power2.inOut' }, 0)
     .fromTo(dr, { y: 0, opacity: 1 }, { y: 70, opacity: 0, duration: .5, ease: 'power2.in', stagger: .12, immediateRender: false }, .3)
     .to([springEl, clap], { scaleY: 1, y: 0, duration: .35, ease: 'power2.inOut', svgOrigin: '0 -120' }, .9);
+  cue(cycle, 'drip', .55);
+  cue(tl, 'whoosh', .3);
   cycle.repeat(Math.max(0, Math.floor((ctx.until - .8) / cycle.duration()) - 1));
   return tl.add(cycle);
 }
@@ -212,7 +217,7 @@ export function danger(ctx, { shell = '#heater-shell', target = '#heater' }) {
     for (let k = 1; k <= 4; k++) d += `L${x + (k % 2 ? 14 : -10) * (i % 2 ? -1 : 1)} ${y + k * 22}`;
     return mk('path', { d, ...ST(4), fill: 'none', opacity: 0 }, s.parentNode);
   });
-  const tl = gsap.timeline()
+  const tl = cue(gsap.timeline(), 'warn')
     .to(s, { stroke: C.danger, duration: .4 })
     .set(cracks, { opacity: 1 }, .2)
     .fromTo(cracks, { drawSVG: '0%' }, { drawSVG: '100%', duration: .35, stagger: .2, ease: 'power2.out', immediateRender: false }, .2)
@@ -225,7 +230,7 @@ export function danger(ctx, { shell = '#heater-shell', target = '#heater' }) {
 /* 12. steamBurst : nuage de vapeur + compteur optionnel */
 export function steamBurst(ctx, { target, n = 30, seed = 9, counter: cnt }) {
   const b = boxIn(q(ctx, target)); const r = rng(seed); const g = mk('g', { class: 'steam' }, ctx.overlay);
-  const tl = gsap.timeline();
+  const tl = gsap.timeline(); if (n) cue(tl, 'whoosh');
   for (let i = 0; i < n; i++) {
     const rad = 20 + r() * 50, a = -Math.PI / 2 + (r() - .5) * 2.6, d = 120 + r() * 380;
     const c = mk('circle', { cx: b.cx + (r() - .5) * b.w * .5, cy: b.y + b.h * .3, r: rad, fill: '#fff', ...ST(2, C.steam), opacity: 0 }, g);
@@ -272,14 +277,16 @@ export function phoneChecklist(ctx, { items = [], title }) {
   const g = frag(phone(items, { x: 300, y: 110 }, title), ctx.overlay);
   const ph = g.querySelector('.phone-in'), ticks = g.querySelectorAll('.tick-in');
   gsap.set(ticks, { scale: 0, transformOrigin: '50% 50%' }); gsap.set(ph, { y: 2000 });
-  return gsap.timeline()
+  const tl = cue(gsap.timeline(), 'whoosh');
+  ticks.forEach((_, i) => cue(tl, 'tick', .8 + i * .25));
+  return tl
     .fromTo(ph, { y: 2000 }, { y: 0, duration: .7, ease: 'power3.out', immediateRender: false })
     .fromTo(ticks, { scale: 0 }, { scale: 1, duration: .35, ease: 'back.out(2)', transformOrigin: '50% 50%', stagger: .25, immediateRender: false }, .8);
 }
 
 /* 16. transition (utilisée par main.js) : fondu enchaîné + caméra plus large → cible */
 export function transition(a, b, { type = 'fade', duration = .45 } = {}) {
-  const tl = gsap.timeline();
+  const tl = cue(gsap.timeline(), 'swish');
   tl.fromTo(b, { opacity: 0 }, { opacity: 1, duration, ease: 'power2.out', immediateRender: false }, 0);
   if (a) {
     if (type === 'fromInset') { const card = a.querySelector('.inset'); if (card) tl.fromTo(card, { opacity: 1 }, { opacity: 0, duration: duration + .15, immediateRender: false }, 0); }
@@ -300,7 +307,7 @@ export function endCard(layer, { brand = {} } = {}) {
     <div class="name">${brand.name || ''}</div><div class="follow">تابعنا</div>`;
   const [logo, name, follow] = layer.children;
   gsap.set([logo, name, follow], { opacity: 0 });
-  return gsap.timeline()
+  return cue(gsap.timeline(), 'chime', .2)
     .fromTo(layer, { opacity: 0 }, { opacity: 1, duration: .4, ease: 'power2.out', immediateRender: false })
     .fromTo(logo, { scale: 0, opacity: 1 }, { scale: 1, opacity: 1, duration: .5, ease: 'back.out(2)', immediateRender: false }, .2)
     .fromTo(name, { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: .35, ease: 'power2.out', immediateRender: false }, .5)
@@ -327,6 +334,7 @@ export function drip(ctx, { target = '#spout', fall = 110, every = .9, until }) 
     .set(drop, { opacity: 0 })
     .fromTo(splash, { opacity: 1 }, { opacity: 0, duration: .25, immediateRender: false })
     .to({}, { duration: Math.max(0, every - .87) });
+  cue(one, 'drip', .62);
   one.repeat(Math.max(0, Math.floor((until ?? ctx.until) / one.duration()) - 1));
   return gsap.timeline().add(one);
 }

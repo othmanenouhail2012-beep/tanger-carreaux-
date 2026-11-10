@@ -37,7 +37,13 @@ Les particuliers au Maroc, propriétaires ou locataires, qui font eux-mêmes les
 - Que le magasin vend bien les 3 articles cités (joint, téflon, clé anglaise). La vidéo l'affirme.
 - Le logo : pour l'instant, une icône de clé avec « QB » dessinés pour la vidéo. Le vrai logo se met dans `brand.logo` (`js/storyboard.js`).
 - Le compte à afficher sous « تابعنا » (par exemple @quickbricolage), et éventuellement l'adresse ou le numéro sur la carte de fin. Je ne les ai pas ajoutés, faute de source fiable.
-- La voix off (facultative) : déposer `audio/voice.mp3`. Les temps des mots peuvent être calés via `words` dans le storyboard.
+- La voix off : à enregistrer par une vraie personne (voir ci-dessous).
+
+## Enregistrer la voix off (vraie voix, pas d'IA)
+1. **Qui :** quelqu'un qui parle darija naturellement, avec un ton de conseil entre amis, pas de pub.
+2. **Comment :** lance le projet, ouvre `?record=1`, mets un casque et lis le prompteur pendant que la vidéo défile. La voix est synchronisée automatiquement.
+3. **Sur téléphone :** enregistre un mémo vocal en lisant le texte ci-dessus à un rythme d'environ 3 à 4 mots par seconde, puis dépose le fichier dans `audio/`. Je peux ensuite recaler la durée des plans sur ta voix.
+4. **Conseils :** pièce avec rideaux ou tissus (pas une pièce vide qui résonne), téléphone à 20 cm de la bouche, une ou deux prises par phrase, en souriant légèrement : ça s'entend.
 
 ## Déclinaisons possibles (même format, même moteur)
 1. Chasse d'eau qui fuit (le joint de la chasse, puis on calcule les litres perdus).
