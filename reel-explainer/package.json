@@ -1,0 +1,7 @@
+{
+  "name": "reel-explainer",
+  "private": true,
+  "type": "module",
+  "scripts": { "serve": "npx serve -l 5173 .", "export": "node export/render.mjs" },
+  "dependencies": { "gsap": "3.13.0" }
+}
