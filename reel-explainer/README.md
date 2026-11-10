@@ -39,9 +39,17 @@ python3 -m http.server 5173  # ou : npx serve -l 5173 .
 
 ## Le son
 - **Bruitages** (`js/sfx.js`) : goutte, pop, whoosh, ✓, alerte, carillon de fin. Ils sont synthétisés (aucun fichier, aucune voix) et déclenchés par la timeline, donc calés à l'image près. On les entend dans l'aperçu (bouton 🔊) et ils sont mixés à l'export.
+- **Voix IA** (voix neuronales marocaines `ar-MA` de Microsoft, via [edge-tts](https://pypi.org/project/edge-tts/)) :
+  ```bash
+  pip install edge-tts
+  python3 export/tts.py                               # voix du storyboard (reel.voice), Jamal par défaut
+  python3 export/tts.py --voice ar-MA-MounaNeural     # voix féminine
+  ```
+  Le script génère `audio/voice-ai.wav` et `audio/voice-ai.json`. La durée des scènes s'allonge si une réplique est plus longue que prévu, et chaque mot du sous-titre apparaît au moment où il est prononcé. Si une prononciation sonne faux, ajoute `say: '…'` à la scène : c'est le texte prononcé (chiffres en lettres, noms latins écrits en arabe…), le sous-titre ne change pas. Le serveur `speech.platform.bing.com` doit être accessible.
 - **Ta voix** : ouvre `http://localhost:5173/?record=1` dans Chrome, avec un casque. Le reel défile et un prompteur affiche la phrase en cours et la suivante. Clique « ● Enregistrer » et lis. À la fin, télécharge `voice.webm` et mets-le dans `audio/`. Comme la voix est enregistrée en même temps que l'animation, elle est déjà synchronisée.
   - Tu peux aussi enregistrer avec ton téléphone (mémo vocal) et déposer `audio/voice.m4a` (ou mp3, wav, ogg). Un léger décalage se corrige avec `--voice-offset 0.2` (en secondes).
   - À l'export, la voix est nettoyée : coupe des graves, réduction du souffle, niveau à -16 LUFS.
+- Priorité à l'export : un vrai enregistrement `audio/voice.*` passe avant la voix IA. `--no-ai` désactive la voix IA.
 - **Musique** (optionnelle) : `audio/music.mp3`, une musique libre de droits. Elle passe en boucle et baisse automatiquement quand la voix parle.
 
 ## Exporter en MP4

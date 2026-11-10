@@ -1,7 +1,7 @@
 // export/render.mjs — export image par image → out/reel.mp4
 // Usage : node export/render.mjs
 //   options : --story chauffe-eau  --out reel.mp4  --fps 30  --from 0 --to <s>  --keep
-//             --voice <fichier>  --voice-offset <s>  --no-sfx  --music-volume 0.18
+//             --voice <fichier>  --voice-offset <s>  --no-sfx  --no-ai  --music-volume 0.18
 // Audio : bruitages synthétisés (toujours, sauf --no-sfx) + audio/voice.* (ta voix) + audio/music.* (musique, en boucle, baissée sous la voix)
 import { createServer } from 'node:http';
 import { readFile, writeFile, mkdir, rm, access } from 'node:fs/promises';
@@ -34,7 +34,7 @@ const browser = await chromium.launch();
 const page = await browser.newPage({ viewport: { width: 1080, height: 1920 }, deviceScaleFactor: 1 });
 page.on('pageerror', e => console.error('pageerror:', e.message));
 const story = arg('story');
-await page.goto(`http://localhost:${port}/index.html?export=1${story ? '&story=' + story : ''}`, { waitUntil: 'domcontentloaded' });
+await page.goto(`http://localhost:${port}/index.html?export=1${story ? '&story=' + story : ''}${process.argv.includes('--no-ai') ? '&novoice=1' : ''}`, { waitUntil: 'domcontentloaded' });
 await page.evaluate(() => document.fonts.ready.then(() => 1));
 await page.waitForFunction(() => window.__reel, null, { timeout: 30000 });
 const { fps: fps0, duration } = await page.evaluate(() => ({ fps: window.__reel.fps, duration: window.__reel.duration }));
@@ -53,8 +53,11 @@ await browser.close(); server.close();
 console.log('\n→ ffmpeg');
 
 const exists = p => access(p).then(() => true, () => false);
-const findAudio = async base => { for (const e of ['wav', 'm4a', 'mp3', 'webm', 'ogg', 'aac', 'flac']) { const p = path.join(ROOT, 'audio', `${base}.${e}`); if (await exists(p)) return p; } return null; };
-const voice = arg('voice') ? path.resolve(arg('voice')) : await findAudio('voice');
+const ADIR = path.join(ROOT, 'audio', story || '');
+const findAudio = async (base, exts = ['wav', 'm4a', 'mp3', 'webm', 'ogg', 'aac', 'flac']) => { for (const e of exts) { const p = path.join(ADIR, `${base}.${e}`); if (await exists(p)) return p; } return null; };
+// priorité : --voice, puis un vrai enregistrement audio/voice.*, puis la voix IA audio/voice-ai.wav (sauf --no-ai)
+const voice = arg('voice') ? path.resolve(arg('voice')) : (await findAudio('voice')) || (process.argv.includes('--no-ai') ? null : await findAudio('voice-ai', ['wav']));
+const isAI = !!voice && path.basename(voice).startsWith('voice-ai');
 const music = await findAudio('music');
 const len = (to - from).toFixed(3);
 const out = path.join(OUT, arg('out', story ? story + '.mp4' : 'reel.mp4'));
@@ -71,7 +74,7 @@ if (voice) {
   ff.push('-i', voice);
   const shift = off > 0 ? `adelay=${Math.round(off * 1000)}:all=1,` : off < 0 ? `atrim=start=${-off},asetpts=PTS-STARTPTS,` : '';
   // nettoyage léger : coupe les graves parasites, réduit le souffle, niveau standard réseaux sociaux (-16 LUFS)
-  filters.push(`[${idx++}:a]${shift}aformat=channel_layouts=mono,highpass=f=80,afftdn=nf=-25,loudnorm=I=-16:TP=-1.5:LRA=11,aresample=48000${music ? ',asplit=2[voice][key]' : '[voice]'}`);
+  filters.push(`[${idx++}:a]${shift}aformat=channel_layouts=mono,${isAI ? '' : 'highpass=f=80,afftdn=nf=-25,'}loudnorm=I=-16:TP=-1.5:LRA=11,aresample=48000${music ? ',asplit=2[voice][key]' : '[voice]'}`);
   mixIn.push('[voice]');
 }
 if (music) {

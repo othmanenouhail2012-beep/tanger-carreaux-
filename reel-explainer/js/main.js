@@ -3,11 +3,35 @@ import { createStage, mk, isPlayground, isExport, params } from './stage.js';
 import { bus } from './sfx.js';
 import { defs, compose } from './props.js';
 import * as camera from './camera.js';
-import { caption } from './captions.js';
+import { caption, parse } from './captions.js';
 import { FX, transition, endCard } from './fx.js';
 // ?story=chauffe-eau → js/stories/chauffe-eau.js ; sinon js/storyboard.js
 const story = params.get('story');
-const { reel, insets = {} } = await import(story ? `./stories/${story.replace(/[^\w-]/g, '')}.js` : './storyboard.js');
+const storyId = story ? story.replace(/[^\w-]/g, '') : '';
+const { reel, insets = {} } = await import(storyId ? `./stories/${storyId}.js` : './storyboard.js');
+export const AUDIO_DIR = storyId ? `audio/${storyId}/` : 'audio/';
+window.__audioDir = AUDIO_DIR;
+
+// voix IA (export/tts.py) : durées des scènes et temps des mots calés sur la voix
+const vt = await fetch(AUDIO_DIR + 'voice-ai.json', { cache: 'no-store' }).then(r => (r.ok ? r.json() : null)).catch(() => null);
+if (vt && !params.has('novoice')) reel.scenes.forEach(sc => {
+  const v = vt.scenes[sc.id]; if (!v) return;
+  sc.duration = v.duration;
+  if (v.boundaries && sc.caption) sc.words = alignWords(sc.caption, v.boundaries);
+});
+// chaque mot du sous-titre prend le temps du mot prononcé au même endroit du texte (interpolé)
+function alignWords(captionText, b) {
+  const units = parse(captionText).filter(u => !u.attach);
+  if (units.length === b.length) return b.map(x => x[0]);
+  const lens = units.map(u => u.t.length + 1), total = lens.reduce((a, c) => a + c, 0);
+  let acc = 0;
+  return units.map((u, i) => {
+    const f = acc / total; acc += lens[i];
+    let k = 0; while (k < b.length - 1 && b[k + 1][1] <= f) k++;
+    const [t0, f0] = b[k], [t1, f1] = b[Math.min(k + 1, b.length - 1)];
+    return f1 > f0 ? t0 + (t1 - t0) * Math.min(1, (f - f0) / (f1 - f0)) : t0;
+  });
+}
 
 gsap.registerPlugin(DrawSVGPlugin);
 const st = createStage(defs());

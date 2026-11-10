@@ -1,6 +1,7 @@
 // storyboard.js — le SEUL fichier à modifier pour un nouveau reel.
 // Reel : Quick Bricolage — « الروبيني كيقطر » (robinet qui goutte). Concept : concepts/quick-bricolage.md
 // caption : [mot|term|danger|ok|water] = mot-clé coloré + soulignement.  words : temps exacts (s) de chaque mot (optionnel).
+// say : texte prononcé par la voix IA s'il doit différer du sous-titre (chiffres en lettres, noms latins…).
 // beats : effets placés en secondes depuis le début de la scène (voir js/fx.js).
 const SET = 'bathroom+mirror+basin';
 const drip = (until) => ({ t: 0, fx: 'drip', target: '#spout', fall: 150, ...(until ? { until } : {}) });
@@ -8,6 +9,8 @@ const drip = (until) => ({ t: 0, fx: 'drip', target: '#spout', fall: 150, ...(un
 export const reel = {
   fps: 30,
   brand: { name: 'Quick Bricolage', logo: null, icon: 'wrench' },
+  // voix IA (python3 export/tts.py) : ar-MA-JamalNeural (homme) ou ar-MA-MounaNeural (femme)
+  voice: { name: 'ar-MA-JamalNeural', rate: '+5%' },
   scenes: [
     {
       id: 'hook', duration: 3.5, setup: SET,
@@ -23,6 +26,7 @@ export const reel = {
       id: 'waste', duration: 4.2, setup: SET,
       camera: { target: '#basin', zoom: 1.3 },
       caption: 'قطرة وحدة فالثانية... كتولّي [10 000 لتر|water] فالعام',
+      say: 'قطرة وحدة فالثانية... كتولّي عشرة آلاف لتر فالعام',
       beats: [
         drip(),
         { t: 0.5, fx: 'insetCard', target: '#spout', content: 'jug' },
@@ -64,6 +68,7 @@ export const reel = {
       id: 'fix', duration: 5.0, setup: SET,
       camera: { target: '#basin', zoom: 1.4 },
       caption: 'الحل: [سدّ الما|ok] من تحت... وبدّل [الجوان|ok] ف 5 دقايق',
+      say: 'الحل: سدّ الما من تحت... وبدّل الجوان ف خمس دقايق',
       beats: [
         drip(2.2), // la goutte s'arrête une fois l'eau coupée
         { t: 0.2, fx: 'camera', target: '#stop-valve', zoom: 2.6, duration: 1.0 },
@@ -78,6 +83,7 @@ export const reel = {
       id: 'shop', duration: 4.6, setup: SET,
       camera: { target: '#basin', zoom: 1.2 },
       caption: 'كلشي كاين عند [Quick Bricolage|ok]',
+      say: 'كلشي كاين عند كْويك بْريكولاج',
       beats: [
         { t: 0.3, fx: 'phoneChecklist', title: 'شنو خاصك؟', items: ['جوان جديد', 'شريط تيفلون', 'كلي أنگليز'] },
       ],

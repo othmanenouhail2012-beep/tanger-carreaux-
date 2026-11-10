@@ -2,9 +2,9 @@
 import { bus, play, unlock } from './sfx.js';
 const EXTS = ['wav', 'm4a', 'mp3', 'webm', 'ogg', 'aac'];
 
-export async function findAudio(base) {
-  for (const ext of EXTS) {
-    const url = `audio/${base}.${ext}`;
+export async function findAudio(base, exts = EXTS) {
+  for (const ext of exts) {
+    const url = `${window.__audioDir || 'audio/'}${base}.${ext}`;
     try { const r = await fetch(url, { method: 'HEAD', cache: 'no-store' }); if (r.ok) return url; } catch { /* absent */ }
   }
   return null;
@@ -14,7 +14,7 @@ export async function findAudio(base) {
 export async function attachAudio(tl, { sfx = true } = {}) {
   let muted = false;
   const tracks = [];
-  const voice = await findAudio('voice'), music = await findAudio('music');
+  const voice = (await findAudio('voice')) || (await findAudio('voice-ai', ['wav'])), music = await findAudio('music');
   if (voice) tracks.push(Object.assign(new Audio(voice), { _vol: 1 }));
   if (music) tracks.push(Object.assign(new Audio(music), { _vol: voice ? .18 : .5, loop: true }));
   if (sfx) bus.on = type => { if (!muted && !tl.paused()) play(type); };
