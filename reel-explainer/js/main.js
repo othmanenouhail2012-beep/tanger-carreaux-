@@ -1,10 +1,12 @@
 // main.js — construit UNE timeline maître (en pause) à partir du storyboard
-import { createStage, mk, isPlayground, isExport } from './stage.js';
+import { createStage, mk, isPlayground, isExport, params } from './stage.js';
 import { defs, compose } from './props.js';
 import * as camera from './camera.js';
 import { caption } from './captions.js';
 import { FX, transition, endCard } from './fx.js';
-import { reel, insets } from './storyboard.js';
+// ?story=chauffe-eau → js/stories/chauffe-eau.js ; sinon js/storyboard.js
+const story = params.get('story');
+const { reel, insets = {} } = await import(story ? `./stories/${story.replace(/[^\w-]/g, '')}.js` : './storyboard.js');
 
 gsap.registerPlugin(DrawSVGPlugin);
 const st = createStage(defs());
@@ -54,7 +56,9 @@ function build() {
     [...(sc.beats || [])].sort((a, b) => a.t - b.t).forEach(b => {
       const fn = FX[b.fx]; if (!fn) { console.warn('fx inconnu', b.fx); return; }
       const ctx = { root: g, world, overlay, until: dur - b.t };
-      const opts = { ...b }; if (typeof b.content === 'string' && insets[b.content]) opts.content = insets[b.content];
+      const R = v => (typeof v === 'string' && insets[v] ? insets[v] : v); // contenus SVG nommés
+      const opts = { ...b, content: R(b.content) };
+      ['left', 'right'].forEach(k => { if (b[k]) opts[k] = { ...b[k], content: R(b[k].content) }; });
       tl.add(fn(ctx, opts), t + b.t);
       if (b.fx === 'camera') camera.apply(world, camera.get(world));
     });

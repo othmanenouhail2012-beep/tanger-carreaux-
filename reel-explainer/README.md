@@ -12,6 +12,10 @@ python3 -m http.server 5173  # ou : npx serve -l 5173 .
 - `?playground=1` : chaque effet du catalogue joué seul, avec un bouton pour le rejouer.
 - `?export=1` : canvas à l'échelle 1:1, sans barre de contrôle (c'est le mode utilisé par l'export).
 
+## Reels inclus
+- `js/storyboard.js` est le reel actif : **Quick Bricolage, « الروبيني كيقطر؟ »** (concept dans `concepts/quick-bricolage.md`).
+- `js/stories/chauffe-eau.js` est la démo chauffe-eau / calcaire. Ouvre-la avec `?story=chauffe-eau` et exporte-la avec `node export/render.mjs --story chauffe-eau`.
+
 ## Écrire un nouveau reel : seul `js/storyboard.js` change
 ```js
 {
@@ -27,9 +31,10 @@ python3 -m http.server 5173  # ou : npx serve -l 5173 .
   ],
 }
 ```
-- **Props** (`js/props.js`) : `room`, `heater` (`:cut` pour la vue en coupe), `safetyValve` (ajouté automatiquement sous le chauffe-eau), `kettle`, `sink`, `shower`, `mirror`, `expansionTank`. Chaque sous-partie a un id : `#heater-shell`, `#heater-element`, `#heater-scale`, `#heater-water`, `#heater-dial`, `#valve-body`…
-- **Effets** (`js/fx.js`) : `camera`, `ring`, `pop` (`icon` : check, cross, warning, shield, gauge, thermometer, calendarBadge, badge), `insetCard`, `magnifier`, `crossSection`, `heatUp`, `scaleFall`, `ripples`, `fillLevel`/`expand`, `gauge`, `thermometer`, `danger`, `steamBurst`, `counter`, `compare`, `phoneChecklist`. Les options de chaque beat sont passées telles quelles à l'effet.
+- **Props** (`js/props.js`) : `room` (cuisine), `bathroom`, `basin` (lavabo avec `#faucet`, `#spout`, `#stop-valve`), `heater` (`:cut` pour la vue en coupe), `safetyValve` (ajouté automatiquement sous le chauffe-eau), `kettle`, `sink`, `shower`, `mirror`, `expansionTank`. Chaque sous-partie a un id : `#heater-shell`, `#heater-element`, `#heater-scale`, `#heater-water`, `#heater-dial`, `#valve-body`…
+- **Effets** (`js/fx.js`) : `camera`, `ring`, `pop` (`icon` : check, cross, warning, shield, gauge, thermometer, calendarBadge, badge), `insetCard`, `magnifier`, `crossSection`, `heatUp`, `scaleFall`, `ripples`, `fillLevel`/`expand`, `gauge`, `thermometer`, `danger`, `steamBurst`, `counter`, `compare`, `phoneChecklist` (`title`), `drip` (goutte en boucle, `until` pour l'arrêter). Les options de chaque beat sont passées telles quelles à l'effet.
 - Pour un contenu d'insetCard réutilisable, ajoute une chaîne SVG (repère 780×640) dans `insets` et appelle-la par son nom : `content: 'kettleInside'`.
+- Marque : `brand: { name, logo, icon }`, où `icon: 'wrench'` dessine une clé dans le logo rond quand `logo` est vide.
 - La dernière scène `{ id: 'end', duration: 2.6, endCard: true }` affiche le logo et « تابعنا », puis revient en fondu sur la première image pour une boucle propre.
 
 ## Exporter en MP4

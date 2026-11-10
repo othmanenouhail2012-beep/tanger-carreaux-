@@ -1,5 +1,5 @@
 // export/render.mjs — export image par image → out/reel.mp4
-// Usage : node export/render.mjs   (options : --fps 30 --from 0 --to <s> --keep)
+// Usage : node export/render.mjs   (options : --story chauffe-eau --out reel.mp4 --fps 30 --from 0 --to <s> --keep)
 import { createServer } from 'node:http';
 import { readFile, mkdir, rm, access } from 'node:fs/promises';
 import { spawnSync } from 'node:child_process';
@@ -29,7 +29,8 @@ await rm(FRAMES, { recursive: true, force: true }); await mkdir(FRAMES, { recurs
 const browser = await chromium.launch();
 const page = await browser.newPage({ viewport: { width: 1080, height: 1920 }, deviceScaleFactor: 1 });
 page.on('pageerror', e => console.error('pageerror:', e.message));
-await page.goto(`http://localhost:${port}/index.html?export=1`, { waitUntil: 'domcontentloaded' });
+const story = arg('story');
+await page.goto(`http://localhost:${port}/index.html?export=1${story ? '&story=' + story : ''}`, { waitUntil: 'domcontentloaded' });
 await page.evaluate(() => document.fonts.ready.then(() => 1));
 await page.waitForFunction(() => window.__reel, null, { timeout: 30000 });
 const { fps: fps0, duration } = await page.evaluate(() => ({ fps: window.__reel.fps, duration: window.__reel.duration }));
@@ -48,7 +49,7 @@ console.log('\n→ ffmpeg');
 
 const voice = path.join(ROOT, 'audio', 'voice.mp3');
 const hasVoice = await access(voice).then(() => true, () => false);
-const out = path.join(OUT, 'reel.mp4');
+const out = path.join(OUT, arg('out', story ? story + '.mp4' : 'reel.mp4'));
 const ff = ['-y', '-loglevel', 'error', '-framerate', String(fps), '-i', path.join(FRAMES, '%04d.png')];
 if (hasVoice) ff.push('-i', voice);
 ff.push('-c:v', 'libx264', '-pix_fmt', 'yuv420p', '-crf', '18', '-r', String(fps), '-movflags', '+faststart');

@@ -130,12 +130,12 @@ export const icons = {
     <path d="M0 -14V14" ${S(9, C.danger)}/><circle cx="0" cy="30" r="5" fill="${C.danger}"/></g>`,
   shield: (ok = true) => `<g class="icon shield"><path d="M0 -54L44 -38V2Q44 40 0 56Q-44 40 -44 2V-38Z" fill="#fff" ${S(4)}/>
     ${ok ? `<path d="M-18 2L-5 16L20 -12" fill="none" ${S(9, C.ok)}/>` : `<path d="M-14 -14L14 14M14 -14L-14 14" ${S(9, C.danger)}/>`}</g>`,
-  gauge: () => `<g class="icon gauge"><circle r="90" fill="#fff" ${S(4)}/>
+  gauge: (label = 'bar') => `<g class="icon gauge"><circle r="90" fill="#fff" ${S(4)}/>
     <path d="M-63.6 63.6A90 90 0 0 1 -63.6 -63.6" fill="none" ${S(14, C.ok)} transform="scale(.82)"/>
     <path d="M-63.6 -63.6A90 90 0 0 1 63.6 -63.6" fill="none" ${S(14, C.focus)} transform="scale(.82)"/>
     <path d="M63.6 -63.6A90 90 0 0 1 63.6 63.6" fill="none" ${S(14, C.danger)} transform="scale(.82)"/>
     <g id="needle"><path d="M-7 0L0 -70L7 0Z" fill="${C.ink}" ${S(2)}/></g><circle r="12" fill="${C.ink}"/>
-    <text y="58" text-anchor="middle" font-size="26" font-weight="800" fill="${C.ink}" font-family="sans-serif">bar</text></g>`,
+    <text y="58" text-anchor="middle" font-size="26" font-weight="800" fill="${C.ink}" font-family="sans-serif">${label}</text></g>`,
   thermometer: (label = '') => `<g class="icon thermometer">
     <rect x="-24" y="-170" width="48" height="210" rx="24" fill="#fff" ${S(4)}/>
     <circle cy="60" r="40" fill="${C.danger}" ${S(4)}/>
@@ -147,11 +147,16 @@ export const icons = {
     <path d="M-24 -56V-34M24 -56V-34" ${S(5)}/><text y="34" text-anchor="middle" font-size="38" font-weight="800" fill="${C.ink}" font-family="sans-serif">${txt}</text></g>`,
   badge: (txt, color = C.water) => `<g class="icon badge"><rect x="-74" y="-36" width="148" height="72" rx="36" fill="${color}" ${S(3)}/>
     <text y="15" text-anchor="middle" font-size="40" font-weight="800" fill="#fff" font-family="sans-serif" direction="ltr">${txt}</text></g>`,
+  wrench: () => `<g class="icon wrench" transform="rotate(-45)">
+    <rect x="-13" y="-24" width="26" height="96" rx="13" fill="${C.cold}" ${S(4)}/>
+    <circle cy="-42" r="32" fill="${C.cold}" ${S(4)}/>
+    <path d="M-11 -76V-50H11V-76" fill="${C.bg}" ${S(4)}/><rect x="-9" y="-80" width="18" height="8" fill="${C.bg}"/>
+    ${refl(-6, 6, 14)}</g>`,
   drop: () => `<path class="drop" d="M0 -16Q10 -2 10 6A10 10 0 0 1 -10 6Q-10 -2 0 -16Z" fill="${C.water}" ${S(2)}/>`,
 };
 
 // téléphone avec liste de tâches (coordonnées écran)
-export function phone(items = [], o = { x: 300, y: 150 }) {
+export function phone(items = [], o = { x: 300, y: 150 }, title = 'الصيانة') {
   const rows = items.map((t, i) => {
     const y = 300 + i * 170;
     return `<g class="row" id="row-${i}">
@@ -164,7 +169,7 @@ export function phone(items = [], o = { x: 300, y: 150 }) {
   return `<g id="phone" ${place(o)}><g class="phone-in">
     <rect x="0" y="0" width="480" height="${300 + items.length * 170 + 60}" rx="56" fill="#fff" ${S(4)}/>
     <rect x="170" y="26" width="140" height="20" rx="10" fill="${C.ink}"/>
-    <text x="440" y="150" text-anchor="end" font-size="44" font-weight="800" fill="${C.ink}" font-family="Noto Kufi Arabic">الصيانة</text>
+    <text x="440" y="150" text-anchor="end" font-size="44" font-weight="800" fill="${C.ink}" font-family="Noto Kufi Arabic">${title}</text>
     <path d="M440 186H250" ${S(4, C.focus)}/>${rows}</g></g>`;
 }
 
@@ -180,16 +185,60 @@ export function elementView(dirty = false, seed = 3) {
     <path d="M-38 100V-40Q-38 -80 0 -80Q38 -80 38 -40V100" fill="none" ${S(3, C.ink)} opacity=".3"/>${dots}`;
 }
 
-export const PROPS = { room, heater, safetyValve, kettle, sink, shower, mirror, expansionTank };
+/* ---------- salle de bain ---------- */
+export function bathroom(o = {}) {
+  return wrap('bathroom', o, `
+    <rect id="wall" x="-1200" y="-800" width="3480" height="1840" fill="${C.wall}"/>
+    <rect id="wainscot" x="-1200" y="660" width="3480" height="380" fill="url(#tiles)" ${S()}/>
+    <rect x="-1200" y="648" width="3480" height="14" rx="6" fill="#fff" ${S()}/>
+    <g id="window"><rect x="800" y="90" width="200" height="200" rx="16" fill="${C.glass}" ${S()}/>
+      <path d="M900 90V290M800 190H1000" ${S()} fill="none"/>${refl(820, 110, 30)}</g>
+    <g id="towel"><circle cx="880" cy="420" r="10" fill="#fff" ${S()}/>
+      <path d="M840 430H920V600Q920 616 904 616H856Q840 616 840 600Z" fill="${C.hot}" ${S()}/><path d="M840 570H920" ${S(3, '#fff')}/></g>
+    <rect id="floor" x="-1200" y="1040" width="3480" height="700" fill="${C.floor}"/>
+    <path d="M-1200 1040H2280" ${S()}/>`);
+}
+
+// lavabo suspendu : robinet (#faucet, #spout = bout du bec), siphon, 2 robinets d'arrêt (#stop-valve froid, #stop-valve-hot)
+export function basin(o = {}) {
+  const stop = (id, x, col, edge) => `<g id="${id}">
+      <rect x="${x - 12}" y="250" width="24" height="60" fill="${col}" ${S(3, edge)}/>
+      <circle cx="${x}" cy="250" r="20" fill="#C7CDDA" ${S()}/>
+      <rect class="handle" x="${x - 26}" y="214" width="52" height="16" rx="8" fill="${col === C.hot ? C.danger : C.water}" ${S()}/>
+      <path d="M${x} 230V238" ${S(4)}/></g>`;
+  return wrap('basin', o, `
+    <g id="basin-pipes">
+      <path d="M-110 236Q-110 150 -24 112" fill="none" ${S(14)}/><path d="M-110 236Q-110 150 -24 112" fill="none" ${S(8, C.cold)}/>
+      <path d="M110 236Q110 150 24 112" fill="none" ${S(14)}/><path d="M110 236Q110 150 24 112" fill="none" ${S(8, C.hot)}/>
+      <path id="siphon" d="M0 110V200Q0 240 40 240Q80 240 80 200V170H190" fill="none" ${S(30)}/>
+      <path d="M0 110V200Q0 240 40 240Q80 240 80 200V170H190" fill="none" ${S(24, '#D5DAE4')}/>
+      ${stop('stop-valve', -110, C.cold, C.ink)}${stop('stop-valve-hot', 110, C.hot, C.danger)}
+    </g>
+    <g id="faucet">
+      <rect x="-30" y="-34" width="60" height="22" rx="8" fill="#C7CDDA" ${S()}/>
+      <rect x="-15" y="-150" width="30" height="120" rx="10" fill="#DDE2EC" ${S()}/>
+      <rect x="-15" y="-164" width="128" height="28" rx="14" fill="#DDE2EC" ${S()}/>
+      <rect x="92" y="-146" width="20" height="26" rx="6" fill="#DDE2EC" ${S()}/>
+      <path id="faucet-lever" d="M0 -164L-50 -196" ${S(12)}/><path d="M0 -164L-50 -196" ${S(6, '#DDE2EC')}/>
+      ${refl(-8, -140, 14)}
+      <circle id="spout" cx="102" cy="-118" r="3" fill="none"/>
+    </g>
+    <path id="basin-bowl" d="M-200 0H200Q196 96 112 118H-112Q-196 96 -200 0Z" fill="#fff" ${S()}/>
+    <rect x="-212" y="-14" width="424" height="18" rx="9" fill="#fff" ${S()}/>
+    <path d="M-150 40Q-140 84 -96 96" fill="none" ${S(4, '#D5DAE4')}/>`);
+}
+
+export const PROPS = { room, bathroom, basin, heater, safetyValve, kettle, sink, shower, mirror, expansionTank };
 // positions par défaut dans la composition (zone illustration 0–1220)
 export const LAYOUT = {
-  room: {}, heater: { x: 120, y: 150 }, safetyValve: { x: 310, y: 820 }, kettle: { x: 860, y: 628 },
-  sink: { x: 560, y: 770 }, shower: { x: 600, y: 300 }, mirror: { x: 560, y: 120 }, expansionTank: { x: 470, y: 800, scale: .8 },
+  room: {}, bathroom: {}, basin: { x: 470, y: 640 }, heater: { x: 120, y: 150 }, safetyValve: { x: 310, y: 820 }, kettle: { x: 860, y: 628 },
+  sink: { x: 560, y: 770 }, shower: { x: 600, y: 300 }, mirror: { x: 360, y: 150 }, expansionTank: { x: 470, y: 800, scale: .8 },
 };
 // "room+heater:cut+kettle" → chaîne SVG
 export function compose(setup) {
   const parts = setup.split('+').map(s => s.trim()).filter(Boolean);
   if (parts.some(p => p.startsWith('heater')) && !parts.includes('safetyValve')) parts.push('safetyValve');
+  if (parts.includes('bathroom') && parts.includes('mirror')) parts.splice(parts.indexOf('mirror'), 1), parts.splice(1, 0, 'mirror'); // miroir derrière le lavabo
   return parts.map(p => {
     const [name, ...flags] = p.split(':');
     const fn = PROPS[name]; if (!fn) throw new Error('prop inconnu : ' + name);

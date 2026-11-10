@@ -3,6 +3,7 @@ import { C } from './props.js';
 const COLORS = { term: C.term, danger: C.danger, ok: C.ok, water: C.water, q: C.focus };
 
 export function parse(text) {
+  text = text.replace(/(\d) (?=\d{3}\b)/g, '$1\u202F'); // « 10 000 » reste un seul nombre en RTL
   const units = []; const re = /\[([^\]|]+)\|(\w+)\]|([^\s\[]+)|(\s+)/g; let m, space = false;
   while ((m = re.exec(text))) {
     if (m[4]) { space = true; continue; }
@@ -24,7 +25,7 @@ export function caption(container, text, { hook = false, words = null, gap = .22
   const units = parse(text); const spans = [];
   units.forEach(u => {
     if (u.space) line.appendChild(document.createTextNode(' '));
-    const s = document.createElement('span'); s.className = 'w'; s.textContent = u.t; if (/\d/.test(u.t)) { s.style.direction = 'ltr'; s.style.unicodeBidi = 'isolate'; }
+    const s = document.createElement('span'); s.className = 'w'; s.textContent = u.t; if (/[A-Za-z\d]/.test(u.t)) { s.style.unicodeBidi = 'isolate'; if (!/[\u0600-\u06FF]/.test(u.t)) s.style.direction = 'ltr'; }
     if (u.kind && u.kind !== 'q') { const ul = document.createElement('i'); ul.className = 'ul'; ul.style.background = COLORS[u.kind]; s.appendChild(ul); }
     line.appendChild(s); spans.push({ s, u });
   });

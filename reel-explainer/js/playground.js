@@ -3,7 +3,7 @@ import { mk } from './stage.js';
 import { compose } from './props.js';
 import * as camera from './camera.js';
 import { FX, transition, endCard } from './fx.js';
-import { insets } from './storyboard.js';
+import { insets } from './stories/chauffe-eau.js';
 
 const H = { setup: 'room+heater+kettle', cam: ['#heater', 1.3] }, CUT = { setup: 'room+heater:cut', cam: ['#heater', 1.6] };
 const DEMOS = {

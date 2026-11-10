@@ -71,20 +71,20 @@ export function insetCard(ctx, { target, content = '', close, x = 150, y = 130, 
 }
 
 /* 5. magnifier : point → loupe avec particules */
-export function magnifier(ctx, { target, lens = { x: 760, y: 360 }, n = 26, seed = 4 }) {
+export function magnifier(ctx, { target, lens = { x: 760, y: 360 }, n = 26, seed = 4, content }) {
   const b = boxIn(q(ctx, target)); const R = 110, r = rng(seed);
   const g = mk('g', { class: 'magnifier' }, ctx.overlay);
   const spot = mk('circle', { cx: b.cx, cy: b.cy, r: 34, ...ST(4, C.focus), ...dashed, 'stroke-dasharray': '6 9', opacity: 0 }, g);
   const ang = Math.atan2(lens.y - b.cy, lens.x - b.cx);
   const line = mk('path', { d: `M${b.cx + Math.cos(ang) * 38} ${b.cy + Math.sin(ang) * 38}L${lens.x - Math.cos(ang) * (R + 6)} ${lens.y - Math.sin(ang) * (R + 6)}`, ...ST(4, C.ink), ...dashed, 'stroke-dasharray': '2 12', opacity: 0 }, g);
-  let parts = '';
-  for (let i = 0; i < n; i++) {
+  let parts = content || '';
+  if (!content) for (let i = 0; i < n; i++) {
     const a = r() * Math.PI * 2, d = Math.sqrt(r()) * (R - 22);
     parts += `<circle class="p" cx="${(Math.cos(a) * d).toFixed(1)}" cy="${(Math.sin(a) * d + 20).toFixed(1)}" r="${(6 + r() * 12).toFixed(1)}" fill="${C.scale}" stroke="${C.ink}" stroke-width="2"/>`;
   }
   const L = frag(`<path d="M${R * .7} ${R * .7}L${R * 1.25} ${R * 1.25}" stroke="${C.ink}" stroke-width="16" stroke-linecap="round"/>
     <clipPath id="lens-clip-${seed}"><circle r="${R}"/></clipPath>
-    <circle r="${R}" fill="${C.glass}"/><g clip-path="url(#lens-clip-${seed})">${parts}</g>
+    <circle r="${R}" fill="${content ? '#fff' : C.glass}"/><g clip-path="url(#lens-clip-${seed})">${parts}</g>
     <circle r="${R}" fill="none" stroke="${C.ink}" stroke-width="6"/>`, g, { transform: `translate(${lens.x} ${lens.y})` });
   const lensIn = frag('', L); while (L.firstChild !== lensIn) lensIn.appendChild(L.firstChild); // inner group animable
   gsap.set(lensIn, { opacity: 0 });
@@ -185,10 +185,10 @@ export function fillLevel(ctx, { target = '#heater-water', from = .7, badge = '+
 }
 
 /* 10a. gauge : aiguille jusqu'à la zone rouge */
-export function gaugeFx(ctx, { needle, from = -120, to = 75, x = 230, y = 330, size = 1 }) {
+export function gaugeFx(ctx, { needle, from = -120, to = 75, x = 230, y = 330, size = 1, label = 'bar' }) {
   const tl = gsap.timeline();
   let n = needle && q(ctx, needle);
-  if (!n) { const p = pop(ctx, { icon: 'gauge', x, y, size, layer: 'overlay' }); n = p.el.querySelector('#needle'); tl.add(p); }
+  if (!n) { const p = pop(ctx, { icon: 'gauge', arg: label, x, y, size, layer: 'overlay' }); n = p.el.querySelector('#needle'); tl.add(p); }
   gsap.set(n, { rotation: from, svgOrigin: '0 0' });
   tl.fromTo(n, { rotation: from }, { rotation: to, duration: 1.4, ease: 'power2.in', svgOrigin: '0 0', immediateRender: false });
   const rest = ctx.until - tl.duration();
@@ -244,7 +244,7 @@ export function steamBurst(ctx, { target, n = 30, seed = 9, counter: cnt }) {
 
 /* 13. counter */
 export function counter(ctx, { el, from = 0, to = 100, suffix = '', prefix = '', duration = 1, x = 540, y = 400, color = C.danger, size = 120, ease = 'power1.out' }) {
-  const t = el ? q(ctx, el) : mk('text', { x, y, 'text-anchor': 'middle', 'font-size': size, 'font-weight': 800, fill: color, 'font-family': 'Noto Kufi Arabic', direction: 'ltr' }, ctx.overlay);
+  const t = el ? q(ctx, el) : mk('text', { x, y, 'text-anchor': 'middle', 'font-size': size, 'font-weight': 800, fill: color, stroke: '#fff', 'stroke-width': 10, 'paint-order': 'stroke', 'stroke-linejoin': 'round', 'font-family': 'Noto Kufi Arabic', direction: 'ltr' }, ctx.overlay);
   const o = { v: from }; t.textContent = prefix + fmt(from) + suffix;
   const tl = gsap.timeline();
   if (!el) { t.setAttribute('opacity', 0); tl.set(t, { opacity: 1 }).fromTo(t, { scale: .6 }, { scale: 1, duration: .35, ease: 'back.out(2)', transformOrigin: '50% 50%', immediateRender: false }); }
@@ -254,7 +254,7 @@ export function counter(ctx, { el, from = 0, to = 100, suffix = '', prefix = '',
 /* 14. compare : deux disques dans une insetCard, ✓ et ✗ */
 export function compare(ctx, { target, left = { label: 'نقية', ok: true }, right = { label: 'عامرة كالكير', ok: false }, close }) {
   const disk = (x, side, dirty) => `<g transform="translate(${x} 330)"><circle r="150" fill="#fff" stroke="${C.ink}" stroke-width="3"/>
-    <circle r="150" fill="${C.glass}" opacity=".5"/>${elementView(dirty)}
+    <circle r="150" fill="${C.glass}" opacity=".5"/>${side.content || elementView(dirty)}
     <text y="-185" text-anchor="middle" direction="rtl" font-size="44" font-weight="800" fill="${side.ok ? C.ok : C.danger}" font-family="Noto Kufi Arabic">${side.label}</text></g>`;
   // RTL : la première option est à droite
   const content = disk(580, left, !left.ok) + disk(200, right, !right.ok);
@@ -268,8 +268,8 @@ export function compare(ctx, { target, left = { label: 'نقية', ok: true }, r
 }
 
 /* 15. phoneChecklist */
-export function phoneChecklist(ctx, { items = [] }) {
-  const g = frag(phone(items, { x: 300, y: 110 }), ctx.overlay);
+export function phoneChecklist(ctx, { items = [], title }) {
+  const g = frag(phone(items, { x: 300, y: 110 }, title), ctx.overlay);
   const ph = g.querySelector('.phone-in'), ticks = g.querySelectorAll('.tick-in');
   gsap.set(ticks, { scale: 0, transformOrigin: '50% 50%' }); gsap.set(ph, { y: 2000 });
   return gsap.timeline()
@@ -290,11 +290,13 @@ export function transition(a, b, { type = 'fade', duration = .45 } = {}) {
 
 /* 17. endCard : logo rond, nom, تابعنا */
 export function endCard(layer, { brand = {} } = {}) {
-  const initials = (brand.name || 'B').replace(/[^A-Za-z0-9]/g, '').slice(0, 2).toUpperCase();
+  const words = (brand.name || 'B').split(/\s+/).filter(Boolean);
+  const initials = (words.length > 1 ? words.map(w => w[0]).join('') : words[0]).slice(0, 2).toUpperCase();
   layer.innerHTML = `<svg class="logo" viewBox="-160 -160 320 320">${brand.logo ? `<image href="${brand.logo}" x="-150" y="-150" width="300" height="300"/>` :
     `<circle r="148" fill="${C.glass}" stroke="${C.ink}" stroke-width="6"/>
-     <path d="M0 -92Q62 -14 62 34A62 62 0 0 1 -62 34Q-62 -14 0 -92Z" fill="#fff" stroke="${C.ink}" stroke-width="6" stroke-linejoin="round"/>
-     <text y="62" text-anchor="middle" font-size="58" font-weight="800" fill="${C.water}" font-family="sans-serif">${initials}</text>`}</svg>
+     ${brand.icon && icons[brand.icon] ? `<g transform="translate(0 -26) scale(1.15)">${icons[brand.icon]()}</g>` :
+       `<path d="M0 -92Q62 -14 62 34A62 62 0 0 1 -62 34Q-62 -14 0 -92Z" fill="#fff" stroke="${C.ink}" stroke-width="6" stroke-linejoin="round"/>`}
+     <text y="${brand.icon ? 108 : 62}" text-anchor="middle" font-size="58" font-weight="800" fill="${C.water}" font-family="sans-serif">${initials}</text>`}</svg>
     <div class="name">${brand.name || ''}</div><div class="follow">تابعنا</div>`;
   const [logo, name, follow] = layer.children;
   gsap.set([logo, name, follow], { opacity: 0 });
@@ -308,6 +310,27 @@ export function endCard(layer, { brand = {} } = {}) {
 
 export const FX = { camera: cameraFx, ring, pop, insetCard, magnifier, crossSection, heatUp, ripples, fillLevel, expand: fillLevel,
   gauge: gaugeFx, thermometer, danger, steamBurst, counter, compare, phoneChecklist };
+
+/* extra : goutte qui tombe en boucle depuis `target` (ex. #spout) + petit éclaboussement */
+export function drip(ctx, { target = '#spout', fall = 110, every = .9, until }) {
+  const b = boxIn(q(ctx, target), ctx.world);
+  const g = mk('g', { class: 'drip' }, ctx.world);
+  const drop = frag(icons.drop(), g, { opacity: 0 });
+  const splash = mk('path', { d: `M${b.cx - 22} ${b.cy + fall + 4}q8 -14 14 -4M${b.cx + 22} ${b.cy + fall + 4}q-8 -14 -14 -4`, ...ST(3, C.water), fill: 'none', opacity: 0 }, g);
+  const o = { s: 0, y: 0 };
+  const draw = () => drop.setAttribute('transform', `translate(${b.cx} ${b.cy + 14 + o.y}) scale(${o.s})`);
+  draw();
+  const one = gsap.timeline()
+    .set(drop, { opacity: 1 })
+    .fromTo(o, { s: 0, y: 0 }, { s: 1, duration: .3, ease: 'power2.out', onUpdate: draw, immediateRender: false })
+    .to(o, { y: fall, duration: .32, ease: 'power2.in', onUpdate: draw })
+    .set(drop, { opacity: 0 })
+    .fromTo(splash, { opacity: 1 }, { opacity: 0, duration: .25, immediateRender: false })
+    .to({}, { duration: Math.max(0, every - .87) });
+  one.repeat(Math.max(0, Math.floor((until ?? ctx.until) / one.duration()) - 1));
+  return gsap.timeline().add(one);
+}
+FX.drip = drip;
 
 /* extra : le calcaire tombe au fond (stagger) */
 export function scaleFall(ctx, { target = '#heater-scale', height = 380 }) {
