@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Que se passe-t-il quand l'électricité est coupée ?</title>
+<meta name="description" content="Dossier de recherche scolaire : coupures de courant, blackouts réels, conséquences et lien avec internet.">
+<style>
+:root{
+  --bg:#f6f4ee; --surface:#ffffff; --ink:#1c2230; --muted:#5b6475; --line:#dcd8cc;
+  --accent:#b45309; --accent-soft:#fdf0d8; --on:#d98a00; --off:#9aa1ad; --ok:#1f7a4d; --warn-bg:#fff4e0;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#11141b; --surface:#1a1f2a; --ink:#e9e6dd; --muted:#a2a9b8; --line:#2c3342;
+    --accent:#f5b545; --accent-soft:#2b2414; --on:#f5b545; --off:#566072; --ok:#5fcf97; --warn-bg:#2a2212;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#11141b; --surface:#1a1f2a; --ink:#e9e6dd; --muted:#a2a9b8; --line:#2c3342;
+  --accent:#f5b545; --accent-soft:#2b2414; --on:#f5b545; --off:#566072; --ok:#5fcf97; --warn-bg:#2a2212;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.wrap{max-width:780px;margin:0 auto;padding:0 16px}
+header.top{position:sticky;top:0;z-index:5;background:var(--bg);border-bottom:1px solid var(--line)}
+header.top .wrap{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-top:10px;padding-bottom:10px}
+header.top strong{font-size:.95rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+header.top button{white-space:nowrap;flex:none}
+button{font:inherit;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 12px;cursor:pointer}
+button:hover{border-color:var(--accent)}
+button:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.hero{padding:40px 0 24px}
+.hero p.kicker{margin:0;color:var(--accent);font-weight:600;font-size:.85rem;letter-spacing:.06em;text-transform:uppercase}
+h1{font-size:clamp(1.8rem,6vw,2.7rem);line-height:1.15;margin:.3em 0 .4em;text-wrap:balance}
+h2{font-size:1.45rem;line-height:1.25;margin:0 0 .5em;padding-top:64px;text-wrap:balance}
+h3{font-size:1.08rem;margin:1.4em 0 .3em}
+p{margin:.6em 0}
+a{color:var(--accent)}
+.lead{font-size:1.1rem;color:var(--muted);max-width:60ch}
+.num{color:var(--accent);font-weight:700;font-size:.9rem;margin-right:.4em;font-variant-numeric:tabular-nums}
+nav.toc{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 18px;margin:8px 0 0}
+nav.toc h2{padding-top:0;font-size:1rem;margin-bottom:.3em}
+nav.toc ol{margin:0;padding-left:1.3em;columns:2;column-gap:24px}
+nav.toc li{break-inside:avoid;padding:2px 0}
+nav.toc a{text-decoration:none;color:var(--ink)}
+nav.toc a:hover{color:var(--accent);text-decoration:underline}
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:14px 0}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px}
+.card h3{margin:0 0 .2em;font-size:1rem}
+.card p{margin:0;font-size:.93rem;color:var(--muted)}
+.facts{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:14px 0}
+.fact{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px}
+.fact b{display:block;font-size:1.35rem;line-height:1.2;font-variant-numeric:tabular-nums}
+.fact span{font-size:.85rem;color:var(--muted)}
+.tablewrap{overflow-x:auto;margin:12px 0;border:1px solid var(--line);border-radius:12px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:.93rem;min-width:480px}
+th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:.8rem;text-transform:uppercase;letter-spacing:.04em;color:var(--muted)}
+tr:last-child td{border-bottom:0}
+ul{padding-left:1.2em}
+li{margin:.25em 0}
+.note{background:var(--warn-bg);border-left:4px solid var(--accent);border-radius:0 10px 10px 0;padding:10px 14px;margin:14px 0;font-size:.95rem}
+.src{font-size:.82rem;color:var(--muted)}
+.src a{color:var(--muted)}
+.nv{display:inline-block;font-size:.75rem;font-weight:600;border:1px solid var(--accent);color:var(--accent);border-radius:99px;padding:0 8px;white-space:nowrap}
+/* schéma */
+.schema{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px;margin:14px 0}
+.schema svg{display:block;width:100%;height:auto;max-width:520px;margin:0 auto}
+.schema .bar{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-bottom:8px}
+.schema .state{font-size:.9rem;color:var(--muted)}
+.node rect{fill:var(--surface);stroke:var(--on);stroke-width:2}
+.node text{fill:var(--ink);font:600 13px system-ui,sans-serif}
+.node .sub{font-weight:400;font-size:11px;fill:var(--muted)}
+.node .when{font-weight:600;font-size:11px;fill:var(--accent);opacity:0}
+.wire{stroke:var(--on);stroke-width:3;fill:none;stroke-linecap:round}
+.schema.cut .wire{stroke:var(--off);stroke-dasharray:5 6}
+.schema.cut .node rect{stroke:var(--off)}
+.schema.cut .node .when{opacity:1}
+.schema.cut .node.src rect{stroke-dasharray:4 4}
+.wire,.node rect{transition:stroke .3s}
+/* frise */
+.frise{list-style:none;margin:16px 0;padding:0;border-left:3px solid var(--line)}
+.frise li{position:relative;margin:0;padding:0 0 18px 20px}
+.frise li::before{content:"";position:absolute;left:-8.5px;top:6px;width:14px;height:14px;border-radius:50%;background:var(--accent);border:3px solid var(--bg)}
+.frise time{font-weight:700;font-variant-numeric:tabular-nums}
+.frise .where{color:var(--muted)}
+.frise p{margin:.15em 0;font-size:.95rem}
+.frise .tag{display:inline-block;font-size:.75rem;background:var(--accent-soft);color:var(--accent);border-radius:99px;padding:0 8px;margin-left:4px}
+pre{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px;overflow-x:auto;font-size:.85rem;line-height:1.5}
+footer{margin-top:56px;padding:24px 0 40px;border-top:1px solid var(--line);color:var(--muted);font-size:.9rem}
+@media (max-width:640px){
+  body{font-size:16px}
+  nav.toc ol{columns:1}
+  .cards{grid-template-columns:1fr}
+  .facts{grid-template-columns:repeat(2,1fr)}
+  h2{padding-top:56px}
+}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}.wire,.node rect{transition:none}}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <strong>⚡ Coupure d'électricité</strong>
+    <button id="theme" type="button" aria-label="Changer de thème clair ou sombre">🌙 Mode sombre</button>
+  </div>
+</header>
+
+<main class="wrap">
+
+<div class="hero">
+  <p class="kicker">Projet d'informatique · dossier de recherche</p>
+  <h1>Que se passe-t-il quand l'électricité est coupée ?</h1>
+  <p class="lead">Ce qui s'arrête, ce qui continue de marcher, et comment une appli peut rester utile sans internet.</p>
+</div>
+
+<nav class="toc" aria-label="Sommaire">
+  <h2>Sommaire</h2>
+  <ol>
+    <li><a href="#s1">C'est quoi une coupure ?</a></li>
+    <li><a href="#s2">Pourquoi ça arrive ?</a></li>
+    <li><a href="#s3">Exemples réels</a></li>
+    <li><a href="#s4">Conséquences</a></li>
+    <li><a href="#s5">Ce qui continue de fonctionner</a></li>
+    <li><a href="#s6">Le lien avec internet</a></li>
+    <li><a href="#s7">Comment se préparer</a></li>
+    <li><a href="#s8">Au Maroc</a></li>
+    <li><a href="#s9">Conclusion</a></li>
+    <li><a href="#sources">Sources et limites</a></li>
+  </ol>
+</nav>
+
+<section id="s1">
+  <h2><span class="num">1</span>C'est quoi une coupure ?</h2>
+  <p>L'électricité est produite dans des centrales, voyage sur le réseau, puis arrive chez nous. Elle se stocke mal : à chaque seconde, il faut produire <strong>exactement</strong> ce qui est consommé. Le « thermomètre » de cet équilibre est la fréquence du courant : <strong>50 Hz</strong>.</p>
+
+  <div class="schema" id="schema">
+    <div class="bar">
+      <button id="cut" type="button" aria-pressed="false">✂️ Couper le courant</button>
+      <span class="state" id="state" aria-live="polite">Le courant passe : tout fonctionne.</span>
+    </div>
+    <svg viewBox="0 0 520 330" role="img" aria-labelledby="sch-t sch-d">
+      <title id="sch-t">Schéma : de la centrale à la maison, aux antennes et à internet</title>
+      <desc id="sch-d">La centrale alimente le réseau électrique, qui alimente la maison et sa box, les antennes relais et les data centers. Quand le courant est coupé, la box s'arrête tout de suite, les antennes tiennent environ 20 minutes à 2 heures, les data centers au moins 12 heures.</desc>
+      <path class="wire" d="M260 62 V98"/>
+      <path class="wire" d="M260 150 V178 M90 178 H430 M90 178 V206 M260 178 V206 M430 178 V206"/>
+      <g class="node src"><rect x="180" y="12" width="160" height="50" rx="10"/>
+        <text x="260" y="34" text-anchor="middle">🏭 Centrale</text>
+        <text class="sub" x="260" y="51" text-anchor="middle">produit l'électricité</text></g>
+      <g class="node src"><rect x="160" y="98" width="200" height="52" rx="10"/>
+        <text x="260" y="121" text-anchor="middle">🗼 Réseau électrique</text>
+        <text class="sub" x="260" y="138" text-anchor="middle">lignes haute tension · 50 Hz</text></g>
+      <g class="node"><rect x="12" y="206" width="156" height="112" rx="10"/>
+        <text x="90" y="230" text-anchor="middle">🏠 Maison</text>
+        <text class="sub" x="90" y="248" text-anchor="middle">lumière, frigo,</text>
+        <text class="sub" x="90" y="263" text-anchor="middle">box internet</text>
+        <text class="when" x="90" y="287" text-anchor="middle">Box : s'éteint</text>
+        <text class="when" x="90" y="302" text-anchor="middle">tout de suite</text></g>
+      <g class="node"><rect x="182" y="206" width="156" height="112" rx="10"/>
+        <text x="260" y="230" text-anchor="middle">📡 Antennes relais</text>
+        <text class="sub" x="260" y="248" text-anchor="middle">réseau mobile</text>
+        <text class="sub" x="260" y="263" text-anchor="middle">(sur batteries)</text>
+        <text class="when" x="260" y="287" text-anchor="middle">Tiennent ≈ 20 min</text>
+        <text class="when" x="260" y="302" text-anchor="middle">à 2 h</text></g>
+      <g class="node"><rect x="352" y="206" width="156" height="112" rx="10"/>
+        <text x="430" y="230" text-anchor="middle">🌐 Internet</text>
+        <text class="sub" x="430" y="248" text-anchor="middle">data centers</text>
+        <text class="sub" x="430" y="263" text-anchor="middle">(groupes électrogènes)</text>
+        <text class="when" x="430" y="287" text-anchor="middle">Carburant pour</text>
+        <text class="when" x="430" y="302" text-anchor="middle">12 h au moins</text></g>
+    </svg>
+    <p class="src">Appuie sur le bouton pour voir combien de temps chaque maillon tient. Autonomies : chiffres d'opérateurs français et norme Uptime Institute (détails en section 4).</p>
+  </div>
+
+  <h3>Trois types de coupure</h3>
+  <div class="cards">
+    <div class="card"><h3>Panne locale</h3><p>Un quartier ou une ville est touché par un problème proche (câble, poste électrique).</p></div>
+    <div class="card"><h3>Délestage</h3><p>Coupure <strong>volontaire</strong> et tournante pour soulager le réseau et éviter que tout s'effondre.</p></div>
+    <div class="card"><h3>Blackout général</h3><p>Le réseau entier d'une région ou d'un pays s'effondre. Il faut le rallumer morceau par morceau.</p></div>
+  </div>
+  <p>En Europe, si la fréquence tombe à 49 Hz, des automatismes coupent une partie des clients pour sauver le reste. En Afrique du Sud, le délestage est organisé par paliers : le palier 6 retire jusqu'à 6 000 MW du réseau, et 2023 a compté un record de 332 jours avec délestage (205 en 2022).</p>
+  <p class="src">Sources : <a href="https://www.edf.fr/la-centrale-nucleaire-du-tricastin/les-actualites-de-la-centrale-nucleaire-du-tricastin/la-frequence-electrique-un-equilibre-vital-pour-le-reseau-et-pour-la-centrale-nucleaire-du-tricastin">EDF</a> · <a href="https://www.annales.org/ri/2007/ri-aout-2007/leteurtrois.pdf">Annales des Mines</a> · <a href="https://dailyinvestor.com/energy/14618/eskom-hits-stage-8-load-shedding/">Daily Investor</a> · <a href="https://iol.co.za/news/south-africa/2023-12-11-the-year-we-were-plunged-into-darkness-a-record-332-days-of-load-shedding-in-2023-and-counting/">IOL</a></p>
+</section>
+
+<section id="s2">
+  <h2><span class="num">2</span>Pourquoi ça arrive ?</h2>
+  <ul>
+    <li><strong>La météo.</strong> Texas, février 2021 : plus de 4,5 millions de personnes sans courant, certaines pendant 4 jours ; 44 % des arrêts imprévus de centrales venaient d'équipements gelés ; bilan estimé à 246 morts par l'État du Texas.</li>
+    <li><strong>La surcharge.</strong> Trop de demande en même temps (climatiseurs, chauffage) : le contexte de la panne indienne de 2012.</li>
+    <li><strong>La panne technique.</strong> Une ligne qui touche un arbre, un logiciel d'alarme en panne : le point de départ de 2003 en Amérique du Nord.</li>
+    <li><strong>L'erreur humaine.</strong> Europe, 4 novembre 2006 : une ligne coupée en Allemagne pour laisser passer un navire, opération mal préparée ; plus de 15 millions de foyers privés de courant pendant près de deux heures.</li>
+    <li><strong>La cyberattaque.</strong> Ukraine, 2015 : des pirates ouvrent les disjoncteurs à distance.</li>
+  </ul>
+  <div class="note"><strong>L'effet dominos.</strong> Un blackout géant n'a presque jamais une seule cause : une première panne reporte la charge sur les autres lignes, qui se mettent en sécurité à leur tour. C'est une cascade.</div>
+  <p class="src">Sources : <a href="https://ferc.gov/news-events/news/final-report-february-2021-freeze-underscores-winterization-recommendations">FERC</a> · <a href="https://abc13.com/amp/post/texas-winter-storm-2021-power-outage-report-finds-cause-deaths/11041471/">ABC13</a> · <a href="https://www.cre.fr/fileadmin/Documents/Communiques_de_presse/import/1170938766980.pdf">CRE</a></p>
+</section>
+
+<section id="s3">
+  <h2><span class="num">3</span>Exemples réels</h2>
+
+  <h3>Frise des blackouts</h3>
+  <ol class="frise">
+    <li><time datetime="2003-08-14">14 août 2003</time> <span class="where">· États-Unis et Canada</span><span class="tag">panne technique</span>
+      <p>Des lignes touchent des arbres en Ohio et le logiciel d'alarme est en panne. Environ 50 millions de personnes touchées, 61 800 MW coupés, jusqu'à 2 à 4 jours sans courant. Coût estimé : environ 6 milliards de dollars.</p></li>
+    <li><time datetime="2006-11-04">4 novembre 2006</time> <span class="where">· Europe de l'Ouest</span><span class="tag">erreur humaine</span>
+      <p>Une ligne coupée pour laisser passer un navire en Allemagne. Plus de 15 millions de foyers, environ 2 heures.</p></li>
+    <li><time datetime="2012-07-30">30-31 juillet 2012</time> <span class="where">· Inde</span><span class="tag">surcharge</span>
+      <p>Réseau fragile et très forte demande pendant la chaleur. Environ 620 millions de personnes sans courant le 31 juillet, dans 20 États ; des centaines de trains arrêtés.</p></li>
+    <li><time datetime="2015-12-23">23 décembre 2015</time> <span class="where">· Ukraine</span><span class="tag">cyberattaque</span>
+      <p>Des pirates prennent le contrôle de trois compagnies de distribution. Environ 225 000 clients coupés pendant plusieurs heures.</p></li>
+    <li><time datetime="2021-02">Février 2021</time> <span class="where">· Texas</span><span class="tag">météo</span>
+      <p>Vague de froid, centrales gelées. Plus de 4,5 millions de personnes, jusqu'à 4 jours.</p></li>
+    <li><time datetime="2025-04-28">28 avril 2025</time> <span class="where">· Espagne et Portugal</span><span class="tag">surtension en cascade</span>
+      <p>Deux pays entiers dans le noir à 12 h 33. Environ 18 heures pour rétablir plus de 99 % du courant en Espagne.</p></li>
+  </ol>
+
+  <h3>Zoom : la panne géante du 28 avril 2025</h3>
+  <div class="facts">
+    <div class="fact"><b>12 h 33</b><span>heure du début</span></div>
+    <div class="fact"><b>15 GW</b><span>perdus en 5 secondes</span></div>
+    <div class="fact"><b>≈ 60 %</b><span>de la consommation espagnole du moment</span></div>
+    <div class="fact"><b>≈ 18 h</b><span>pour rétablir plus de 99 %</span></div>
+  </div>
+  <p><strong>Cause.</strong> Le rapport final de 49 experts européens (20 mars 2026) ne désigne pas un coupable unique : des oscillations, un contrôle insuffisant de la tension, puis des centrales qui se déconnectent en cascade quand la tension monte trop vite.</p>
+  <p><strong>Conséquences.</strong></p>
+  <ul>
+    <li>116 trains bloqués, 30 000 à 35 000 voyageurs évacués.</li>
+    <li>Trafic internet : environ −60 % tout de suite puis jusqu'à −80 % en Espagne ; −50 % puis jusqu'à −90 % au Portugal.</li>
+    <li>Paiements par carte en magasin : −55 %.</li>
+    <li>Hôpitaux sur groupes électrogènes, soins non urgents reportés.</li>
+    <li>Coût : entre moins de 400 millions et 1,6 milliard d'euros selon les estimations.</li>
+    <li>Au moins 5 décès rapportés par la presse le 30 avril ; bilan officiel définitif <span class="nv">non vérifié</span></li>
+  </ul>
+  <div class="note"><strong>Et au Maroc ?</strong> Pas de coupure de courant. L'ONEE a aidé l'Espagne par les câbles sous-marins du détroit de Gibraltar (environ 519 MW selon la presse). Mais le trafic internet d'Orange Maroc a été perturbé, parce que ses liaisons internationales passent par la péninsule ibérique : <strong>on peut perdre internet à cause d'une panne dans un autre pays.</strong></div>
+  <p class="src">Sources : <a href="https://www.entsoe.eu/publications/blackout/28-april-2025-iberian-blackout/">ENTSO-E</a> · <a href="https://www.entsoe.eu/news/2026/03/20/entso-e-publishes-expert-panel-final-report-on-28-april-2025-blackout-in-spain-and-portugal/">Rapport final ENTSO-E</a> · <a href="https://blog.cloudflare.com/how-power-outage-in-portugal-spain-impacted-internet">Cloudflare</a> · <a href="https://www.bde.es/wbe/es/noticias-eventos/blog/como-pagamos-cuando-todo-se-apaga-la-experiencia-del-apagon-en-espana.html">Banco de España</a> · <a href="https://medias24.com/2025/05/04/blackout-en-europe-systeme-electrique-national/">Médias24</a> · <a href="https://fr.apanews.net/news/orange-maroc-annonce-le-retour-progressif-dinternet-apres-la-panne-en-europe/">APA News</a> · <a href="https://emp.lbl.gov/publications/final-report-august-14-2003-blackout">Rapport 2003</a> · <a href="https://www.csmonitor.com/World/Latest-News-Wires/2012/0731/World-s-biggest-blackout-620-million-people-without-power-in-India">CS Monitor / AP</a> · <a href="https://cisa.gov/news-events/ics-alerts/ir-alert-h-16-056-01">CISA</a></p>
+</section>
+
+<section id="s4">
+  <h2><span class="num">4</span>Conséquences</h2>
+  <h3>Internet et téléphone</h3>
+  <div class="tablewrap"><table>
+    <thead><tr><th>Équipement</th><th>Que se passe-t-il ?</th><th>Autonomie</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Box internet</strong></td><td>Pas de batterie : Wi-Fi et téléphone fixe s'arrêtent.</td><td>0 minute sans onduleur</td></tr>
+      <tr><td><strong>Antennes relais</strong></td><td>Passent sur batteries, puis s'éteignent.</td><td>≈ 20 minutes (Orange, France) ; 30 minutes à 2 heures selon d'autres sources</td></tr>
+      <tr><td><strong>Data centers</strong></td><td>Batteries puis groupes électrogènes.</td><td>Au moins 12 heures de carburant (norme Uptime) ; souvent 48 à 72 heures</td></tr>
+    </tbody>
+  </table></div>
+  <p>En Espagne en 2025, une heure après le début de la panne, le plus grand opérateur ne transportait plus que 16,4 % de son trafic habituel.</p>
+  <p>Autonomie des antennes au Maroc : <span class="nv">non vérifié</span></p>
+
+  <h3>Le reste de la vie quotidienne</h3>
+  <ul>
+    <li><strong>Maison :</strong> plus de lumière, de frigo, de chauffage électrique, d'ascenseur, de recharge.</li>
+    <li><strong>Santé :</strong> les hôpitaux passent sur groupes électrogènes (un hôpital espagnol avait 18 000 litres de carburant, soit 31 heures). Le danger est surtout à la maison pour les personnes sous appareil médical.</li>
+    <li><strong>Eau :</strong> les pompes s'arrêtent ; les réservoirs tiennent un moment, puis la pression baisse, d'abord dans les étages élevés.</li>
+    <li><strong>Transports :</strong> trains, métros et tramways s'arrêtent ; les feux de circulation s'éteignent.</li>
+    <li><strong>Paiements :</strong> en Espagne, cartes en magasin −55 %, retraits aux distributeurs −34 %, paiements mobiles Bizum −75 %. L'argent liquide redevient le plan B.</li>
+    <li><strong>Économie :</strong> usines et magasins à l'arrêt, nourriture perdue.</li>
+  </ul>
+  <p class="src">Sources : <a href="https://www.arcep.fr/mes-demarches-et-services/consommateurs/fiches-pratiques/que-va-changer-la-fermeture-du-reseau-cuivre.html">Arcep</a> · <a href="https://next.ink/brief-article/en-cas-de-delestage-le-reseau-mobile-dorange-tiendra-pendant-encore-20-minutes/">Next</a> · <a href="https://keentelengineering.com/data-center-tiers-1-2-3-4">Keentel</a> · <a href="https://bandaancha.eu/articulos/ya-sabemos-que-red-fibra-movil-aguanto-11342">Bandaancha</a> · <a href="https://www.saludcastillayleon.es/HRHortega/en/noticias-medios-comunicacion/14-05-2025-rio-hortega-cuenta-dos-generadores-capacidad-lle">Salud Castilla y León</a> · <a href="https://www.maire-info.com/coupures-delectricite-cet-hiver-un-risque-majeur-pour-les-installations-deau-et-dassainissement-article2-26726">Maire-info</a> · <a href="https://www.bde.es/wbe/es/noticias-eventos/blog/como-pagamos-cuando-todo-se-apaga-la-experiencia-del-apagon-en-espana.html">Banco de España</a></p>
+</section>
+
+<section id="s5">
+  <h2><span class="num">5</span>Ce qui continue de fonctionner</h2>
+  <div class="tablewrap"><table>
+    <thead><tr><th>Ça marche encore</th><th>Pourquoi</th><th>Limite</th></tr></thead>
+    <tbody>
+      <tr><td>Téléphone, ordinateur portable</td><td>Batterie intégrée</td><td>Quelques heures ; le réseau mobile peut tomber</td></tr>
+      <tr><td>Onduleur (UPS)</td><td>Batterie qui prend le relais instantanément</td><td>De quelques minutes à quelques heures</td></tr>
+      <tr><td>Groupe électrogène</td><td>Moteur à carburant</td><td>Stock de carburant ; jamais à l'intérieur</td></tr>
+      <tr><td>Radio à piles</td><td>Consomme très peu ; les stations émettent sur groupes électrogènes</td><td>On écoute, on ne répond pas</td></tr>
+      <tr><td>Solaire <strong>avec batterie</strong></td><td>Produit et stocke sa propre énergie</td><td>Sans batterie, ça ne marche pas</td></tr>
+      <tr><td>Argent liquide</td><td>Aucune technologie</td><td>Il faut en avoir sur soi</td></tr>
+    </tbody>
+  </table></div>
+  <div class="note"><strong>Le piège du solaire.</strong> Des panneaux classiques branchés sur le réseau s'arrêtent aussi pendant une coupure. C'est une sécurité obligatoire (« anti-îlotage ») pour protéger les techniciens qui réparent les lignes.</div>
+  <p>En 2025, la radio à piles a été le moyen le plus fiable de s'informer en Espagne : les magasins ont été dévalisés en quelques heures.</p>
+  <p class="src">Sources : <a href="https://www.edf-solutions-solaires.com/guide-solaire/panneau-solaire-coupure-courant/">EDF Solutions Solaires</a> · <a href="https://www.merca2.es/2025/04/30/apagon-radio-transistor-2186283/">Merca2</a> · <a href="https://rsf.org/es/cr%C3%B3nica-la-radio-nunca-se-apaga-el-d%C3%ADa-en-que-espa%C3%B1a-se-enganch%C3%B3-las-ondas">Reporters sans frontières</a></p>
+</section>
+
+<section id="s6">
+  <h2><span class="num">6</span>Le lien avec internet</h2>
+  <p>Internet n'est pas « dans les nuages » : c'est une chaîne de machines qui ont <strong>toutes</strong> besoin de courant. Il suffit qu'un seul maillon s'éteigne pour que l'appli ne réponde plus.</p>
+  <pre>téléphone → box ou antenne → réseau opérateur → câbles internationaux → data center</pre>
+
+  <h3>Une appli qui marche hors ligne</h3>
+  <ol>
+    <li><strong>Hors ligne d'abord (offline-first).</strong> L'appli est conçue pour marcher sans réseau ; le réseau sert seulement à synchroniser.</li>
+    <li><strong>Cache local.</strong> Un <em>service worker</em> (petit programme JavaScript en arrière-plan) intercepte les requêtes et enregistre les fichiers de l'appli sur l'appareil.</li>
+    <li><strong>Données sur l'appareil.</strong> Notes et messages sont stockés localement, par exemple dans IndexedDB.</li>
+    <li><strong>Synchronisation plus tard.</strong> Les actions faites hors ligne attendent dans une file, puis partent quand le réseau revient.</li>
+  </ol>
+  <pre>// Stratégie « cache d'abord » dans un service worker
+self.addEventListener("fetch", (event) => {
+  event.respondWith(
+    caches.match(event.request)
+      .then((enCache) => enCache || fetch(event.request))
+  );
+});</pre>
+
+  <h3>Communiquer sans internet</h3>
+  <div class="tablewrap"><table>
+    <thead><tr><th>Solution</th><th>Comment</th><th>Limite</th></tr></thead>
+    <tbody>
+      <tr><td>Réseau maillé radio (Meshtastic)</td><td>Des boîtiers radio LoRa se relaient les messages de proche en proche</td><td>Texte seulement ; quelques kilomètres par saut</td></tr>
+      <tr><td>Mesh entre téléphones (Briar)</td><td>Échange direct en Bluetooth ou Wi-Fi</td><td>Environ 10 mètres</td></tr>
+      <tr><td>Diffusion cellulaire, SMS</td><td>Passe par l'antenne, sans internet</td><td>L'antenne doit avoir du courant</td></tr>
+      <tr><td>Radio FM/AM</td><td>Un émetteur, des millions de récepteurs à piles</td><td>Sens unique</td></tr>
+    </tbody>
+  </table></div>
+  <p class="src">Sources : <a href="https://developer.mozilla.org/en-US/docs/Web/API/Service_Worker_API">MDN — Service Worker API</a> · <a href="https://developer.mozilla.org/en-US/docs/Web/Progressive_web_apps/Guides/Offline_and_background_operation">MDN — Offline and background operation</a> · <a href="https://www.linux-magazine.com/Online/Features/Meshtastic">Linux Magazine</a> · <a href="https://briarproject.org/quick-start/">Briar Project</a> · <a href="https://www.interieur.gouv.fr/actualites/actualites-du-ministere/tout-savoir-sur-dispositif-national-fr-alert">Ministère de l'Intérieur (France)</a></p>
+</section>
+
+<section id="s7">
+  <h2><span class="num">7</span>Comment se préparer</h2>
+  <p>L'Union européenne recommande depuis le 26 mars 2025 que chaque foyer puisse tenir <strong>72 heures</strong> en autonomie. Le kit conseillé par le gouvernement français :</p>
+  <ul>
+    <li>eau : environ 6 litres par personne ;</li>
+    <li>nourriture qui se mange sans cuisson ;</li>
+    <li>radio à piles et lampe de poche, avec piles de rechange ;</li>
+    <li>trousse de secours et médicaments ;</li>
+    <li>argent liquide, copies des papiers, batterie externe.</li>
+  </ul>
+  <div class="note"><strong>Danger.</strong> Ne jamais utiliser un groupe électrogène, un barbecue ou un brasero à l'intérieur : risque d'intoxication mortelle au monoxyde de carbone.</div>
+  <p><strong>Pendant la coupure :</strong> économiser la batterie du téléphone, ouvrir le frigo le moins possible, préférer les lampes aux bougies, écouter la radio, prendre des nouvelles des voisins fragiles.</p>
+  <p class="src">Sources : <a href="https://www.info.gouv.fr/risques/se-preparer-a-une-situation-durgence">info.gouv.fr</a> · <a href="https://www.georisques.gouv.fr/sites/default/files/2022-08/KIT%2072H_A4-HD.pdf">Géorisques</a> · <a href="https://www.vrt.be/vrtnws/fr/2025/03/26/les-citoyens-europeens-invites-a-prevoir-un-kit-de-survie-pour-3/">VRT</a></p>
+</section>
+
+<section id="s8">
+  <h2><span class="num">8</span>Au Maroc</h2>
+  <ul>
+    <li><strong>ONEE :</strong> l'opérateur public, présent dans la production, le transport et la distribution.</li>
+    <li><strong>ANRE :</strong> le régulateur du secteur, créé par la loi n° 48-15 de 2016.</li>
+    <li><strong>SRM :</strong> les sociétés régionales multiservices reprennent peu à peu la distribution ; 12 sont prévues, la première (Casablanca-Settat) a démarré le 1er octobre 2024.</li>
+    <li><strong>Lien avec l'Espagne :</strong> deux câbles sous-marins de 400 kV (1998 et 2006), capacité totale de 1 400 MW ; un troisième de 700 MW est prévu.</li>
+  </ul>
+  <h3>Coupures notables</h3>
+  <ul>
+    <li><strong>Casablanca, 8 juillet 2020 :</strong> de 6 h 26 à 19 h 40 (environ 13 heures), plus de 200 000 clients coupés, tramway arrêté.</li>
+    <li><strong>28 avril 2025 :</strong> pas de coupure de courant, mais internet perturbé chez Orange Maroc.</li>
+    <li><strong>Casablanca, 11 novembre 2026 :</strong> panne vers 17 h pendant de fortes intempéries, tramway et feux arrêtés. Cause officielle et durée <span class="nv">non vérifié</span></li>
+  </ul>
+  <p>Plan national public en cas de blackout (consignes, autonomie des hôpitaux et des antennes) : <span class="nv">non vérifié</span> — aucun document officiel trouvé.</p>
+  <p class="src">Sources : <a href="https://ma.boell.org/sites/default/files/2022-04/Quels%20sont%20les%20acteurs%20du%20secteur%20de%20l%E2%80%99%C3%A9lectricit%C3%A9%20au%20Maroc.pdf">Fondation Heinrich Böll</a> · <a href="https://faolex.fao.org/docs/pdf/mor161464.pdf">Loi 48-15</a> · <a href="https://fnh.ma/article/actualites-marocaines/srm-casablanca-settat">Finances News Hebdo</a> · <a href="https://medias24.com/2025/01/22/round-up-ce-quil-faut-savoir-sur-les-interconnexions-electriques-du-maroc/">Médias24</a> · <a href="https://medias24.com/2020/07/08/coupure-delectricite-a-casablanca-100-des-clients-retablis-lydec/">Médias24 (2020)</a> · <a href="https://telquel.ma/instant-t/2026/11/11/casablanca-une-partie-de-la-metropole-paralysee-par-une-coupure-electrique_2017780">TelQuel</a></p>
+</section>
+
+<section id="s9">
+  <h2><span class="num">9</span>Conclusion</h2>
+  <ol>
+    <li>Une coupure peut être petite (panne locale), organisée (délestage) ou géante (blackout).</li>
+    <li>Les grandes pannes sont des cascades : plusieurs causes s'enchaînent.</li>
+    <li>Tout dépend de l'électricité : l'eau, les trains, les paiements, les hôpitaux et internet.</li>
+    <li>Internet est fragile près de chez nous : la box s'éteint tout de suite, les antennes tiennent de quelques dizaines de minutes à quelques heures, les data centers au moins 12 heures.</li>
+    <li>Les solutions simples sont les plus solides : radio à piles, lampe, eau, argent liquide.</li>
+    <li>L'informatique peut s'adapter : une appli « hors ligne d'abord » reste utile quand le réseau est éteint.</li>
+  </ol>
+</section>
+
+<section id="sources">
+  <h2>Sources et limites</h2>
+  <p>La liste complète des 85 sources (dont 21 officielles) se trouve dans <a href="03-sources.md">03-sources.md</a> ; le dossier détaillé dans <a href="02-recherche.md">02-recherche.md</a>.</p>
+  <p>Les faits ont été vérifiés par recherche web le 11 novembre 2026. Ce qui n'a pas pu être confirmé par une source fiable est marqué <span class="nv">non vérifié</span> ou a été retiré.</p>
+</section>
+
+</main>
+
+<footer><div class="wrap">Dossier de recherche — projet d'informatique · Page autonome, sans framework, lisible hors ligne.</div></footer>
+
+<script>
+(function () {
+  var root = document.documentElement;
+  var btn = document.getElementById("theme");
+  function isDark() {
+    var t = root.getAttribute("data-theme");
+    if (t) return t === "dark";
+    return window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+  }
+  function label() { btn.textContent = isDark() ? "☀️ Mode clair" : "🌙 Mode sombre"; }
+  try {
+    var saved = localStorage.getItem("theme");
+    if (saved === "dark" || saved === "light") root.setAttribute("data-theme", saved);
+  } catch (e) {}
+  label();
+  btn.addEventListener("click", function () {
+    var next = isDark() ? "light" : "dark";
+    root.setAttribute("data-theme", next);
+    try { localStorage.setItem("theme", next); } catch (e) {}
+    label();
+  });
+
+  var schema = document.getElementById("schema");
+  var cut = document.getElementById("cut");
+  var state = document.getElementById("state");
+  cut.addEventListener("click", function () {
+    var off = schema.classList.toggle("cut");
+    cut.setAttribute("aria-pressed", off ? "true" : "false");
+    cut.textContent = off ? "💡 Remettre le courant" : "✂️ Couper le courant";
+    state.textContent = off
+      ? "Courant coupé : chaque maillon tient un temps différent."
+      : "Le courant passe : tout fonctionne.";
+  });
+})();
+</script>
+</body>
+</html>
