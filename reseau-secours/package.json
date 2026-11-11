@@ -1,0 +1,16 @@
+{
+  "name": "reseau-secours",
+  "version": "1.0.0",
+  "description": "Messagerie de classe qui marche sur batterie, sans électricité ni internet",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "author": "Othmane",
+  "license": "MIT",
+  "private": true,
+  "dependencies": {
+    "express": "^5.3.0",
+    "socket.io": "^4.8.4"
+  }
+}

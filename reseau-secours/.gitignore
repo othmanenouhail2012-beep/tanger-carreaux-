@@ -1,0 +1,9 @@
+# Les bibliothèques téléchargées par "npm install" (on ne les met pas dans Git, c'est trop lourd)
+node_modules/
+
+# Les données de la classe (messages, annonces...) restent sur l'ordinateur
+data/*.json
+
+# Fichiers créés automatiquement par Windows / Mac
+.DS_Store
+Thumbs.db
